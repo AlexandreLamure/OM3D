@@ -2,11 +2,14 @@
 
 #include <csignal>
 #include <cstdio>
+#include <cstdlib>
+
+#include <iostream>
+#include <chrono>
 
 #ifdef OS_WIN
 #include <windows.h>
 #endif
-
 
 
 void break_in_debugger() {
@@ -25,8 +28,29 @@ void break_in_debugger() {
 #endif
 }
 
+void fatal(const char* msg, const char* file, int line) {
+    std::cerr << msg;
 
-Result<std::string> read_file(const std::string& file_name) {
+    if(file) {
+        std::cerr << " in file \""<< file << "\"";
+    }
+    if(line) {
+        std::cerr << " at line " << line;
+    }
+
+    break_in_debugger();
+    std::terminate();
+}
+
+
+static const auto start_time = std::chrono::high_resolution_clock::now();
+
+double program_time() {
+    using Seconds = std::chrono::duration<double>;
+    return std::chrono::duration_cast<Seconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+}
+
+Result<std::string> read_text_file(const std::string& file_name) {
     if(FILE* file = std::fopen(file_name.data(), "r")) {
         DEFER(std::fclose(file));
 

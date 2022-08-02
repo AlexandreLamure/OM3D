@@ -1,11 +1,10 @@
-#define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <iostream>
 
-#include <utils.h>
+#include <RenderContext.h>
 
 void glfw_check(bool cond) {
     if(!cond) {
@@ -14,11 +13,6 @@ void glfw_check(bool cond) {
         std::cerr << "GLFW error: " << err << std::endl;
         std::exit(EXIT_FAILURE);
     }
-}
-
-void render_gl(GLFWwindow* window) {
-    glfwMakeContextCurrent(window);
-    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 int main(int, char**) {
@@ -30,9 +24,7 @@ int main(int, char**) {
     DEFER(glfwDestroyWindow(window));
 
     glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-
-    glClearColor(0.5f, 0.7f, 0.8f, 0.0f);
+    RenderContext ctx;
 
     for(;;) {
         glfwPollEvents();
@@ -40,7 +32,10 @@ int main(int, char**) {
             break;
         }
 
-        render_gl(window);
+        {
+            glClear(GL_COLOR_BUFFER_BIT);
+            ctx.draw_screen();
+        }
         glfwSwapBuffers(window);
     }
 }

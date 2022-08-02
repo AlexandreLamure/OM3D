@@ -5,15 +5,41 @@
 
 #include <cstdint>
 #include <utility>
-#include <string_view>
 #include <string>
 
 #define FWD(var) std::forward<decltype(var)>(var)
 #define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = OnExit([&]() { expr; })
+#define FATAL(msg) fatal((msg), __FILE__, __LINE__)
+#define ALWAYS_ASSERT(cond, msg) do { if(!(cond)) { FATAL(msg); } } while(false)
 
 
-using u32 = uint32_t;
+using u8 = uint8_t;
 using u16 = uint16_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
+
+using i8 = int8_t;
+using i16 = int16_t;
+using i32 = int32_t;
+using i64 = int64_t;
+
+struct NonCopyable {
+    inline constexpr NonCopyable() {}
+    NonCopyable(const NonCopyable&) = delete;
+    NonCopyable& operator=(const NonCopyable&) = delete;
+
+    NonCopyable(NonCopyable&&) = default;
+    NonCopyable& operator=(NonCopyable&&) = default;
+};
+
+struct NonMovable : NonCopyable {
+    inline constexpr NonMovable() {}
+    NonMovable(const NonMovable&) = delete;
+    NonMovable& operator=(const NonMovable&) = delete;
+
+    NonMovable(NonMovable&&) = delete;
+};
+
 
 template<typename T>
 struct [[nodiscard]] Result {
@@ -43,9 +69,44 @@ class OnExit {
         T _ex;
 };
 
+class GLHandle : NonCopyable {
+    public:
+        GLHandle() = default;
+
+        explicit GLHandle(u32 handle) : _handle(handle) {
+        }
+
+        GLHandle(GLHandle&& other) {
+            swap(other);
+        }
+
+        GLHandle& operator=(GLHandle&& other) {
+            swap(other);
+            return *this;
+        }
+
+        void swap(GLHandle& other) {
+            std::swap(_handle, other._handle);
+        }
+
+        u32 get() const {
+            return _handle;
+        }
+
+        bool is_valid() const {
+            return _handle;
+        }
+
+    private:
+        u32 _handle = 0;
+};
+
 
 void break_in_debugger();
-Result<std::string> read_file(const std::string& file_name);
+[[noreturn]] void fatal(const char* msg, const char* file = nullptr, int line = 0);
+
+double program_time();
+Result<std::string> read_text_file(const std::string& file_name);
 
 
 #endif // UTILS_H
