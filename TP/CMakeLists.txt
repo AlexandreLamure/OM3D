@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.20)
 project(TP)
 
 # CPP setup
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(EXTRA_WARNINGS -Wfloat-conversion -Woverloaded-virtual -Wnon-virtual-dtor)
 set(COMPILE_OPTIONS -pedantic -Wall -Wextra ${EXTRA_WARNINGS})
@@ -13,6 +12,9 @@ add_subdirectory(external/glfw)
 include_directories(external/glfw/include)
 
 include_directories(external/glad/include) # glad generated using https://gen.glad.sh/#generator=c&api=gl%3D4.4&profile=gl%3Dcore%2Cgles1%3Dcommon&options=HEADER_ONLY
+
+include_directories(${TP_SOURCE_DIR}/src)
+
 
 file(GLOB_RECURSE SOURCE_FILES
         "src/*.h"

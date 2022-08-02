@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include <utils.h>
+
 void glfw_check(bool cond) {
     if(!cond) {
         const char* err = nullptr;
@@ -21,9 +23,11 @@ void render_gl(GLFWwindow* window) {
 
 int main(int, char**) {
     glfw_check(glfwInit());
+    DEFER(glfwTerminate());
+
     GLFWwindow* window = glfwCreateWindow(640, 480, "TP window", nullptr, nullptr);
     glfw_check(window);
-
+    DEFER(glfwDestroyWindow(window));
 
     glfwMakeContextCurrent(window);
     gladLoadGL(glfwGetProcAddress);
@@ -39,7 +43,4 @@ int main(int, char**) {
         render_gl(window);
         glfwSwapBuffers(window);
     }
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
 }
