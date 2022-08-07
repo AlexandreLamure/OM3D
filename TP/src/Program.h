@@ -1,7 +1,7 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include <utils.h>
+#include <graphics.h>
 
 class Program : NonCopyable {
     public:
@@ -12,9 +12,9 @@ class Program : NonCopyable {
         Program(const std::string& frag, const std::string& vert);
         ~Program();
 
-    private:
-        friend class RenderContext;
+        static Program from_files(const std::string& frag, const std::string& vert);
 
+    private:
         GLHandle _handle;
 };
 

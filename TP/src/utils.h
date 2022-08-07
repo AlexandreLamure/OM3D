@@ -69,38 +69,6 @@ class OnExit {
         T _ex;
 };
 
-class GLHandle : NonCopyable {
-    public:
-        GLHandle() = default;
-
-        explicit GLHandle(u32 handle) : _handle(handle) {
-        }
-
-        GLHandle(GLHandle&& other) {
-            swap(other);
-        }
-
-        GLHandle& operator=(GLHandle&& other) {
-            swap(other);
-            return *this;
-        }
-
-        void swap(GLHandle& other) {
-            std::swap(_handle, other._handle);
-        }
-
-        u32 get() const {
-            return _handle;
-        }
-
-        bool is_valid() const {
-            return _handle;
-        }
-
-    private:
-        u32 _handle = 0;
-};
-
 
 void break_in_debugger();
 [[noreturn]] void fatal(const char* msg, const char* file = nullptr, int line = 0);

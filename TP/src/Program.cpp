@@ -2,6 +2,12 @@
 
 #include <glad/glad.h>
 
+static std::string read_shader(const std::string& file_name) {
+    const auto content = read_text_file(std::string(shader_path) + file_name);
+    ALWAYS_ASSERT(content.is_ok, "Unable to read shader");
+    return content.value;
+}
+
 static GLuint create_shader(const std::string& src, GLenum type) {
     const GLuint handle = glCreateShader(type);
 
@@ -53,4 +59,8 @@ Program::~Program() {
     if(_handle.is_valid()) {
         glDeleteProgram(_handle.get());
     }
+}
+
+Program Program::from_files(const std::string& frag, const std::string& vert) {
+    return Program(read_shader(frag), read_shader(vert));
 }

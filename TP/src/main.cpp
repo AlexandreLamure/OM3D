@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#include <RenderContext.h>
+#include <graphics.h>
 
 void glfw_check(bool cond) {
     if(!cond) {
@@ -25,7 +25,7 @@ int main(int, char**) {
     DEFER(glfwDestroyWindow(window));
 
     glfwMakeContextCurrent(window);
-    RenderContext ctx;
+    init_graphics();
 
     for(;;) {
         glfwPollEvents();
@@ -35,7 +35,6 @@ int main(int, char**) {
 
         {
             glClear(GL_COLOR_BUFFER_BIT);
-            ctx.draw_screen();
         }
         glfwSwapBuffers(window);
     }

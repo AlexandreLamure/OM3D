@@ -1,9 +1,9 @@
+#include "graphics.h"
+
 #include <glad/glad.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-
-#include "RenderContext.h"
 
 #include <iostream>
 
@@ -20,28 +20,26 @@ void debug_out(GLenum, GLenum type, GLuint, GLuint sev, GLsizei, const char* msg
     }
 }
 
+u32 buffer_usage_to_gl(BufferUsage usage) {
+    switch(usage) {
+        case BufferUsage::Attribute:
+            return GL_ARRAY_BUFFER;
 
+        case BufferUsage::Uniform:
+            return GL_UNIFORM_BUFFER;
 
-static std::string read_shader(const std::string& file_name) {
-    const auto content = read_text_file(std::string(RenderContext::shader_path) + file_name);
-    ALWAYS_ASSERT(content.is_ok, "Unable to read shader");
-    return content.value;
+        case BufferUsage::Index:
+            return GL_ELEMENT_ARRAY_BUFFER;
+    }
+
+    FATAL("Unknown usage value");
 }
 
-RenderContext::RenderContext() {
+void init_graphics() {
     ALWAYS_ASSERT(gladLoadGLLoader((GLADloadproc)(glfwGetProcAddress)), "glad initialization failed");
     glClearColor(0.5f, 0.7f, 0.8f, 0.0f);
 
     glDebugMessageCallback(&debug_out, nullptr);
     glEnable(GL_DEBUG_OUTPUT);
-
-    _screen = Program(read_shader("red.frag"), read_shader("screen.vert"));
 }
 
-RenderContext::~RenderContext() {
-}
-
-void RenderContext::draw_screen() {
-    glUseProgram(_screen._handle.get());
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-}
