@@ -12,6 +12,7 @@
 #if defined(WIN32) || defined(__WIN32) || defined(__WIN32__) || defined(_WINDOWS)
 #define OS_WIN
 #define WIN32_LEAN_AND_MEAN
+
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif

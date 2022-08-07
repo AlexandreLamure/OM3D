@@ -3,15 +3,19 @@ project(TP)
 
 # CPP setup
 set(CMAKE_CXX_STANDARD 17)
-set(EXTRA_WARNINGS -Wfloat-conversion -Woverloaded-virtual -Wnon-virtual-dtor)
-set(COMPILE_OPTIONS -pedantic -Wall -Wextra ${EXTRA_WARNINGS})
+if(MSVC)
+    set(COMPILE_OPTIONS /permissive- /W3 /WX /fp:fast -D_CRT_SECURE_NO_DEPRECATE /Zc:preprocessor /wd5105)
+else()
+    set(EXTRA_WARNINGS -Wfloat-conversion -Woverloaded-virtual -Wnon-virtual-dtor)
+    set(COMPILE_OPTIONS -pedantic -Wall -Wextra ${EXTRA_WARNINGS})
+endif()
 
 
 # setup external libraries
 add_subdirectory(external/glfw)
 include_directories(external/glfw/include)
 
-include_directories(external/glad/include) # glad generated using https://gen.glad.sh/#generator=c&api=gl%3D4.4&profile=gl%3Dcore%2Cgles1%3Dcommon&options=HEADER_ONLY
+include_directories(external/glad/include)
 
 include_directories(${TP_SOURCE_DIR}/src)
 
@@ -21,10 +25,12 @@ file(GLOB_RECURSE SOURCE_FILES
         "src/*.cpp"
     )
 
-#file(GLOB_RECURSE EXTERNAL_FILES
-#        "external/imgui/*.cpp"
-#        "external/imgui/*.h"
-#    )
+file(GLOB_RECURSE EXTERNAL_FILES
+        "external/glad/*.c"
+        "external/glad/*.h"
+        # "external/imgui/*.cpp"
+        # "external/imgui/*.h"
+    )
 
 # Shader files
 file(GLOB_RECURSE SHADER_FILES
@@ -37,6 +43,6 @@ file(GLOB_RECURSE SHADER_FILES
 
 
 
-add_executable(TP ${SOURCE_FILES} ${SHADER_FILES})
+add_executable(TP ${SOURCE_FILES} ${EXTERNAL_FILES} ${SHADER_FILES})
 target_link_libraries(TP glfw)
 target_compile_options(TP PUBLIC ${COMPILE_OPTIONS})

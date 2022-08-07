@@ -1,5 +1,5 @@
-#define GLAD_GL_IMPLEMENTATION
-#include <glad/gl.h>
+#include <glad/glad.h>
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-GLAPIENTRY void debug_out(GLenum, GLenum type, GLuint, GLuint sev, GLsizei, const char* msg, const void*) {
+void debug_out(GLenum, GLenum type, GLuint, GLuint sev, GLsizei, const char* msg, const void*) {
     if(sev == GL_DEBUG_SEVERITY_NOTIFICATION) {
         return;
     }
@@ -29,10 +29,10 @@ static std::string read_shader(const std::string& file_name) {
 }
 
 RenderContext::RenderContext() {
-    ALWAYS_ASSERT(gladLoadGL(glfwGetProcAddress), "glad initialization failed");
+    ALWAYS_ASSERT(gladLoadGLLoader((GLADloadproc)(glfwGetProcAddress)), "glad initialization failed");
     glClearColor(0.5f, 0.7f, 0.8f, 0.0f);
 
-    glDebugMessageCallback(&debug_out, 0);
+    glDebugMessageCallback(&debug_out, nullptr);
     glEnable(GL_DEBUG_OUTPUT);
 
     _screen = Program(read_shader("red.frag"), read_shader("screen.vert"));

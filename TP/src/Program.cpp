@@ -1,11 +1,11 @@
 #include "Program.h"
 
-#include <glad/gl.h>
+#include <glad/glad.h>
 
 static GLuint create_shader(const std::string& src, GLenum type) {
     const GLuint handle = glCreateShader(type);
 
-    const int len = src.size();
+    const int len = int(src.size());
     const char* c_str = src.c_str();
 
     glShaderSource(handle, 1, &c_str, &len);

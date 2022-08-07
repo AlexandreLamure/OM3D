@@ -63,7 +63,12 @@ Result<std::string> read_text_file(const std::string& file_name) {
         std::string content(size, '\0');
         const size_t read = std::fread(content.data(), 1, size, file);
 
-        return {read == size, std::move(content)};
+        ALWAYS_ASSERT(read <= size, "Unable to read file");
+        if(read != size) {
+            content.resize(read);
+        }
+
+        return {true, std::move(content)};
     }
 
     return {false, {}};
