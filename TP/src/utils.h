@@ -13,6 +13,12 @@
 #define ALWAYS_ASSERT(cond, msg) do { if(!(cond)) { FATAL(msg); } } while(false)
 #define HASH(str) ([] { static constexpr u32 result = str_hash(str); return result; }())
 
+#ifdef NDEBUG
+#define DEBUG_ASSERT(cond) do { /*(void)(cond);*/ } while(false)
+#else
+#define DEBUG_ASSERT(cond) ALWAYS_ASSERT(cond, "Assert failed: " #cond)
+#endif
+
 using u8 = uint8_t;
 using u16 = uint16_t;
 using u32 = uint32_t;

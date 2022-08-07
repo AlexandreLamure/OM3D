@@ -21,6 +21,8 @@ void glfw_check(bool cond) {
 }
 
 int main(int, char**) {
+    DEBUG_ASSERT([] { std::cout << "Debug asserts enabled" << std::endl; return true; }());
+
     glfw_check(glfwInit());
     DEFER(glfwTerminate());
 
