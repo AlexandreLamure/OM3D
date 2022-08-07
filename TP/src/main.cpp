@@ -37,7 +37,7 @@ int main(int, char**) {
     vertices.push_back({{0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}});
 
     ByteBuffer buffer(vertices.data(), vertices.size() * sizeof(Vertex));
-    Program progam = Program::from_files("color.frag", "color.vert");
+    Program program = Program::from_files("fixed_color.frag", "color.vert");
 
     for(;;) {
         glfwPollEvents();
@@ -48,7 +48,10 @@ int main(int, char**) {
         {
             glClear(GL_COLOR_BUFFER_BIT);
 
-            progam.bind();
+            program.set_uniform("red", float(std::sin(program_time()) * 0.5f + 0.5f));
+            program.set_uniform("green", 0.5f);
+            program.set_uniform("blue", 1.0f);
+            program.bind();
             buffer.bind(BufferUsage::Attribute);
 
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * sizeof(float), nullptr);

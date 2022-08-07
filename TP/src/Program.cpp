@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include <algorithm>
+
 static std::string read_shader(const std::string& file_name) {
     const auto content = read_text_file(std::string(shader_path) + file_name);
     ALWAYS_ASSERT(content.is_ok, "Unable to read shader");
@@ -42,6 +44,8 @@ static void link_program(GLuint handle) {
     }
 }
 
+
+
 Program::Program(const std::string& frag, const std::string& vert) : _handle(glCreateProgram()) {
     const GLuint vert_handle = create_shader(vert, GL_VERTEX_SHADER);
     const GLuint frag_handle = create_shader(frag, GL_FRAGMENT_SHADER);
@@ -53,6 +57,26 @@ Program::Program(const std::string& frag, const std::string& vert) : _handle(glC
 
     glDeleteShader(vert_handle);
     glDeleteShader(frag_handle);
+
+    {
+        int uniform_count = 0;
+        glGetProgramiv(_handle.get(), GL_ACTIVE_UNIFORMS, &uniform_count);
+
+        for(int i = 0; i != uniform_count; ++i) {
+            char name[1024] = {};
+            int len = 0;
+            int discard = 0;
+            GLenum type = GL_NONE;
+
+            glGetActiveUniform(_handle.get(), i, sizeof(name), &len, &discard, &type, name);
+
+            _uniform_locations.emplace_back(UniformLocationInfo{str_hash(name), glGetUniformLocation(_handle.get(), name)});
+        }
+
+        std::sort(_uniform_locations.begin(), _uniform_locations.end());
+        ALWAYS_ASSERT(std::unique(_uniform_locations.begin(), _uniform_locations.end()) == _uniform_locations.end(), "Duplicated uniform hash");
+
+    }
 }
 
 Program::~Program() {
@@ -67,4 +91,15 @@ void Program::bind() const {
 
 Program Program::from_files(const std::string& frag, const std::string& vert) {
     return Program(read_shader(frag), read_shader(vert));
+}
+
+void Program::set_uniform(u32 name_hash, float value) {
+    if(const int loc = find_location(name_hash); loc >= 0) {
+        glProgramUniform1f(_handle.get(), loc, value);
+    }
+}
+
+int Program::find_location(u32 hash) {
+    const auto it = std::lower_bound(_uniform_locations.begin(), _uniform_locations.end(), UniformLocationInfo{hash, 0});
+    return it == _uniform_locations.end() ? -1 : it->location;
 }
