@@ -12,6 +12,8 @@ class Program : NonCopyable {
         Program(const std::string& frag, const std::string& vert);
         ~Program();
 
+        void bind() const;
+
         static Program from_files(const std::string& frag, const std::string& vert);
 
     private:

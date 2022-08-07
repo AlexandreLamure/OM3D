@@ -20,7 +20,7 @@ static GLuint create_shader(const std::string& src, GLenum type) {
     int res = 0;
     glGetShaderiv(handle, GL_COMPILE_STATUS, &res);
     if(!res) {
-        i32 len = 0;
+        int len = 0;
         char log[1024] = {};
         glGetShaderInfoLog(handle, sizeof(log), &len, log);
         FATAL(log);
@@ -59,6 +59,10 @@ Program::~Program() {
     if(_handle.is_valid()) {
         glDeleteProgram(_handle.get());
     }
+}
+
+void Program::bind() const {
+    glUseProgram(_handle.get());
 }
 
 Program Program::from_files(const std::string& frag, const std::string& vert) {

@@ -15,6 +15,9 @@ endif()
 add_subdirectory(external/glfw)
 include_directories(external/glfw/include)
 
+add_subdirectory(external/glm)
+include_directories(external/glm)
+
 include_directories(external/glad/include)
 
 include_directories(${TP_SOURCE_DIR}/src)
