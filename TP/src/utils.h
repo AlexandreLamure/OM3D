@@ -11,7 +11,7 @@
 #define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = OnExit([&]() { expr; })
 #define FATAL(msg) fatal((msg), __FILE__, __LINE__)
 #define ALWAYS_ASSERT(cond, msg) do { if(!(cond)) { FATAL(msg); } } while(false)
-
+#define HASH(str) ([] { static constexpr u32 result = str_hash(str); return result; }())
 
 using u8 = uint8_t;
 using u16 = uint16_t;
