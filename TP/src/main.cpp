@@ -7,9 +7,8 @@
 #include <vector>
 
 #include <graphics.h>
-#include <ByteBuffer.h>
-#include <Vertex.h>
 #include <Program.h>
+#include <StaticMesh.h>
 
 void glfw_check(bool cond) {
     if(!cond) {
@@ -38,7 +37,7 @@ int main(int, char**) {
     vertices.push_back({{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}});
     vertices.push_back({{0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}});
 
-    ByteBuffer buffer(vertices.data(), vertices.size() * sizeof(Vertex));
+    const StaticMesh mesh(MeshData{vertices, {0, 1, 2}});
     Program program = Program::from_files("fixed_color.frag", "color.vert");
 
     for(;;) {
@@ -54,14 +53,7 @@ int main(int, char**) {
             program.set_uniform(HASH("green"), 0.5f);
             program.set_uniform(HASH("blue"), 1.0f);
             program.bind();
-            buffer.bind(BufferUsage::Attribute);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * sizeof(float), nullptr);
-            glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-            glEnableVertexAttribArray(0);
-            glEnableVertexAttribArray(1);
-
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            mesh.draw();
         }
         glfwSwapBuffers(window);
     }
