@@ -32,13 +32,18 @@ int main(int, char**) {
     glfwMakeContextCurrent(window);
     init_graphics();
 
-    std::vector<Vertex> vertices;
-    vertices.push_back({{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}});
-    vertices.push_back({{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}});
-    vertices.push_back({{0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}});
-
-    const StaticMesh mesh(MeshData{vertices, {0, 1, 2}});
+    StaticMesh mesh;
+    if(const auto r = MeshData::from_obj(std::string(data_path) + "cube.obj"); r.is_ok) {
+        mesh = StaticMesh(r.value);
+    } else {
+        std::vector<Vertex> vertices;
+        vertices.push_back({{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}});
+        vertices.push_back({{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}});
+        vertices.push_back({{0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}});
+        mesh = StaticMesh(MeshData{vertices, {0, 1, 2}});
+    }
     Program program = Program::from_files("fixed_color.frag", "color.vert");
+
 
     for(;;) {
         glfwPollEvents();

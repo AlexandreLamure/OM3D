@@ -6,6 +6,7 @@
 #include <string_view>
 
 static constexpr std::string_view shader_path = "../../shaders/";
+static constexpr std::string_view data_path = "../../data/";
 
 class GLHandle : NonCopyable {
     public:

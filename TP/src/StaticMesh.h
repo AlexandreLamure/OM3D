@@ -9,7 +9,9 @@
 
 struct MeshData {
     std::vector<Vertex> vertices;
-    std::vector<u32> indexes;
+    std::vector<u32> indices;
+
+    static Result<MeshData> from_obj(const std::string& file_name);
 };
 
 class StaticMesh : NonCopyable {
