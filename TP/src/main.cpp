@@ -36,17 +36,9 @@ int main(int, char**) {
     SceneView scene_view(&scene);
 
     {
-        std::shared_ptr<StaticMesh> mesh;
-        if(const auto r = MeshData::from_obj(std::string(data_path) + "cube.obj"); r.is_ok) {
-            std::cerr << "Unable to load mesh" << std::endl;
-            mesh = std::make_shared<StaticMesh>(r.value);
-        } else {
-            std::vector<Vertex> vertices;
-            vertices.push_back({{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}});
-            vertices.push_back({{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}});
-            vertices.push_back({{0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}});
-            mesh = std::make_shared<StaticMesh>(MeshData{vertices, {0, 1, 2}});
-        }
+        const auto r = MeshData::from_obj(std::string(data_path) + "cube.obj");
+        ALWAYS_ASSERT(r.is_ok, "Unable to load mesh");
+        std::shared_ptr<StaticMesh> mesh = std::make_shared<StaticMesh>(r.value);
         std::shared_ptr<Program> program = std::make_shared<Program>(Program::from_files("basic.frag", "basic.vert"));
         scene.add_object(SceneObject(std::move(mesh), std::move(program)));
     }

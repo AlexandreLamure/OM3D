@@ -3,11 +3,64 @@
 #include <glad/glad.h>
 
 #include <algorithm>
+#include <unordered_set>
 
 static std::string read_shader(const std::string& file_name) {
-    const auto content = read_text_file(std::string(shader_path) + file_name);
+    auto content = read_text_file(std::string(shader_path) + file_name);
     ALWAYS_ASSERT(content.is_ok, "Unable to read shader");
-    return content.value;
+
+    std::string shader(std::move(content.value));
+    std::unordered_set<std::string> includes;
+    for(size_t i = 0; i < shader.size();) {
+        const auto endl = shader.find('\n', i);
+        if(endl == std::string::npos) {
+            break;
+        }
+
+        const std::string_view full_line = std::string_view(shader).substr(i, endl - i);
+        std::string_view line = full_line;
+        auto trim = [&] {
+            while(!line.empty() && std::isspace(line.front())) {
+                line = line.substr(1);
+            }
+        };
+
+        trim();
+        if(!line.empty() && line.front() == '#') {
+            line = line.substr(1);
+            trim();
+            if(line.substr(0, 7) == "include") {
+                line = line.substr(7);
+                trim();
+                if(!line.empty()) {
+                    const char delim = line.front();
+                    // TODO: parse <>
+                    const auto end = line.find(delim, 1);
+                    if(end != line.size() - 1 || delim != '"') {
+                        FATAL((std::string("Unable to parse shader include: \"") + std::string(full_line) + '"').c_str());
+                    }
+
+                    const std::string include_file(line.substr(1, end - 1));
+                    std::string include_content;
+                    if(includes.find(include_file) == includes.end()) {
+                        includes.insert(include_file);
+                        auto content = read_text_file(std::string(shader_path) + include_file);
+                        if(!content.is_ok) {
+                            FATAL((std::string("Shader include not found: \"") + std::string(full_line) + '"').c_str());
+                        }
+                        include_content = std::move(content.value);
+                    }
+
+                    shader = shader.substr(0, i) + include_content + shader.substr(endl);
+                    continue;
+                }
+            }
+        }
+
+        i = endl + 1;
+    }
+
+    return shader;
 }
 
 static GLuint create_shader(const std::string& src, GLenum type) {

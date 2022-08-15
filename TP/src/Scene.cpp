@@ -11,7 +11,7 @@ void Scene::add_object(SceneObject obj) {
 
 void Scene::render(const Camera& camera) const {
     TypedBuffer<glm::mat4> buffer(nullptr, 1);
-    buffer.map()[0] = camera.view_proj_matrix();
+    buffer.map(MappingType::WriteOnly)[0] = camera.view_proj_matrix();
 
     buffer.bind(BufferUsage::Uniform, 0);
 

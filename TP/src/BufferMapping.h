@@ -3,6 +3,12 @@
 
 #include <graphics.h>
 
+enum class MappingType {
+    WriteOnly,
+    ReadOnly,
+    ReadWrite
+};
+
 class BufferMappingBase : NonCopyable {
     public:
         BufferMappingBase(BufferMappingBase&&) = default;

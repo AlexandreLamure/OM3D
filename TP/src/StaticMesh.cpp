@@ -35,14 +35,9 @@ Result<MeshData> MeshData::from_obj(const std::string& file_name) {
         auto starts_with = [line](std::string_view sv) { return line.substr(0, sv.size()) == sv; };
 
         auto trim = [&] {
-            size_t spaces = 0;
-            for(const char c : line) {
-                if(!std::isspace(c)) {
-                    break;
-                }
-                ++spaces;
+            while(!line.empty() && std::isspace(line.front())) {
+                line = line.substr(1);
             }
-            line = line.substr(spaces);
         };
 
         auto read_next = [&](auto& value) {

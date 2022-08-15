@@ -2,6 +2,20 @@
 
 #include <glad/glad.h>
 
+static GLuint mapping_to_gl(MappingType mapping) {
+    switch(mapping) {
+        case MappingType::WriteOnly:
+            return GL_WRITE_ONLY;
+
+        case MappingType::ReadOnly:
+            return GL_READ_ONLY;
+
+        case MappingType::ReadWrite:
+            return GL_READ_WRITE;
+    }
+
+    FATAL("Unknown mapping value");
+}
 
 static GLuint create_buffer_handle() {
     GLuint handle = 0;
@@ -24,7 +38,7 @@ void ByteBuffer::bind(BufferUsage usage) const {
 }
 
 void ByteBuffer::bind(BufferUsage usage, u32 index) const {
-    ALWAYS_ASSERT(usage == BufferUsage::Uniform, "index bind is only available for uniform buffers");
+    ALWAYS_ASSERT(usage == BufferUsage::Uniform, "Index bind is only available for uniform buffers");
     glBindBufferBase(GL_UNIFORM_BUFFER, index, _handle.get());
 }
 
@@ -32,12 +46,12 @@ size_t ByteBuffer::byte_size() const {
     return _size;
 }
 
-BufferMapping<u8> ByteBuffer::map_bytes() {
-    return BufferMapping<u8>(map_internal(), byte_size(), handle());
+BufferMapping<u8> ByteBuffer::map_bytes(MappingType mapping) {
+    return BufferMapping<u8>(map_internal(mapping), byte_size(), handle());
 }
 
-void* ByteBuffer::map_internal() {
-    return glMapNamedBuffer(_handle.get(), GL_READ_WRITE);
+void* ByteBuffer::map_internal(MappingType mapping) {
+    return glMapNamedBuffer(_handle.get(), mapping_to_gl(mapping));
 }
 
 const GLHandle& ByteBuffer::handle() const {
