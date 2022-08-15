@@ -6,12 +6,15 @@ layout(location = 2) in vec3 in_color;
 layout(location = 0) out vec3 out_color;
 layout(location = 1) out vec3 out_normal;
 
-uniform mat4 view_proj;
+layout(location = 0) uniform CameraData {
+    mat4 view_proj;
+} camera;
+
 uniform mat4 model;
 
 void main() {
     out_color = in_color;
     out_normal = mat3(model) * in_normal;
-    gl_Position = view_proj * model * vec4(in_pos, 1.0);
+    gl_Position = camera.view_proj * model * vec4(in_pos, 1.0);
 }
 

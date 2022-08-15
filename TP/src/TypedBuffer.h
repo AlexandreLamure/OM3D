@@ -20,6 +20,10 @@ class TypedBuffer : public ByteBuffer {
             DEBUG_ASSERT(byte_size() % sizeof(T) == 0);
             return byte_size() / sizeof(T);
         }
+
+        BufferMapping<T> map() {
+            return BufferMapping<T>(ByteBuffer::map_internal(), byte_size(), handle());
+        }
 };
 
 #endif // TYPEDBUFFER_H

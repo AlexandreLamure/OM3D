@@ -7,10 +7,7 @@
 #include <vector>
 
 #include <graphics.h>
-#include <Program.h>
-#include <StaticMesh.h>
-
-#include <glm/gtc/matrix_transform.hpp>
+#include <SceneView.h>
 
 void glfw_check(bool cond) {
     if(!cond) {
@@ -34,24 +31,26 @@ int main(int, char**) {
     glfwMakeContextCurrent(window);
     init_graphics();
 
-    StaticMesh mesh;
-    if(const auto r = MeshData::from_obj(std::string(data_path) + "cube.obj"); r.is_ok) {
-        std::cerr << "Unable to load mesh" << std::endl;
-        mesh = StaticMesh(r.value);
-    } else {
-        std::vector<Vertex> vertices;
-        vertices.push_back({{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}});
-        vertices.push_back({{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}});
-        vertices.push_back({{0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}});
-        mesh = StaticMesh(MeshData{vertices, {0, 1, 2}});
+
+    Scene scene;
+    SceneView scene_view(&scene);
+
+    {
+        std::shared_ptr<StaticMesh> mesh;
+        if(const auto r = MeshData::from_obj(std::string(data_path) + "cube.obj"); r.is_ok) {
+            std::cerr << "Unable to load mesh" << std::endl;
+            mesh = std::make_shared<StaticMesh>(r.value);
+        } else {
+            std::vector<Vertex> vertices;
+            vertices.push_back({{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}});
+            vertices.push_back({{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}});
+            vertices.push_back({{0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}});
+            mesh = std::make_shared<StaticMesh>(MeshData{vertices, {0, 1, 2}});
+        }
+        std::shared_ptr<Program> program = std::make_shared<Program>(Program::from_files("basic.frag", "basic.vert"));
+        scene.add_object(SceneObject(std::move(mesh), std::move(program)));
     }
-    Program program = Program::from_files("basic.frag", "basic.vert");
 
-
-    const glm::vec3 cam_pos(2.0f, 2.0f, 2.0f);
-    const glm::mat4 proj_matrix = glm::infinitePerspective(to_rad(60.0f), 640.0f / 480.0f, 0.001f);
-    const glm::mat4 view_matrix = glm::lookAt(cam_pos, glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    const glm::mat4 view_proj = proj_matrix * view_matrix;
 
     for(;;) {
         glfwPollEvents();
@@ -63,13 +62,7 @@ int main(int, char**) {
             glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            program.set_uniform(HASH("view_proj"), view_proj);
-            program.set_uniform(HASH("model"), glm::rotate(glm::mat4(1.0f), float(program_time()), glm::vec3(0.0f, 0.0f, 1.0f)));
-            program.set_uniform(HASH("red"), float(std::sin(program_time()) * 0.5f + 0.5f));
-            program.set_uniform(HASH("green"), 0.5f);
-            program.set_uniform(HASH("blue"), 1.0f);
-            program.bind();
-            mesh.draw();
+            scene_view.render();
         }
         glfwSwapBuffers(window);
     }

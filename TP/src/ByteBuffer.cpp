@@ -22,3 +22,24 @@ ByteBuffer::~ByteBuffer() {
 void ByteBuffer::bind(BufferUsage usage) const {
     glBindBuffer(buffer_usage_to_gl(usage), _handle.get());
 }
+
+void ByteBuffer::bind(BufferUsage usage, u32 index) const {
+    ALWAYS_ASSERT(usage == BufferUsage::Uniform, "index bind is only available for uniform buffers");
+    glBindBufferBase(GL_UNIFORM_BUFFER, index, _handle.get());
+}
+
+size_t ByteBuffer::byte_size() const {
+    return _size;
+}
+
+BufferMapping<u8> ByteBuffer::map_bytes() {
+    return BufferMapping<u8>(map_internal(), byte_size(), handle());
+}
+
+void* ByteBuffer::map_internal() {
+    return glMapNamedBuffer(_handle.get(), GL_READ_WRITE);
+}
+
+const GLHandle& ByteBuffer::handle() const {
+    return _handle;
+}

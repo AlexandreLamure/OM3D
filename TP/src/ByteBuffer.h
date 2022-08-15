@@ -2,6 +2,7 @@
 #define BYTEBUFFER_H
 
 #include <graphics.h>
+#include <BufferMapping.h>
 
 class ByteBuffer : NonCopyable {
 
@@ -14,10 +15,15 @@ class ByteBuffer : NonCopyable {
         ~ByteBuffer();
 
         void bind(BufferUsage usage) const;
+        void bind(BufferUsage usage, u32 index) const;
 
-        size_t byte_size() const {
-            return _size;
-        }
+        size_t byte_size() const;
+
+        BufferMapping<u8> map_bytes();
+
+    protected:
+        void* map_internal();
+        const GLHandle& handle() const;
 
     private:
         GLHandle _handle;
