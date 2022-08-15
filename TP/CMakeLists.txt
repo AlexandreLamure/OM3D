@@ -20,6 +20,8 @@ include_directories(external/glm)
 
 include_directories(external/glad/include)
 
+include_directories(external)
+
 include_directories(${TP_SOURCE_DIR}/src)
 
 

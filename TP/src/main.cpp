@@ -8,6 +8,7 @@
 
 #include <graphics.h>
 #include <SceneView.h>
+#include <Texture.h>
 
 
 #include <glm/vec2.hpp>
@@ -91,6 +92,15 @@ int main(int, char**) {
         std::shared_ptr<Program> program = std::make_shared<Program>(Program::from_files("basic.frag", "basic.vert"));
         scene.add_object(SceneObject(std::move(mesh), std::move(program)));
     }
+
+    Texture texture;
+    {
+        const auto r = TextureData::from_file(std::string(data_path) + "uv.png");
+        ALWAYS_ASSERT(r.is_ok, "Unable to load texture");
+        texture = Texture(r.value);
+    }
+
+    texture.bind(0);
 
 
     for(;;) {
