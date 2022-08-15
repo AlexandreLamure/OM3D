@@ -11,7 +11,9 @@
 #include <Texture.h>
 
 
-#include <glm/vec2.hpp>
+
+static float dt = 0.0f;
+
 
 
 void glfw_check(bool cond) {
@@ -23,14 +25,18 @@ void glfw_check(bool cond) {
     }
 }
 
+void update_dt() {
+    static double time = 0.0;
+    const double new_time = program_time();
+    dt = float(new_time - time);
+    time = new_time;
+}
+
 void process_inputs(GLFWwindow* window, Camera& camera) {
     static glm::dvec2 mouse_pos;
-    static double time;
 
     glm::dvec2 new_mouse_pos;
     glfwGetCursorPos(window, &new_mouse_pos.x, &new_mouse_pos.y);
-
-    const double new_time = program_time();
 
     {
         glm::vec3 movement = {};
@@ -47,7 +53,6 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
             movement -= camera.right();
         }
         const float speed = 10.0f;
-        const float dt = float(new_time - time);
         if(movement.length() > 0.0f) {
             const glm::vec3 new_pos = camera.position() + movement * dt * speed;
             camera.set_view(glm::lookAt(new_pos, new_pos + camera.forward(), camera.up()));
@@ -65,7 +70,6 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
     }
 
     mouse_pos = new_mouse_pos;
-    time = new_time;
 }
 
 int main(int, char**) {
@@ -99,9 +103,9 @@ int main(int, char**) {
         ALWAYS_ASSERT(r.is_ok, "Unable to load texture");
         texture = Texture(r.value);
     }
-
     texture.bind(0);
 
+    Program fps_program = Program::from_files("fps.frag", "screen.vert");
 
     for(;;) {
         glfwPollEvents();
@@ -109,6 +113,7 @@ int main(int, char**) {
             break;
         }
 
+        update_dt();
         process_inputs(window, scene_view.camera());
 
         {
@@ -117,6 +122,10 @@ int main(int, char**) {
 
             scene_view.render();
         }
+
+        fps_program.set_uniform(HASH("delta_time"), dt);
+        fps_program.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glfwSwapBuffers(window);
     }
