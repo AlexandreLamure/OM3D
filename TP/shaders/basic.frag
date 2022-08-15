@@ -2,8 +2,9 @@
 
 layout(location = 0) out vec4 out_color;
 
-layout(location = 0) in vec3 in_color;
-layout(location = 1) in vec3 in_normal;
+layout(location = 0) in vec3 in_normal;
+layout(location = 1) in vec2 in_uv;
+layout(location = 2) in vec3 in_color;
 
 void main() {
     const float l = max(0.0, dot(in_normal, normalize(vec3(0.5, 1.0, 2.0)))) * 0.5 + 0.5;

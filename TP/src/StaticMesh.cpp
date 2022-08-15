@@ -109,7 +109,12 @@ Result<MeshData> MeshData::from_obj(const std::string& file_name) {
                     indices.push_back(it->second);
                 } else {
                     const u32 index = u32(vertices.size());
-                    vertices.push_back(Vertex{positions[pos_idx - 1], normals[norm_idx - 1], default_color});
+                    vertices.push_back(Vertex{
+                        positions[pos_idx - 1],
+                        norm_idx ? normals[norm_idx - 1] : glm::vec3{},
+                        uv_idx ? uvs[uv_idx - 1] : glm::vec2{},
+                        default_color
+                    });
                     vertex_map[key] = index;
                     indices.push_back(index);
                 }
@@ -133,11 +138,13 @@ void StaticMesh::draw() const {
     _index_buffer.bind(BufferUsage::Index);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), nullptr);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(sizeof(glm::vec3)));
-    glVertexAttribPointer(2, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(2 * sizeof(glm::vec3)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(3 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(6 * sizeof(float)));
+    glVertexAttribPointer(3, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(8 * sizeof(float)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
 
     glDrawElements(GL_TRIANGLES, int(_index_buffer.element_count()), GL_UNSIGNED_INT, nullptr);
 }

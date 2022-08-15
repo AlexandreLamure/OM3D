@@ -12,7 +12,6 @@
 
 #include <glm/vec2.hpp>
 
-glm::dvec2 mouse_pos;
 
 void glfw_check(bool cond) {
     if(!cond) {
@@ -24,6 +23,14 @@ void glfw_check(bool cond) {
 }
 
 void process_inputs(GLFWwindow* window, Camera& camera) {
+    static glm::dvec2 mouse_pos;
+    static double time;
+
+    glm::dvec2 new_mouse_pos;
+    glfwGetCursorPos(window, &new_mouse_pos.x, &new_mouse_pos.y);
+
+    const double new_time = program_time();
+
     {
         glm::vec3 movement = {};
         if(glfwGetKey(window, 'W') == GLFW_PRESS) {
@@ -38,17 +45,16 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
         if(glfwGetKey(window, 'A') == GLFW_PRESS) {
             movement -= camera.right();
         }
-        const float dt = 1.0f / 60.0f;
+        const float speed = 10.0f;
+        const float dt = float(new_time - time);
         if(movement.length() > 0.0f) {
-            const glm::vec3 new_pos = camera.position() + movement * dt;
+            const glm::vec3 new_pos = camera.position() + movement * dt * speed;
             camera.set_view(glm::lookAt(new_pos, new_pos + camera.forward(), camera.up()));
         }
     }
 
-    glm::dvec2 pos;
-    glfwGetCursorPos(window, &pos.x, &pos.y);
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-        const glm::vec2 delta = glm::vec2(mouse_pos - pos) * 0.01f;
+        const glm::vec2 delta = glm::vec2(mouse_pos - new_mouse_pos) * 0.01f;
         if(delta.length() > 0.0f) {
             glm::mat4 rot = glm::rotate(glm::mat4(1.0f), delta.x, glm::vec3(0.0f, 0.0f, 1.0f));
             rot = glm::rotate(rot, delta.y, camera.right());
@@ -57,7 +63,8 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
 
     }
 
-    mouse_pos = pos;
+    mouse_pos = new_mouse_pos;
+    time = new_time;
 }
 
 int main(int, char**) {
