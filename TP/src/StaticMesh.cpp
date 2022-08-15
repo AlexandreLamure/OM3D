@@ -16,8 +16,11 @@ Result<MeshData> MeshData::from_obj(const std::string& file_name) {
     const glm::vec3 default_color(0.7f, 0.7f, 0.7f);
 
     std::vector<Vertex> vertices;
+    std::vector<glm::vec3> positions;
+    std::vector<glm::vec3> normals;
+    std::vector<glm::vec2> uvs;
     std::vector<u32> indices;
-    // std::unordered_map<u64, u32> index_map;
+    std::unordered_map<u64, u32> vertex_map;
 
     std::string_view content = file.value;
     while(!content.empty()) {
@@ -42,18 +45,6 @@ Result<MeshData> MeshData::from_obj(const std::string& file_name) {
             line = line.substr(spaces);
         };
 
-        auto remove_extras = [&] {
-            size_t extras = 0;
-            for(const char c : line) {
-                if(std::isspace(c)) {
-                    break;
-                }
-                ++extras;
-            }
-            line = line.substr(extras);
-            return true;
-        };
-
         auto read_next = [&](auto& value) {
             trim();
             const auto result = std::from_chars(line.data(), line.data() + line.size(), value);
@@ -74,15 +65,59 @@ Result<MeshData> MeshData::from_obj(const std::string& file_name) {
             if(trim(); !line.empty()) {
                 PARSE_ERROR("vertex position");
             }
-            vertices.push_back(Vertex{pos, default_color});
+            positions.push_back(pos);
+        } else if(starts_with("vn ")) {
+            line = line.substr(3);
+            glm::vec3 norm = {};
+            if(!(read_next(norm[0]) && read_next(norm[1]) && read_next(norm[2]))) {
+                PARSE_ERROR("vertex normal");
+            }
+            if(trim(); !line.empty()) {
+                PARSE_ERROR("vertex normal");
+            }
+            normals.push_back(norm);
+        } else if(starts_with("vt ")) {
+            line = line.substr(3);
+            glm::vec2 uv = {};
+            if(!(read_next(uv[0]) && read_next(uv[1]))) {
+                PARSE_ERROR("vertex normal");
+            }
+            if(trim(); !line.empty()) {
+                PARSE_ERROR("vertex normal");
+            }
+            uvs.push_back(uv);
         } else if(starts_with("f ")) {
             line = line.substr(2);
             for(int i = 0; i != 3; ++i) {
-                u32 idx = 0;
-                if(!(read_next(idx) && remove_extras() && idx > 0)) {
-                    PARSE_ERROR("face");
+                u64 pos_idx = 0;
+                u64 uv_idx = 0;
+                u64 norm_idx = 0;
+                if(!(read_next(pos_idx) && pos_idx > 0 && pos_idx <= positions.size())) {
+                    PARSE_ERROR("face position");
+                } else if(trim(); !line.empty() && line[0] == '/') {
+                    line = line.substr(1);
+                    if(trim(); !line.empty() && line[0] != '/') {
+                        if(!(read_next(uv_idx) && uv_idx > 0 && uv_idx <= uvs.size())) {
+                            PARSE_ERROR("face uv");
+                        }
+                    }
+                    if(trim(); !line.empty() && line[0] == '/') {
+                        line = line.substr(1);
+                        if(!(read_next(norm_idx) && norm_idx > 0 && norm_idx <= normals.size())) {
+                            PARSE_ERROR("face normal");
+                        }
+                    }
                 }
-                indices.push_back(idx - 1);
+
+                const u64 key = (pos_idx << 42) | (norm_idx << 21) | (uv_idx);
+                if(const auto it = vertex_map.find(key); it != vertex_map.end()) {
+                    indices.push_back(it->second);
+                } else {
+                    const u32 index = u32(vertices.size());
+                    vertices.push_back(Vertex{positions[pos_idx - 1], normals[norm_idx - 1], default_color});
+                    vertex_map[key] = index;
+                    indices.push_back(index);
+                }
             }
             if(trim(); !line.empty()) {
                 PARSE_ERROR("face");
@@ -104,8 +139,10 @@ void StaticMesh::draw() const {
 
     glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), nullptr);
     glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(sizeof(glm::vec3)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(2 * sizeof(glm::vec3)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
     glDrawElements(GL_TRIANGLES, int(_index_buffer.element_count()), GL_UNSIGNED_INT, nullptr);
 }

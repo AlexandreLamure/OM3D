@@ -38,6 +38,8 @@ void fatal(const char* msg, const char* file, int line) {
         std::cerr << " at line " << line;
     }
 
+    std::cerr << std::endl;
+
     break_in_debugger();
     std::terminate();
 }

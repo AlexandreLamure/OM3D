@@ -101,6 +101,16 @@ inline constexpr u32 str_hash(std::string_view str, u32 seed = 0xCAFECAFE) {
     return ~crc;
 }
 
+template<typename T>
+inline constexpr T to_rad(T deg) {
+    return deg * T(0.01745329251994329576923690768489);
+}
+
+template<typename T>
+inline constexpr T to_deg(T rad) {
+    return rad * T(57.295779513082320876798154814105);
+}
+
 void break_in_debugger();
 [[noreturn]] void fatal(const char* msg, const char* file = nullptr, int line = 0);
 
