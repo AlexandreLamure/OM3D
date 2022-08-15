@@ -12,6 +12,10 @@ class Camera {
         void set_view(const glm::mat4& matrix);
         void set_proj(const glm::mat4& matrix);
 
+        glm::vec3 position() const;
+        glm::vec3 forward() const;
+        glm::vec3 right() const;
+        glm::vec3 up() const;
 
         const glm::mat4& projection_matrix() const;
         const glm::mat4& view_matrix() const;

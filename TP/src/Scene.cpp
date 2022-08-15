@@ -15,7 +15,6 @@ void Scene::render(const Camera& camera) const {
 
     buffer.bind(BufferUsage::Uniform, 0);
 
-
     for(const SceneObject& obj : _objects) {
         obj.render();
     }
