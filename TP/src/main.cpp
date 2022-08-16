@@ -93,8 +93,15 @@ int main(int, char**) {
         const auto r = MeshData::from_obj(std::string(data_path) + "cube.obj");
         ALWAYS_ASSERT(r.is_ok, "Unable to load mesh");
         std::shared_ptr<StaticMesh> mesh = std::make_shared<StaticMesh>(r.value);
-        std::shared_ptr<Program> program = std::make_shared<Program>(Program::from_files("basic.frag", "basic.vert"));
+        std::shared_ptr<Program> program = std::make_shared<Program>(Program::from_files("lit.frag", "basic.vert"));
         scene.add_object(SceneObject(std::move(mesh), std::move(program)));
+    }
+    
+    {
+        PointLight light;
+        light.set_position(glm::vec3(1.0f, 2.0f, 4.0f));
+        light.set_color(glm::vec3(0.0f, 1.0f, 0.0f));
+        scene.add_object(std::move(light));
     }
 
     Texture texture;
