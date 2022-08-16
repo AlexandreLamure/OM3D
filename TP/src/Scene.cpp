@@ -16,27 +16,29 @@ void Scene::add_object(PointLight obj) {
 }
 
 void Scene::render(const Camera& camera) const {
-    TypedBuffer<shader::CameraData> camera_buffer(nullptr, 1);
-    camera_buffer.map(MappingType::WriteOnly)[0].view_proj = camera.view_proj_matrix();
-    camera_buffer.bind(BufferUsage::Uniform, 0);
-    
-    ByteBuffer light_buffer(nullptr, 4 * sizeof(u32) + _point_lights.size() * sizeof(shader::PointLight));
+    TypedBuffer<shader::FrameData> buffer(nullptr, 1);
     {
-        auto light_buffer_mapping = light_buffer.map_bytes(MappingType::WriteOnly);
-        *reinterpret_cast<u32*>(light_buffer_mapping.data()) = u32(_point_lights.size());
-        shader::PointLight* data = reinterpret_cast<shader::PointLight*>(light_buffer_mapping.data() + 4 * sizeof(u32));
+        auto mapping = buffer.map(MappingType::WriteOnly);
+        mapping[0].camera.view_proj = camera.view_proj_matrix();
+        mapping[0].point_light_count = u32(_point_lights.size());
+    }
+    buffer.bind(BufferUsage::Uniform, 0);
+
+    TypedBuffer<shader::PointLight> light_buffer(nullptr, std::max(_point_lights.size(), size_t(1)));
+    {
+        auto mapping = light_buffer.map(MappingType::WriteOnly);
         for(size_t i = 0; i != _point_lights.size(); ++i) {
             const auto& light = _point_lights[i];
-            data[i] = {
+            mapping[i] = {
                 light.position(),
-                0.0f,
+                light.radius(),
                 light.color(),
                 0.0f
             };
         }
     }
     light_buffer.bind(BufferUsage::Storage, 1);
-        
+
     for(const SceneObject& obj : _objects) {
         obj.render();
     }

@@ -96,11 +96,19 @@ int main(int, char**) {
         std::shared_ptr<Program> program = std::make_shared<Program>(Program::from_files("lit.frag", "basic.vert"));
         scene.add_object(SceneObject(std::move(mesh), std::move(program)));
     }
-    
+
     {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, 4.0f));
-        light.set_color(glm::vec3(0.0f, 1.0f, 0.0f));
+        light.set_color(glm::vec3(0.0f, 10.0f, 0.0f));
+        light.set_radius(100.0f);
+        scene.add_object(std::move(light));
+    }
+    {
+        PointLight light;
+        light.set_position(glm::vec3(1.0f, 2.0f, -4.0f));
+        light.set_color(glm::vec3(10.0f, 0.0f, 0.0f));
+        light.set_radius(50.0f);
         scene.add_object(std::move(light));
     }
 

@@ -12,20 +12,20 @@ layout(location = 1) out vec2 out_uv;
 layout(location = 2) out vec3 out_color;
 layout(location = 3) out vec3 out_position;
 
-layout(binding = 0) uniform FrameData {
-    CameraData camera;
+layout(binding = 0) uniform Data {
+    FrameData frame;
 };
 
 uniform mat4 model;
 
 void main() {
     const vec4 position = model * vec4(in_pos, 1.0);
-    
+
     out_normal = mat3(model) * in_normal;
     out_uv = in_uv;
     out_color = in_color;
     out_position = position.xyz;
-    
-    gl_Position = camera.view_proj * position;
+
+    gl_Position = frame.camera.view_proj * position;
 }
 

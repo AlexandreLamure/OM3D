@@ -1,6 +1,8 @@
 #ifndef POINTLIGHT_H
 #define POINTLIGHT_H
 
+#include <utils.h>
+
 #include <glm/vec3.hpp>
 
 class PointLight : NonCopyable {
@@ -16,6 +18,10 @@ class PointLight : NonCopyable {
             _color = color;
         }
 
+        void set_radius(float radius) {
+            _radius = radius;
+        }
+
 
         const glm::vec3& position() const {
             return _position;
@@ -25,9 +31,14 @@ class PointLight : NonCopyable {
             return _color;
         }
 
+        float radius() const {
+            return _radius;
+        }
+
     private:
         glm::vec3 _position = {};
         glm::vec3 _color = glm::vec3(1.0f);
+        float _radius = 10.0f;
 };
 
 #endif // POINTLIGHT_H
