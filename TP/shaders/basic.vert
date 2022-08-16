@@ -11,7 +11,7 @@ layout(location = 0) out vec3 out_normal;
 layout(location = 1) out vec2 out_uv;
 layout(location = 2) out vec3 out_color;
 
-layout(location = 0) uniform FrameData {
+layout(binding = 0) uniform FrameData {
     CameraData camera;
 };
 

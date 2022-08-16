@@ -19,7 +19,7 @@ static GLuint mapping_to_gl(MappingType mapping) {
 
 static GLuint create_buffer_handle() {
     GLuint handle = 0;
-    glGenBuffers(1, &handle);
+    glCreateBuffers(1, &handle);
     return handle;
 }
 

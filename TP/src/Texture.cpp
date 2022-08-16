@@ -40,7 +40,6 @@ static GLenum channels_to_gl_format(u8 channels) {
 
 static GLuint create_texture_handle() {
     GLuint handle = 0;
-    // glGenTextures(1, &handle);
     glCreateTextures(GL_TEXTURE_2D, 1, &handle);
     return handle;
 }
