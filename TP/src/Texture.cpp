@@ -48,7 +48,7 @@ Texture::Texture(const TextureData& data) :
     _handle(create_texture_handle()),
     _size(data.size) {
 
-    glTextureStorage2D(_handle.get(), 1, channels_to_gl_internal_format(data.channels), _size.x, _size.y);
+    glTextureStorage2D(_handle.get(), mip_levels(_size), channels_to_gl_internal_format(data.channels), _size.x, _size.y);
     glTextureSubImage2D(_handle.get(), 0, 0, 0, _size.x, _size.y, channels_to_gl_format(data.channels), GL_UNSIGNED_BYTE, data.data.get());
     glGenerateTextureMipmap(_handle.get());
 }
