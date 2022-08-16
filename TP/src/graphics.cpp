@@ -25,11 +25,14 @@ u32 buffer_usage_to_gl(BufferUsage usage) {
         case BufferUsage::Attribute:
             return GL_ARRAY_BUFFER;
 
-        case BufferUsage::Uniform:
-            return GL_UNIFORM_BUFFER;
-
         case BufferUsage::Index:
             return GL_ELEMENT_ARRAY_BUFFER;
+
+        case BufferUsage::Uniform:
+            return GL_UNIFORM_BUFFER;
+            
+        case BufferUsage::Storage:
+            return GL_SHADER_STORAGE_BUFFER;
     }
 
     FATAL("Unknown usage value");

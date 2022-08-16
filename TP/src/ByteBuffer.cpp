@@ -38,8 +38,8 @@ void ByteBuffer::bind(BufferUsage usage) const {
 }
 
 void ByteBuffer::bind(BufferUsage usage, u32 index) const {
-    ALWAYS_ASSERT(usage == BufferUsage::Uniform, "Index bind is only available for uniform buffers");
-    glBindBufferBase(GL_UNIFORM_BUFFER, index, _handle.get());
+    ALWAYS_ASSERT(usage == BufferUsage::Uniform || usage == BufferUsage::Storage, "Index bind is only available for uniform and storage buffers");
+    glBindBufferBase(buffer_usage_to_gl(usage), index, _handle.get());
 }
 
 size_t ByteBuffer::byte_size() const {

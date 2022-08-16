@@ -42,8 +42,9 @@ class GLHandle : NonCopyable {
 
 enum class BufferUsage {
     Attribute,
-    Uniform,
     Index,
+    Uniform,
+    Storage,
 };
 
 u32 buffer_usage_to_gl(BufferUsage usage);
