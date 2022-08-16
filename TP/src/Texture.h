@@ -30,7 +30,7 @@ class Texture {
 
         void bind(u32 index) const;
 
-        static Texture from_file(const std::string& file);
+        static u32 mip_levels(glm::uvec2 size);
 
     private:
         GLHandle _handle;

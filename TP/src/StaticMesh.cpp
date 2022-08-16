@@ -13,7 +13,7 @@ Result<MeshData> MeshData::from_obj(const std::string& file_name) {
         return {false, {}};
     }
 
-    const glm::vec3 default_color(0.7f, 0.7f, 0.7f);
+    const glm::vec3 default_color(1.0f);
 
     std::vector<Vertex> vertices;
     std::vector<glm::vec3> positions;

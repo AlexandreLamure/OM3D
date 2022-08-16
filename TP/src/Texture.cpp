@@ -5,7 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-#include <iostream>
+#include <cmath>
 
 Result<TextureData> TextureData::from_file(const std::string& file) {
     int width = 0;
@@ -50,6 +50,7 @@ Texture::Texture(const TextureData& data) :
 
     glTextureStorage2D(_handle.get(), 1, channels_to_gl_internal_format(data.channels), _size.x, _size.y);
     glTextureSubImage2D(_handle.get(), 0, 0, 0, _size.x, _size.y, channels_to_gl_format(data.channels), GL_UNSIGNED_BYTE, data.data.get());
+    glGenerateTextureMipmap(_handle.get());
 }
 
 Texture::~Texture() {
@@ -62,5 +63,8 @@ void Texture::bind(u32 index) const {
     glBindTextureUnit(index, _handle.get());
 }
 
-
+u32 Texture::mip_levels(glm::uvec2 size) {
+    const float side = float(std::max(size.x, size.y));
+    return 1 + u32(std::floor(std::log2(side)));
+}
 
