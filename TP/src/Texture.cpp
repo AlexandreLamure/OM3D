@@ -21,22 +21,14 @@ Result<TextureData> TextureData::from_file(const std::string& file) {
 
     TextureData data;
     data.size = glm::uvec2(width, height);
-    data.channels = 4;
+    data.format = ImageFormat::RGBA8_UNORM;
     data.data = std::make_unique<u8[]>(bytes);
     std::copy_n(img, bytes, data.data.get());
 
     return {true, std::move(data)};
 }
 
-static GLenum channels_to_gl_internal_format(u8 channels) {
-    const GLenum gl[] = {GL_R8, GL_RG8, GL_RGB8, GL_RGBA8};
-    return gl[channels - 1];
-}
 
-static GLenum channels_to_gl_format(u8 channels) {
-    const GLenum gl[] = {GL_RED, GL_RG, GL_RGB, GL_RGBA};
-    return gl[channels - 1];
-}
 
 static GLuint create_texture_handle() {
     GLuint handle = 0;
@@ -46,11 +38,23 @@ static GLuint create_texture_handle() {
 
 Texture::Texture(const TextureData& data) :
     _handle(create_texture_handle()),
-    _size(data.size) {
+    _size(data.size),
+    _format(data.format) {
 
-    glTextureStorage2D(_handle.get(), mip_levels(_size), channels_to_gl_internal_format(data.channels), _size.x, _size.y);
-    glTextureSubImage2D(_handle.get(), 0, 0, 0, _size.x, _size.y, channels_to_gl_format(data.channels), GL_UNSIGNED_BYTE, data.data.get());
+    const ImageFormatGL gl_format = image_format_to_gl(_format);
+    glTextureStorage2D(_handle.get(), mip_levels(_size), gl_format.internal_format, _size.x, _size.y);
+    glTextureSubImage2D(_handle.get(), 0, 0, 0, _size.x, _size.y, gl_format.format, gl_format.component_type, data.data.get());
     glGenerateTextureMipmap(_handle.get());
+}
+
+Texture::Texture(const glm::uvec2 &size, ImageFormat format) :
+    _handle(create_texture_handle()),
+    _size(size),
+    _format(format) {
+
+    const ImageFormatGL gl_format = image_format_to_gl(_format);
+    glTextureStorage2D(_handle.get(), 1, gl_format.internal_format, _size.x, _size.y);
+    //glTextureSubImage2D(_handle.get(), 0, 0, 0, _size.x, _size.y, gl_format.format, gl_format.component_type, nullptr);
 }
 
 Texture::~Texture() {
@@ -61,6 +65,11 @@ Texture::~Texture() {
 
 void Texture::bind(u32 index) const {
     glBindTextureUnit(index, _handle.get());
+}
+
+
+const glm::uvec2& Texture::size() const {
+    return _size;
 }
 
 u32 Texture::mip_levels(glm::uvec2 size) {

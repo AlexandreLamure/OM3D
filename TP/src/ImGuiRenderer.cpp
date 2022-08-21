@@ -22,7 +22,7 @@ static std::unique_ptr<Texture> create_font() {
     const size_t bytes = 4 * width * height;
 
     TextureData data;
-    data.channels = 4;
+    data.format = ImageFormat::RGBA8_UNORM;
     data.size = glm::uvec2(width, height);
     data.data = std::make_unique<u8[]>(bytes);
     std::copy_n(font_data, bytes, data.data.get());

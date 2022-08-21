@@ -9,9 +9,11 @@
 #include <graphics.h>
 #include <SceneView.h>
 #include <Texture.h>
+#include <Framebuffer.h>
 #include <ImGuiRenderer.h>
 
 static float dt = 0.0f;
+const glm::uvec2 window_size(1600, 900);
 
 
 void glfw_check(bool cond) {
@@ -76,7 +78,7 @@ int main(int, char**) {
     glfw_check(glfwInit());
     DEFER(glfwTerminate());
 
-    GLFWwindow* window = glfwCreateWindow(1600, 900, "TP window", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(window_size.x, window_size.y, "TP window", nullptr, nullptr);
     glfw_check(window);
     DEFER(glfwDestroyWindow(window));
 
@@ -118,9 +120,11 @@ int main(int, char**) {
         scene.add_object(std::move(light));
     }
 
-
-
     Program fps_program = Program::from_files("fps.frag", "screen.vert");
+
+    Texture depth(window_size, ImageFormat::Depth32_FLOAT);
+    Texture color(window_size, ImageFormat::RGBA8_UNORM);
+    Framebuffer framebuffer(&depth, std::array{&color});
 
     for(;;) {
         glfwPollEvents();
@@ -132,16 +136,20 @@ int main(int, char**) {
         process_inputs(window, scene_view.camera());
 
         {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+            framebuffer.bind();
             scene_view.render();
         }
 
-        fps_program.set_uniform(HASH("delta_time"), dt);
-        fps_program.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        framebuffer.blit();
 
-        imgui.render(window);
+        {
+            fps_program.set_uniform(HASH("delta_time"), dt);
+            fps_program.bind();
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+
+        // imgui.render(window);
 
         glfwSwapBuffers(window);
     }
