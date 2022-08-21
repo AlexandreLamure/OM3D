@@ -9,11 +9,9 @@
 #include <graphics.h>
 #include <SceneView.h>
 #include <Texture.h>
-
-
+#include <ImGuiRenderer.h>
 
 static float dt = 0.0f;
-
 
 
 void glfw_check(bool cond) {
@@ -83,8 +81,10 @@ int main(int, char**) {
     DEFER(glfwDestroyWindow(window));
 
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1); // Enable vsync
     init_graphics();
 
+    ImGuiRenderer imgui;
 
     Scene scene;
     SceneView scene_view(&scene);
@@ -118,7 +118,6 @@ int main(int, char**) {
         ALWAYS_ASSERT(r.is_ok, "Unable to load texture");
         texture = Texture(r.value);
     }
-    texture.bind(0);
 
     Program fps_program = Program::from_files("fps.frag", "screen.vert");
 
@@ -135,12 +134,15 @@ int main(int, char**) {
             glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            texture.bind(0);
             scene_view.render();
         }
 
         fps_program.set_uniform(HASH("delta_time"), dt);
         fps_program.bind();
         glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        imgui.render(window);
 
         glfwSwapBuffers(window);
     }

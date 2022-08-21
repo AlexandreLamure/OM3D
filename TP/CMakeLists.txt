@@ -33,8 +33,8 @@ file(GLOB_RECURSE SOURCE_FILES
 file(GLOB_RECURSE EXTERNAL_FILES
         "external/glad/*.c"
         "external/glad/*.h"
-        # "external/imgui/*.cpp"
-        # "external/imgui/*.h"
+        "external/imgui/*.cpp"
+        "external/imgui/*.h"
     )
 
 # Shader files
