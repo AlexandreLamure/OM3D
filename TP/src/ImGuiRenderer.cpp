@@ -34,7 +34,10 @@ ImGuiRenderer::ImGuiRenderer() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
-    _program = Program::from_files("imgui.frag", "imgui.vert");
+    _material._program = std::make_shared<Program>(Program::from_files("imgui.frag", "imgui.vert"));
+    _material._depth_test_mode = DepthTestMode::None;
+    _material._blend_mode = BlendMode::Alpha;
+
     _font = create_font();
 }
 
@@ -73,15 +76,9 @@ void ImGuiRenderer::render(const ImDrawData* draw_data) {
     const ImVec2 clip_off = draw_data->DisplayPos;
     const ImVec2 clip_scale = draw_data->FramebufferScale;
 
-    _program.set_uniform(HASH("viewport_size"), glm::vec2(draw_data->DisplaySize.x, draw_data->DisplaySize.y));
-    _program.bind();
+    _material._program->set_uniform(HASH("viewport_size"), glm::vec2(draw_data->DisplaySize.x, draw_data->DisplaySize.y));
+    _material.bind();
 
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
     DEFER(glDisable(GL_SCISSOR_TEST));
 

@@ -1,8 +1,7 @@
 #ifndef IMGUIRENDERER_H
 #define IMGUIRENDERER_H
 
-#include <Texture.h>
-#include <Program.h>
+#include <Material.h>
 
 #include <chrono>
 
@@ -19,7 +18,7 @@ class ImGuiRenderer : NonMovable {
         void render(const ImDrawData* draw_data);
         float update_dt();
 
-        Program _program;
+        Material _material;
         std::unique_ptr<Texture> _font;
         std::chrono::time_point<std::chrono::high_resolution_clock> _last;
 };

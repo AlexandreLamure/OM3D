@@ -93,8 +93,14 @@ int main(int, char**) {
         const auto r = MeshData::from_obj(std::string(data_path) + "cube.obj");
         ALWAYS_ASSERT(r.is_ok, "Unable to load mesh");
         std::shared_ptr<StaticMesh> mesh = std::make_shared<StaticMesh>(r.value);
-        std::shared_ptr<Program> program = std::make_shared<Program>(Program::from_files("lit.frag", "basic.vert"));
-        scene.add_object(SceneObject(std::move(mesh), std::move(program)));
+        std::shared_ptr<Material> material = std::make_shared<Material>();
+        material->_program = std::make_shared<Program>(Program::from_files("lit.frag", "basic.vert"));
+        {
+            const auto r = TextureData::from_file(std::string(data_path) + "uv.png");
+            ALWAYS_ASSERT(r.is_ok, "Unable to load texture");
+            material->_textures.emplace_back(0u, std::make_shared<Texture>(r.value));
+        }
+        scene.add_object(SceneObject(std::move(mesh), std::move(material)));
     }
 
     {
@@ -112,12 +118,7 @@ int main(int, char**) {
         scene.add_object(std::move(light));
     }
 
-    Texture texture;
-    {
-        const auto r = TextureData::from_file(std::string(data_path) + "uv.png");
-        ALWAYS_ASSERT(r.is_ok, "Unable to load texture");
-        texture = Texture(r.value);
-    }
+
 
     Program fps_program = Program::from_files("fps.frag", "screen.vert");
 
@@ -131,10 +132,8 @@ int main(int, char**) {
         process_inputs(window, scene_view.camera());
 
         {
-            glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            texture.bind(0);
             scene_view.render();
         }
 

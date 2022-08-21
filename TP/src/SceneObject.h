@@ -2,7 +2,7 @@
 #define SCENEOBJECT_H
 
 #include <StaticMesh.h>
-#include <Program.h>
+#include <Material.h>
 
 #include <memory>
 
@@ -11,7 +11,7 @@
 class SceneObject : NonCopyable {
 
     public:
-        SceneObject(std::shared_ptr<StaticMesh> mesh = nullptr, std::shared_ptr<Program> shader = nullptr);
+        SceneObject(std::shared_ptr<StaticMesh> mesh = nullptr, std::shared_ptr<Material> material = nullptr);
 
         void render() const;
 
@@ -21,7 +21,7 @@ class SceneObject : NonCopyable {
         glm::mat4 _transform = glm::mat4(1.0f);
 
         std::shared_ptr<StaticMesh> _mesh;
-        std::shared_ptr<Program> _shader;
+        std::shared_ptr<Material> _material;
 };
 
 #endif // SCENEOBJECT_H

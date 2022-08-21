@@ -2,21 +2,18 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-SceneObject::SceneObject(std::shared_ptr<StaticMesh> mesh, std::shared_ptr<Program> shader) :
+SceneObject::SceneObject(std::shared_ptr<StaticMesh> mesh, std::shared_ptr<Material> material) :
     _mesh(std::move(mesh)),
-    _shader(std::move(shader)) {
+    _material(std::move(material)) {
 }
 
 void SceneObject::render() const {
-    if(!_shader || !_mesh) {
+    if(!_material || !_mesh) {
         return;
     }
 
-   _shader->set_uniform(HASH("model"), transform());
-   _shader->set_uniform(HASH("red"), float(std::sin(program_time()) * 0.5f + 0.5f));
-   _shader->set_uniform(HASH("green"), 0.5f);
-   _shader->set_uniform(HASH("blue"), 1.0f);
-   _shader->bind();
+   _material->_program->set_uniform(HASH("model"), transform());
+   _material->bind();
     _mesh->draw();
 }
 
