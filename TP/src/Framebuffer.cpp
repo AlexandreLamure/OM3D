@@ -6,7 +6,7 @@
 
 static GLuint create_framebuffer_handle() {
     GLuint handle = 0;
-    glGenFramebuffers(1, &handle);
+    glCreateFramebuffers(1, &handle);
     return handle;
 }
 
@@ -15,7 +15,6 @@ Framebuffer::Framebuffer() {
 
 Framebuffer::Framebuffer(Texture* depth) : Framebuffer(depth, nullptr, 0) {
 }
-
 
 Framebuffer::Framebuffer(Texture* depth, Texture** colors, size_t count) : _handle(create_framebuffer_handle()) {
     if(depth) {
@@ -29,7 +28,7 @@ Framebuffer::Framebuffer(Texture* depth, Texture** colors, size_t count) : _hand
         _size = colors[i]->size();
     }
 
-    ALWAYS_ASSERT(glCheckNamedFramebufferStatus(_handle.get(), GL_FRAMEBUFFER), "Invalid framebuffer");
+    ALWAYS_ASSERT(glCheckNamedFramebufferStatus(_handle.get(), GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Invalid framebuffer");
 }
 
 Framebuffer::~Framebuffer() {
