@@ -5,6 +5,7 @@
 
 enum class ImageFormat {
     RGBA8_UNORM,
+    RGBA16_FLOAT,
     Depth32_FLOAT
 };
 

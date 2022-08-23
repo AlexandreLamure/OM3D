@@ -47,7 +47,7 @@ void Framebuffer::bind(bool clear) const {
     }
 }
 
-void Framebuffer::blit() const {
+void Framebuffer::blit(bool depth) const {
     i32 binding = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &binding);
     ALWAYS_ASSERT(binding != _handle.get(), "Framebuffer is bound");
@@ -59,7 +59,7 @@ void Framebuffer::blit() const {
         _handle.get(), binding,
         0, 0, _size.x, _size.y,
         0, 0, viewport[2], viewport[3],
-        GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        GL_COLOR_BUFFER_BIT | (depth ? GL_DEPTH_BUFFER_BIT : 0), GL_NEAREST);
 }
 
 

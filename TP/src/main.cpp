@@ -123,7 +123,7 @@ int main(int, char**) {
     Program fps_program = Program::from_files("fps.frag", "screen.vert");
 
     Texture depth(window_size, ImageFormat::Depth32_FLOAT);
-    Texture color(window_size, ImageFormat::RGBA8_UNORM);
+    Texture color(window_size, ImageFormat::RGBA16_FLOAT);
     Framebuffer framebuffer(&depth, std::array{&color});
 
     for(;;) {
@@ -144,6 +144,7 @@ int main(int, char**) {
         framebuffer.blit();
 
         {
+            glDisable(GL_DEPTH_TEST);
             fps_program.set_uniform(HASH("delta_time"), dt);
             fps_program.bind();
             glDrawArrays(GL_TRIANGLES, 0, 3);
