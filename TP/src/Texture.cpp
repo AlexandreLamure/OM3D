@@ -6,6 +6,7 @@
 #include <stb/stb_image.h>
 
 #include <cmath>
+#include <algorithm>
 
 Result<TextureData> TextureData::from_file(const std::string& file) {
     int width = 0;

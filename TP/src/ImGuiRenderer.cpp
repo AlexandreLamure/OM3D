@@ -10,6 +10,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <algorithm>
+
 static std::unique_ptr<Texture> create_font() {
     ImFontAtlas* fonts = ImGui::GetIO().Fonts;
 
