@@ -6,8 +6,11 @@
 #include <unordered_set>
 
 static std::string read_shader(const std::string& file_name) {
-    auto content = read_text_file(std::string(shader_path) + file_name);
-    ALWAYS_ASSERT(content.is_ok, "Unable to read shader");
+    const std::string shader_file_path = std::string(shader_path) + file_name;
+    auto content = read_text_file(shader_file_path);
+    if (!content.is_ok) {
+        FATAL((std::string("Unable to read shader: \"") + std::string(shader_file_path) + '"').c_str());
+    }
 
     std::string shader(std::move(content.value));
     std::unordered_set<std::string> includes;
