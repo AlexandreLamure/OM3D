@@ -180,7 +180,7 @@ ImGuiRenderer::ImGuiRenderer(GLFWwindow* window) : _window(window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
-    _material._program = std::make_shared<Program>(Program::from_files("imgui.frag", "imgui.vert"));
+    _material._program = Program::from_files("imgui.frag", "imgui.vert");
     _material._depth_test_mode = DepthTestMode::None;
     _material._blend_mode = BlendMode::Alpha;
 

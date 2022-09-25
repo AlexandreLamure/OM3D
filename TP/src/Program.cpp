@@ -4,11 +4,11 @@
 
 #include <algorithm>
 #include <unordered_set>
-
+#include <unordered_map>
 
 namespace OM3D {
 
-static std::string read_shader(const std::string& file_name, const std::vector<std::string> defines = {}) {
+static std::string read_shader(const std::string& file_name, Span<const std::string> defines = {}) {
     auto content = read_text_file(std::string(shader_path) + file_name);
     if (!content.is_ok) {
         FATAL((std::string("Unable to read shader: \"") + std::string(shader_path) + '"').c_str());
@@ -16,7 +16,7 @@ static std::string read_shader(const std::string& file_name, const std::vector<s
 
     bool define_added = false;
     auto add_defines = [&]() {
-        if(define_added || defines.empty()) {
+        if(define_added || defines.is_empty()) {
             return std::string();
         }
         define_added = true;
@@ -162,8 +162,29 @@ void Program::bind() const {
     glUseProgram(_handle.get());
 }
 
-Program Program::from_files(const std::string& frag, const std::string& vert, const std::vector<std::string> defines) {
-    return Program(read_shader(frag, defines), read_shader(vert, defines));
+std::shared_ptr<Program> Program::from_files(const std::string& frag, const std::string& vert, Span<const std::string> defines) {
+    static std::unordered_map<std::vector<std::string>, std::shared_ptr<Program>, CollectionHasher<std::vector<std::string>>> loaded;
+
+    std::vector<std::string> key(defines.begin(), defines.end());
+    key.emplace_back(frag);
+    key.emplace_back(vert);
+
+#if 0
+    auto& weak_program = loaded[key];
+    if(auto program = weak_program.lock()) {
+        return program;
+    }
+
+    auto program = std::make_shared<Program>(read_shader(frag, defines), read_shader(vert, defines));
+    weak_program = program;
+    return program;
+#else
+    auto& program = loaded[key];
+    if(!program) {
+        program = std::make_shared<Program>(read_shader(frag, defines), read_shader(vert, defines));
+    }
+    return program;
+#endif
 }
 
 int Program::find_location(u32 hash) {

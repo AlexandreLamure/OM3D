@@ -101,7 +101,7 @@ int main(int, char**) {
         ALWAYS_ASSERT(r.is_ok, "Unable to load mesh");
         std::shared_ptr<StaticMesh> mesh = std::make_shared<StaticMesh>(r.value);
         std::shared_ptr<Material> material = std::make_shared<Material>();
-        material->_program = std::make_shared<Program>(Program::from_files("lit.frag", "basic.vert", {"TEXTURED"}));
+        material->_program = Program::from_files("lit.frag", "basic.vert", {"TEXTURED"});
         {
             const auto r = TextureData::from_file(std::string(data_path) + "uv.png");
             ALWAYS_ASSERT(r.is_ok, "Unable to load texture");
@@ -125,7 +125,7 @@ int main(int, char**) {
         scene.add_object(std::move(light));
     }
 
-    Program fps_program = Program::from_files("fps.frag", "screen.vert");
+    auto fps_program = Program::from_files("fps.frag", "screen.vert");
 
     Texture depth(window_size, ImageFormat::Depth32_FLOAT);
     Texture color(window_size, ImageFormat::RGBA16_FLOAT);
@@ -153,8 +153,8 @@ int main(int, char**) {
 
         {
             glDisable(GL_DEPTH_TEST);
-            fps_program.set_uniform(HASH("delta_time"), dt);
-            fps_program.bind();
+            fps_program->set_uniform(HASH("delta_time"), dt);
+            fps_program->bind();
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 

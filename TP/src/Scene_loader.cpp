@@ -25,7 +25,7 @@ static size_t component_count(int type) {
     }
 }
 
-static bool decode_attrib_buffer(const tinygltf::Model& gltf, const std::string& name, const tinygltf::Accessor& accessor, std::vector<Vertex>& vertices) {
+static bool decode_attrib_buffer(const tinygltf::Model& gltf, const std::string& name, const tinygltf::Accessor& accessor, Span<Vertex> vertices) {
     const tinygltf::BufferView& buffer = gltf.bufferViews[accessor.bufferView];
 
     if(accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT) {
@@ -100,7 +100,7 @@ static bool decode_attrib_buffer(const tinygltf::Model& gltf, const std::string&
     return true;
 }
 
-static bool decode_index_buffer(const tinygltf::Model& gltf, const tinygltf::Accessor& accessor, std::vector<u32>& indices) {
+static bool decode_index_buffer(const tinygltf::Model& gltf, const tinygltf::Accessor& accessor, Span<u32> indices) {
     const tinygltf::BufferView& buffer = gltf.bufferViews[accessor.bufferView];
 
     auto decode_indices = [&](u32 elem_size, auto convert_index) {
