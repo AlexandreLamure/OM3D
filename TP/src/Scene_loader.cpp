@@ -33,6 +33,7 @@ static bool decode_attrib_buffer(const tinygltf::Model& gltf, const std::string&
         return false;
     }
 
+    [[maybe_unused]]
     const size_t vertex_count = vertices.size();
 
     auto decode_attribs =  [&](auto* vertex_elems) {
@@ -209,6 +210,9 @@ static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool
 }
 
 Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
+    const double time = program_time();
+    DEFER(std::cout << file_name << " loaded in " << std::round((program_time() - time) * 100.0) / 100.0 << "s" << std::endl);
+
     tinygltf::TinyGLTF ctx;
     tinygltf::Model gltf;
 
@@ -232,6 +236,8 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
             return {false, {}};
         }
     }
+
+    std::cout << file_name << " parsed in " << std::round((program_time() - time) * 100.0) / 100.0 << "s" << std::endl;
 
     auto scene = std::make_unique<Scene>();
 
