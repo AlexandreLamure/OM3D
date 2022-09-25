@@ -13,13 +13,15 @@ enum class MappingType {
 
 class BufferMappingBase : NonCopyable {
     public:
-        BufferMappingBase(BufferMappingBase&&) = default;
-        BufferMappingBase& operator=(BufferMappingBase&&) = default;
+        BufferMappingBase(BufferMappingBase&& other);
+        BufferMappingBase& operator=(BufferMappingBase&& other);
 
         ~BufferMappingBase();
 
     protected:
         BufferMappingBase() = default;
+
+        void swap(BufferMappingBase& other);
 
         GLHandle _handle;
         size_t _byte_size = 0;

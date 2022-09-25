@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include <iostream>
+
 namespace OM3D {
 
 static GLuint mapping_to_gl(MappingType mapping) {
@@ -26,6 +28,7 @@ static GLuint create_buffer_handle() {
 }
 
 ByteBuffer::ByteBuffer(const void* data, size_t size) : _handle(create_buffer_handle()), _size(size) {
+    ALWAYS_ASSERT(_size, "Buffer size can not be 0");
     glNamedBufferData(_handle.get(), size, data, GL_STATIC_DRAW);
 }
 
@@ -53,7 +56,8 @@ BufferMapping<u8> ByteBuffer::map_bytes(MappingType mapping) {
 }
 
 void* ByteBuffer::map_internal(MappingType mapping) {
-    return glMapNamedBuffer(_handle.get(), mapping_to_gl(mapping));
+    DEBUG_ASSERT(_handle.is_valid() && _size);
+    return glMapNamedBuffer(_handle.get(), mapping_to_gl(mapping));;
 }
 
 const GLHandle& ByteBuffer::handle() const {

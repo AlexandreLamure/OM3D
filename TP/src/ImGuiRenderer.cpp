@@ -225,6 +225,10 @@ float ImGuiRenderer::update_dt() {
 }
 
 void ImGuiRenderer::render(const ImDrawData* draw_data) {
+    if(!draw_data->TotalIdxCount || !draw_data->TotalVtxCount) {
+        return;
+    }
+
     const float width = (draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
     const float height = (draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
 
