@@ -36,6 +36,10 @@ void main() {
         acc += light.color * (NoL * att);
     }
 
-    out_color = vec4(in_color * acc, 1.0) * texture(in_texture, in_uv);
+    out_color = vec4(in_color * acc, 1.0);
+
+#ifdef TEXTURED
+    out_color *= texture(in_texture, in_uv);
+#endif
 }
 

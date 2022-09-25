@@ -101,7 +101,7 @@ int main(int, char**) {
         ALWAYS_ASSERT(r.is_ok, "Unable to load mesh");
         std::shared_ptr<StaticMesh> mesh = std::make_shared<StaticMesh>(r.value);
         std::shared_ptr<Material> material = std::make_shared<Material>();
-        material->_program = std::make_shared<Program>(Program::from_files("lit.frag", "basic.vert"));
+        material->_program = std::make_shared<Program>(Program::from_files("lit.frag", "basic.vert", {"TEXTURED"}));
         {
             const auto r = TextureData::from_file(std::string(data_path) + "uv.png");
             ALWAYS_ASSERT(r.is_ok, "Unable to load texture");

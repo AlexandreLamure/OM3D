@@ -8,9 +8,22 @@
 
 namespace OM3D {
 
-static std::string read_shader(const std::string& file_name) {
+static std::string read_shader(const std::string& file_name, const std::vector<std::string> defines = {}) {
     auto content = read_text_file(std::string(shader_path) + file_name);
     ALWAYS_ASSERT(content.is_ok, "Unable to read shader");
+
+    bool define_added = false;
+    auto add_defines = [&]() {
+        if(define_added || defines.empty()) {
+            return std::string();
+        }
+        define_added = true;
+        std::string defs = "\n";
+        for(const std::string& def : defines) {
+            defs += "#define " + def + " 1\n";
+        }
+        return defs;
+    };
 
     std::string shader(std::move(content.value));
     std::unordered_set<std::string> includes;
@@ -32,7 +45,9 @@ static std::string read_shader(const std::string& file_name) {
         if(!line.empty() && line.front() == '#') {
             line = line.substr(1);
             trim();
-            if(line.substr(0, 7) == "include") {
+            if(line.substr(0, 7) == "version") {
+                shader = shader.substr(0, endl) + add_defines() + shader.substr(endl);
+            } else if(line.substr(0, 7) == "include") {
                 line = line.substr(7);
                 trim();
                 if(!line.empty()) {
@@ -44,7 +59,7 @@ static std::string read_shader(const std::string& file_name) {
                     }
 
                     const std::string include_file(line.substr(1, end - 1));
-                    std::string include_content;
+                    std::string include_content = add_defines();
                     if(includes.find(include_file) == includes.end()) {
                         includes.insert(include_file);
                         auto content = read_text_file(std::string(shader_path) + include_file);
@@ -145,8 +160,8 @@ void Program::bind() const {
     glUseProgram(_handle.get());
 }
 
-Program Program::from_files(const std::string& frag, const std::string& vert) {
-    return Program(read_shader(frag), read_shader(vert));
+Program Program::from_files(const std::string& frag, const std::string& vert, const std::vector<std::string> defines) {
+    return Program(read_shader(frag, defines), read_shader(vert, defines));
 }
 
 int Program::find_location(u32 hash) {
