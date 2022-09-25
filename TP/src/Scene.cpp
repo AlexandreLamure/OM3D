@@ -23,6 +23,8 @@ void Scene::render(const Camera& camera) const {
         auto mapping = buffer.map(MappingType::WriteOnly);
         mapping[0].camera.view_proj = camera.view_proj_matrix();
         mapping[0].point_light_count = u32(_point_lights.size());
+        mapping[0].sun_color = glm::vec3(255.0f, 228.0f, 132.0f) / 255.0f;
+        mapping[0].sun_dir = glm::normalize(glm::vec3(1.0f, 0.2f, 0.1f));
     }
     buffer.bind(BufferUsage::Uniform, 0);
 

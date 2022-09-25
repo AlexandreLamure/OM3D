@@ -28,6 +28,8 @@ class Material : NonMovable
 
         void bind() const;
 
+        static std::shared_ptr<Material> empty_material();
+
     //private:
         std::shared_ptr<Program> _program;
         std::vector<std::pair<u32, std::shared_ptr<Texture>>> _textures;

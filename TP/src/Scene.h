@@ -6,6 +6,7 @@
 #include <Camera.h>
 
 #include <vector>
+#include <memory>
 
 namespace OM3D {
 
@@ -14,7 +15,7 @@ class Scene : NonMovable {
     public:
         Scene();
 
-        static Result<Scene> from_gltf(const std::string& file_name);
+        static Result<std::unique_ptr<Scene>> from_gltf(const std::string& file_name);
 
         void render(const Camera& camera) const;
 

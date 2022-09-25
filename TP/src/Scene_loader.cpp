@@ -37,7 +37,7 @@ static bool decode_attrib_buffer(const tinygltf::Model& gltf, const std::string&
 
     auto decode_attribs =  [&](auto* vertex_elems) {
         using attrib_type = std::remove_reference_t<decltype(vertex_elems[0])>;
-        using value_type = typename attrib_type::value_type;//std::remove_reference_t<decltype(vertex_elems[0][0])>;
+        using value_type = typename attrib_type::value_type;
         static constexpr size_t size = sizeof(attrib_type) / sizeof(value_type);
 
         const size_t components = component_count(accessor.type);
@@ -167,9 +167,9 @@ static Result<MeshData> build_mesh_data(const tinygltf::Model& gltf, const tinyg
             return {false, {}};
         }
 
-        if(!vertices.size()) {
-            std::fill_n(std::back_inserter(vertices), accessor.count, Vertex{});
-        } else if(vertices.size() != accessor.count) {
+        if(!indices.size()) {
+            std::fill_n(std::back_inserter(indices), accessor.count, u32(0));
+        } else if(indices.size() != accessor.count) {
             return {false, {}};
         }
 
@@ -181,7 +181,7 @@ static Result<MeshData> build_mesh_data(const tinygltf::Model& gltf, const tinyg
     return {true, MeshData{std::move(vertices), std::move(indices)}};
 }
 
-Result<Scene> Scene::from_gltf(const std::string& file_name) {
+Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
     tinygltf::TinyGLTF ctx;
     tinygltf::Model gltf;
 
@@ -206,6 +206,7 @@ Result<Scene> Scene::from_gltf(const std::string& file_name) {
         }
     }
 
+    auto scene = std::make_unique<Scene>();
 
     for(int i = 0; i != gltf.meshes.size(); ++i) {
         const tinygltf::Mesh& mesh = gltf.meshes[i];
@@ -217,15 +218,17 @@ Result<Scene> Scene::from_gltf(const std::string& file_name) {
                 continue;
             }
 
-            auto mesh = build_mesh_data(gltf, prim);
+            const auto mesh = build_mesh_data(gltf, prim);
             if(!mesh.is_ok) {
                 return {false, {}};
             }
 
+            auto static_mesh = std::make_shared<StaticMesh>(mesh.value);
+            scene->add_object(SceneObject(std::move(static_mesh), Material::empty_material()));
         }
     }
 
-    return {false, {}};
+    return {true, std::move(scene)};
 }
 
 }

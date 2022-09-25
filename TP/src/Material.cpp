@@ -46,4 +46,13 @@ void Material::bind() const {
     _program->bind();
 }
 
+std::shared_ptr<Material> Material::empty_material() {
+    static std::shared_ptr<Material> material;
+    if(!material) {
+        material = std::make_shared<Material>();
+        material->_program = Program::from_files("lit.frag", "basic.vert");
+    }
+    return material;
+}
+
 }

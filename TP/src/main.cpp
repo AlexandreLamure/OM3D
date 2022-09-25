@@ -77,24 +77,9 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
     mouse_pos = new_mouse_pos;
 }
 
-int main(int, char**) {
-    DEBUG_ASSERT([] { std::cout << "Debug asserts enabled" << std::endl; return true; }());
 
-    glfw_check(glfwInit());
-    DEFER(glfwTerminate());
-
-    GLFWwindow* window = glfwCreateWindow(window_size.x, window_size.y, "TP window", nullptr, nullptr);
-    glfw_check(window);
-    DEFER(glfwDestroyWindow(window));
-
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // Enable vsync
-    init_graphics();
-
-    ImGuiRenderer imgui(window);
-
-    Scene scene;
-    SceneView scene_view(&scene);
+std::unique_ptr<Scene> create_scene() {
+    auto scene = std::make_unique<Scene>();
 
     {
         const auto r = MeshData::from_obj(std::string(data_path) + "cube.obj");
@@ -107,7 +92,7 @@ int main(int, char**) {
             ALWAYS_ASSERT(r.is_ok, "Unable to load texture");
             material->_textures.emplace_back(0u, std::make_shared<Texture>(r.value));
         }
-        scene.add_object(SceneObject(std::move(mesh), std::move(material)));
+        scene->add_object(SceneObject(std::move(mesh), std::move(material)));
     }
 
     {
@@ -115,15 +100,42 @@ int main(int, char**) {
         light.set_position(glm::vec3(1.0f, 2.0f, 4.0f));
         light.set_color(glm::vec3(0.0f, 10.0f, 0.0f));
         light.set_radius(100.0f);
-        scene.add_object(std::move(light));
+        scene->add_object(std::move(light));
     }
     {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, -4.0f));
         light.set_color(glm::vec3(10.0f, 0.0f, 0.0f));
         light.set_radius(50.0f);
-        scene.add_object(std::move(light));
+        scene->add_object(std::move(light));
     }
+
+    return scene;
+}
+
+
+int main(int, char**) {
+    DEBUG_ASSERT([] { std::cout << "Debug asserts enabled" << std::endl; return true; }());
+
+    glfw_check(glfwInit());
+    DEFER(glfwTerminate());
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow* window = glfwCreateWindow(window_size.x, window_size.y, "TP window", nullptr, nullptr);
+    glfw_check(window);
+    DEFER(glfwDestroyWindow(window));
+
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1); // Enable vsync
+    init_graphics();
+
+    ImGuiRenderer imgui(window);
+
+    std::unique_ptr<Scene> scene = create_scene();
+    SceneView scene_view(scene.get());
 
     auto fps_program = Program::from_files("fps.frag", "screen.vert");
 
@@ -159,6 +171,18 @@ int main(int, char**) {
         }
 
         imgui.start();
+        {
+            char buffer[1024] = {};
+            if(ImGui::InputText("Load scene", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
+                auto result = Scene::from_gltf(buffer);
+                if(!result.is_ok) {
+                    std::cerr << "Unable to load scene (" << buffer << ")" << std::endl;
+                } else {
+                    scene = std::move(result.value);
+                    scene_view = SceneView(scene.get());
+                }
+            }
+        }
         imgui.finish();
 
         glfwSwapBuffers(window);

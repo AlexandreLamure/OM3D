@@ -20,7 +20,8 @@ layout(binding = 1) buffer PointLights {
 };
 
 void main() {
-    vec3 acc = vec3(0.0);
+    vec3 acc = max(0.0, dot(frame.sun_dir, in_normal)) * frame.sun_color;
+
     for(uint i = 0; i != frame.point_light_count; ++i) {
         PointLight light = point_lights[i];
         const vec3 to_light = (light.position - in_position);

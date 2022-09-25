@@ -1,5 +1,7 @@
 #include "graphics.h"
 
+#include "Vertex.h"
+
 #include <glad/glad.h>
 
 #define GLFW_INCLUDE_NONE
@@ -40,6 +42,10 @@ u32 buffer_usage_to_gl(BufferUsage usage) {
     FATAL("Unknown usage value");
 }
 
+
+static GLuint mesh_vertex_format_vao = 0;
+static GLuint imgui_vertex_format_vao = 0;
+
 void init_graphics() {
     ALWAYS_ASSERT(gladLoadGLLoader((GLADloadproc)(glfwGetProcAddress)), "glad initialization failed");
 
@@ -49,6 +55,32 @@ void init_graphics() {
 
     glDebugMessageCallback(&debug_out, nullptr);
     glEnable(GL_DEBUG_OUTPUT);
+
+    {
+        glGenVertexArrays(1, &mesh_vertex_format_vao);
+        glBindVertexArray(mesh_vertex_format_vao);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), nullptr);
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(3 * sizeof(float)));
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(6 * sizeof(float)));
+        glVertexAttribPointer(3, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(8 * sizeof(float)));
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+        glEnableVertexAttribArray(3);
+    }
+
+    {
+        glGenVertexArrays(1, &imgui_vertex_format_vao);
+    }
+}
+
+void set_mesh_vertex_format() {
+    glBindVertexArray(mesh_vertex_format_vao);
+}
+
+void set_imgui_vertex_format() {
+    glBindVertexArray(mesh_vertex_format_vao);
 }
 
 }

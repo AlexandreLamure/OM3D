@@ -164,8 +164,14 @@ static void char_callback(GLFWwindow*, unsigned characted) {
 }
 
 
-static void key_callback(GLFWwindow*, int key, int, int action, int) {
-    ImGui::GetIO().AddKeyEvent(key_to_imgui(key), action == GLFW_PRESS);
+static void key_callback(GLFWwindow*, int key, int, int action, int mods) {
+    auto& io = ImGui::GetIO();
+    io.AddKeyEvent(ImGuiKey_ModCtrl, (mods & GLFW_MOD_CONTROL) != 0);
+    io.AddKeyEvent(ImGuiKey_ModShift, (mods & GLFW_MOD_SHIFT) != 0);
+    io.AddKeyEvent(ImGuiKey_ModAlt, (mods & GLFW_MOD_ALT) != 0);
+    io.AddKeyEvent(ImGuiKey_ModSuper, (mods & GLFW_MOD_SUPER) != 0);
+    io.AddKeyEvent(key_to_imgui(key), action == GLFW_PRESS);
+
 }
 
 static void mouse_pos_callback(GLFWwindow*, double xpos, double ypos) {
@@ -279,6 +285,7 @@ void ImGuiRenderer::render(const ImDrawData* draw_data) {
                 tex->bind(0);
             }
 
+            set_imgui_vertex_format();
             glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(ImDrawVert), vertex_offset);
             glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeof(ImDrawVert), vertex_offset + (2 * sizeof(float)));
             glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, false, sizeof(ImDrawVert), vertex_offset + (4 * sizeof(float)));

@@ -49,9 +49,12 @@ enum class BufferUsage {
     Storage,
 };
 
+
 u32 buffer_usage_to_gl(BufferUsage usage);
 
 void init_graphics();
+void set_mesh_vertex_format();
+void set_imgui_vertex_format();
 
 }
 
