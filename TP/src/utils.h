@@ -9,7 +9,7 @@
 
 #define FWD(var) std::forward<decltype(var)>(var)
 #define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = OnExit([&]() { expr; })
-#define FATAL(msg) fatal((msg), __FILE__, __LINE__)
+#define FATAL(msg) ::OM3D::fatal((msg), __FILE__, __LINE__)
 #define ALWAYS_ASSERT(cond, msg) do { if(!(cond)) { FATAL(msg); } } while(false)
 #define HASH(str) ([] { static constexpr u32 result = str_hash(str); return result; }())
 
@@ -20,6 +20,9 @@
 #endif
 
 namespace OM3D {
+
+void break_in_debugger();
+[[noreturn]] void fatal(const char* msg, const char* file = nullptr, int line = 0);
 
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -77,6 +80,74 @@ class OnExit {
         T _ex;
 };
 
+template<typename T>
+class Span {
+    template<typename U>
+    static constexpr bool is_compat = std::is_constructible_v<T*, U>;
+
+    template<typename C>
+    using data_type = decltype(std::declval<C>().data());
+
+    public:
+        using value_type = T;
+        using iterator = T*;
+        using const_iterator = const T*;
+
+        inline constexpr Span() = default;
+        inline constexpr Span(const Span&) = default;
+        inline constexpr Span& operator=(const Span&) = default;
+
+        inline constexpr Span(std::nullptr_t) {}
+        inline constexpr Span(T& t) : _data(&t), _size(1) {}
+        inline constexpr Span(T* data, size_t size) : _data(data), _size(size) {}
+
+        template<size_t N>
+        inline constexpr Span(T (&arr)[N]) : _data(arr), _size(N) {}
+
+        template<size_t N>
+        inline constexpr Span(std::array<T, N>& arr) : _data(arr.data()), _size(N) {}
+
+        template<typename C, typename = std::enable_if_t<is_compat<data_type<C>>>>
+        inline constexpr Span(C&& vec) : _data(vec.data()), _size(std::distance(vec.begin(), vec.end())) {}
+
+        inline constexpr size_t size() const { return _size; }
+        inline constexpr bool is_empty() const { return !_size; }
+        inline constexpr T* data() { return _data; }
+        inline constexpr const T* data() const { return _data; }
+        inline constexpr const_iterator begin() const { return _data; }
+        inline constexpr const_iterator end() const { return _data + _size; }
+
+        bool operator==(const Span& other) const { return size() == other.size() && std::equal(begin(), end(), other.begin(), other.end()); }
+        bool operator!=(const Span& other) const { return !operator==(other); }
+
+        inline constexpr T& operator[](size_t i) const {
+            DEBUG_ASSERT(i < size());
+            return _data[i];
+        }
+
+    private:
+        T* _data = nullptr;
+        size_t _size = 0;
+
+};
+
+template<typename T>
+inline constexpr void hash_combine(T& seed, T value) {
+    seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+template<typename T, typename V = typename T::value_type>
+struct CollectionHasher : std::hash<V> {
+    size_t operator()(const T& t) const noexcept {
+        size_t h = size_t(0xd5a7de585d2af52b);
+        for(const auto& e : t) {
+            hash_combine(h, std::hash<V>::operator()(e));
+        }
+        return h;
+    }
+};
+
+
 inline constexpr u32 str_hash(std::string_view str, u32 seed = 0xCAFECAFE) {
     constexpr u32 lut[256] = {
         0x00000000,0x77073096,0xEE0E612C,0x990951BA,0x076DC419,0x706AF48F,0xE963A535,0x9E6495A3,0x0EDB8832,0x79DCB8A4,0xE0D5E91E,0x97D2D988,0x09B64C2B,0x7EB17CBD,0xE7B82D07,0x90BF1D91,
@@ -112,9 +183,6 @@ template<typename T>
 inline constexpr T to_deg(T rad) {
     return rad * T(57.295779513082320876798154814105);
 }
-
-void break_in_debugger();
-[[noreturn]] void fatal(const char* msg, const char* file = nullptr, int line = 0);
 
 double program_time();
 Result<std::string> read_text_file(const std::string& file_name);

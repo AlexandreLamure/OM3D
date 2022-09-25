@@ -12,7 +12,7 @@ class TypedBuffer : public ByteBuffer {
     public:
         TypedBuffer() = default;
 
-        TypedBuffer(const std::vector<T>& data) : TypedBuffer(data.data(), data.size()) {
+        TypedBuffer(Span<const T> data) : TypedBuffer(data.data(), data.size()) {
         }
 
         TypedBuffer(const T* data, size_t count) : ByteBuffer(data, count * sizeof(T)) {
