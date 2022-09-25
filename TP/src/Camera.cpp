@@ -22,8 +22,16 @@ static glm::vec3 extract_up(const glm::mat4& view) {
     return glm::normalize(glm::vec3(view[0][1], view[1][1], view[2][1]));
 }
 
+glm::mat4 build_projection(float fov, float aspect_ratio, float zNear) {
+    float f = 1.0f / std::tan(fov / 2.0f);
+    return glm::mat4(f / aspect_ratio, 0.0f,  0.0f,  0.0f,
+                  0.0f,    f,  0.0f,  0.0f,
+                  0.0f, 0.0f,  0.0f, -1.0f,
+                  0.0f, 0.0f, zNear,  0.0f);
+}
+
 Camera::Camera() {
-    _projection = glm::infinitePerspective(to_rad(60.0f), 16.0f / 9.0f, 0.1f);
+    _projection = build_projection(to_rad(60.0f), 16.0f / 9.0f, 0.001f);
     _view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     update();
 }

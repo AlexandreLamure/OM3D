@@ -50,15 +50,23 @@ void init_graphics() {
 
     glClearColor(0.5f, 0.7f, 0.8f, 0.0f);
 
-    glDebugMessageCallback(&debug_out, nullptr);
+    {
+        glDebugMessageCallback(&debug_out, nullptr);
 
-    glEnable(GL_DEBUG_OUTPUT);
-
+        glEnable(GL_DEBUG_OUTPUT);
 #ifdef OS_WIN
-    if(running_in_debugger()) {
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    }
+        if(running_in_debugger()) {
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        }
 #endif
+    }
+
+    {
+        // Set depth range to [0; 1] instead of the default [-1; 1]
+        glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+        // We use reverse-Z so far is 0
+        glClearDepthf(0.0f);
+    }
 
     glGenVertexArrays(1, &global_vao);
     glBindVertexArray(global_vao);

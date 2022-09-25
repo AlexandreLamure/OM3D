@@ -31,12 +31,14 @@ void Material::bind() const {
 
         case DepthTestMode::Standard:
             glEnable(GL_DEPTH_TEST);
-            glDepthFunc(GL_LEQUAL);
+            // We are using reverse-Z
+            glDepthFunc(GL_GEQUAL);
         break;
 
         case DepthTestMode::Reversed:
             glEnable(GL_DEPTH_TEST);
-            glDepthFunc(GL_GEQUAL);
+            // We are using reverse-Z
+            glDepthFunc(GL_LEQUAL);
         break;
     }
 

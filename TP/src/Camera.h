@@ -7,6 +7,8 @@
 
 namespace OM3D {
 
+glm::mat4 build_projection(float fov, float aspect_ratio, float zNear);
+
 class Camera {
     public:
         Camera();
