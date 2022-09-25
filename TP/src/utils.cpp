@@ -13,9 +13,15 @@
 
 namespace OM3D {
 
+#ifdef OS_WIN
+bool running_in_debugger() {
+    return IsDebuggerPresent();
+}
+#endif
+
 void break_in_debugger() {
 #ifdef OS_WIN
-    if(IsDebuggerPresent()) {
+    if(running_in_debugger()) {
         DebugBreak();
     }
 #endif

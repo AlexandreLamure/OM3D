@@ -1,17 +1,11 @@
 #include "graphics.h"
 
-#include "Vertex.h"
-
 #include <glad/glad.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <iostream>
-
-#ifdef OS_WIN
-extern "C" int __stdcall IsDebuggerPresent();
-#endif
 
 namespace OM3D {
 
@@ -61,7 +55,7 @@ void init_graphics() {
     glEnable(GL_DEBUG_OUTPUT);
 
 #ifdef OS_WIN
-    if(::IsDebuggerPresent()) {
+    if(running_in_debugger()) {
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     }
 #endif

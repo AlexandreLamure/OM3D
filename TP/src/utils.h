@@ -21,6 +21,10 @@
 
 namespace OM3D {
 
+#ifdef OS_WIN
+bool running_in_debugger();
+#endif
+
 void break_in_debugger();
 [[noreturn]] void fatal(const char* msg, const char* file = nullptr, int line = 0);
 
