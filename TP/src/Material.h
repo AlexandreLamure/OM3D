@@ -7,6 +7,8 @@
 #include <memory>
 #include <vector>
 
+namespace OM3D {
+
 enum class BlendMode {
     None,
     Alpha,
@@ -34,5 +36,7 @@ class Material : NonMovable
         DepthTestMode _depth_test_mode = DepthTestMode::Standard;
 
 };
+
+}
 
 #endif // MATERIAL_H

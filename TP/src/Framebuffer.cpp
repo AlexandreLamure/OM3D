@@ -4,6 +4,8 @@
 
 #include <glad/glad.h>
 
+namespace OM3D {
+
 static GLuint create_framebuffer_handle() {
     GLuint handle = 0;
     glCreateFramebuffers(1, &handle);
@@ -62,7 +64,8 @@ void Framebuffer::blit(bool depth) const {
         GL_COLOR_BUFFER_BIT | (depth ? GL_DEPTH_BUFFER_BIT : 0), GL_NEAREST);
 }
 
-
 const glm::uvec2& Framebuffer::size() const {
     return _size;
+}
+
 }

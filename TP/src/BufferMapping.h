@@ -3,6 +3,8 @@
 
 #include <graphics.h>
 
+namespace OM3D {
+
 enum class MappingType {
     WriteOnly,
     ReadOnly,
@@ -57,5 +59,7 @@ class BufferMapping : BufferMappingBase {
             ALWAYS_ASSERT(size % sizeof(T) == 0, "Element size doesn't divide buffer size");
         }
 };
+
+}
 
 #endif // BUFFERMAPPING_H

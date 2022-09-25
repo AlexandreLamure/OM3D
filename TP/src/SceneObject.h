@@ -8,6 +8,8 @@
 
 #include <glm/matrix.hpp>
 
+namespace OM3D {
+
 class SceneObject : NonCopyable {
 
     public:
@@ -23,5 +25,7 @@ class SceneObject : NonCopyable {
         std::shared_ptr<StaticMesh> _mesh;
         std::shared_ptr<Material> _material;
 };
+
+}
 
 #endif // SCENEOBJECT_H

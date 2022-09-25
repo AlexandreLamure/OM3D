@@ -7,6 +7,8 @@
 
 #include <vector>
 
+namespace OM3D {
+
 struct MeshData {
     std::vector<Vertex> vertices;
     std::vector<u32> indices;
@@ -28,8 +30,8 @@ class StaticMesh : NonCopyable {
     private:
         TypedBuffer<Vertex> _vertex_buffer;
         TypedBuffer<u32> _index_buffer;
-
-
 };
+
+}
 
 #endif // STATICMESH_H

@@ -1,5 +1,6 @@
 #include "Camera.h"
 
+namespace OM3D {
 
 static glm::vec3 extract_position(const glm::mat4& view) {
     glm::vec3 pos = {};
@@ -67,4 +68,6 @@ const glm::mat4& Camera::view_proj_matrix() const {
 
 void Camera::update() {
     _view_proj = _projection * _view;
+}
+
 }

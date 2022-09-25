@@ -12,6 +12,8 @@
 
 #include <vector>
 
+namespace OM3D {
+
 class Program : NonCopyable {
 
     struct UniformLocationInfo {
@@ -58,5 +60,7 @@ class Program : NonCopyable {
         std::vector<UniformLocationInfo> _uniform_locations;
 
 };
+
+}
 
 #endif // PROGRAM_H

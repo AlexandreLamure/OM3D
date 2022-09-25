@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+namespace OM3D {
+
 void debug_out(GLenum, GLenum type, GLuint, GLuint sev, GLsizei, const char* msg, const void*) {
     if(sev == GL_DEBUG_SEVERITY_NOTIFICATION) {
         return;
@@ -30,7 +32,7 @@ u32 buffer_usage_to_gl(BufferUsage usage) {
 
         case BufferUsage::Uniform:
             return GL_UNIFORM_BUFFER;
-            
+
         case BufferUsage::Storage:
             return GL_SHADER_STORAGE_BUFFER;
     }
@@ -49,3 +51,4 @@ void init_graphics() {
     glEnable(GL_DEBUG_OUTPUT);
 }
 
+}

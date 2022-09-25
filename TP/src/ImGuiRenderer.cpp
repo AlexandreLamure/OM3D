@@ -10,6 +10,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+namespace OM3D {
+
 static std::unique_ptr<Texture> create_font() {
     ImFontAtlas* fonts = ImGui::GetIO().Fonts;
 
@@ -140,4 +142,6 @@ void ImGuiRenderer::render(const ImDrawData* draw_data) {
         vertex_offset += cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
         index_offset += cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
     }
+}
+
 }

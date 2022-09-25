@@ -9,6 +9,9 @@
 #include <vector>
 #include <memory>
 
+
+namespace OM3D {
+
 struct TextureData {
     std::unique_ptr<u8[]> data;
     glm::uvec2 size = {};
@@ -42,5 +45,7 @@ class Texture {
         glm::uvec2 _size = {};
         ImageFormat _format;
 };
+
+}
 
 #endif // TEXTURE_H

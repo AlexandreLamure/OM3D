@@ -11,6 +11,7 @@
 #include <windows.h>
 #endif
 
+namespace OM3D {
 
 void break_in_debugger() {
 #ifdef OS_WIN
@@ -74,4 +75,6 @@ Result<std::string> read_text_file(const std::string& file_name) {
     }
 
     return {false, {}};
+}
+
 }

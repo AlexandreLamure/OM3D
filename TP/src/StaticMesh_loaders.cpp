@@ -9,6 +9,8 @@
 #include <charconv>
 #include <iostream>
 
+namespace OM3D {
+
 Result<MeshData> MeshData::from_obj(const std::string& file_name) {
     const auto file = read_text_file(file_name);
     if(!file.is_ok) {
@@ -130,4 +132,5 @@ Result<MeshData> MeshData::from_obj(const std::string& file_name) {
     return {true, MeshData{std::move(vertices), std::move(indices)}};
 }
 
+}
 

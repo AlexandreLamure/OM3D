@@ -12,6 +12,9 @@
 #include <Framebuffer.h>
 #include <ImGuiRenderer.h>
 
+
+using namespace OM3D;
+
 static float dt = 0.0f;
 const glm::uvec2 window_size(1600, 900);
 

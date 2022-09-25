@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+namespace OM3D {
+
 ImageFormatGL image_format_to_gl(ImageFormat format) {
     switch(format) {
         case ImageFormat::RGBA8_UNORM: return ImageFormatGL{ GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE };
@@ -10,4 +12,6 @@ ImageFormatGL image_format_to_gl(ImageFormat format) {
     }
 
     FATAL("Unknown image format");
+}
+
 }

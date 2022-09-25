@@ -5,6 +5,8 @@
 
 #include <glm/vec3.hpp>
 
+namespace OM3D {
+
 class PointLight : NonCopyable {
 
     public:
@@ -40,5 +42,7 @@ class PointLight : NonCopyable {
         glm::vec3 _color = glm::vec3(1.0f);
         float _radius = 10.0f;
 };
+
+}
 
 #endif // POINTLIGHT_H

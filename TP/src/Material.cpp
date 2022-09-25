@@ -2,8 +2,9 @@
 
 #include <glad/glad.h>
 
-Material::Material() {
+namespace OM3D {
 
+Material::Material() {
 }
 
 void Material::bind() const {
@@ -43,4 +44,6 @@ void Material::bind() const {
         texture.second->bind(texture.first);
     }
     _program->bind();
+}
+
 }

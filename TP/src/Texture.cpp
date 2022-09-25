@@ -7,6 +7,8 @@
 
 #include <cmath>
 
+namespace OM3D {
+
 Result<TextureData> TextureData::from_file(const std::string& file) {
     int width = 0;
     int height = 0;
@@ -77,3 +79,4 @@ u32 Texture::mip_levels(glm::uvec2 size) {
     return 1 + u32(std::floor(std::log2(side)));
 }
 
+}

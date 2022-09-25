@@ -8,6 +8,8 @@
 struct ImDrawData;
 struct GLFWwindow;
 
+namespace OM3D {
+
 class ImGuiRenderer : NonMovable {
     public:
         ImGuiRenderer();
@@ -22,5 +24,7 @@ class ImGuiRenderer : NonMovable {
         std::unique_ptr<Texture> _font;
         std::chrono::time_point<std::chrono::high_resolution_clock> _last;
 };
+
+}
 
 #endif // IMGUIRENDERER_H

@@ -5,6 +5,8 @@
 
 #include <utils.h>
 
+namespace OM3D {
+
 class Camera {
     public:
         Camera();
@@ -29,5 +31,7 @@ class Camera {
 
         glm::mat4 _view_proj;
 };
+
+}
 
 #endif // CAMERA_H

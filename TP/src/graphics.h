@@ -5,6 +5,8 @@
 
 #include <string_view>
 
+namespace OM3D {
+
 static constexpr std::string_view shader_path = "../../shaders/";
 static constexpr std::string_view data_path = "../../data/";
 
@@ -51,5 +53,6 @@ u32 buffer_usage_to_gl(BufferUsage usage);
 
 void init_graphics();
 
+}
 
 #endif // GRAPHICS_H

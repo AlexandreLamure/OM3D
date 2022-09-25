@@ -4,6 +4,8 @@
 #include <Scene.h>
 #include <Camera.h>
 
+namespace OM3D {
+
 class SceneView {
     public:
         SceneView(const Scene* scene = nullptr);
@@ -18,5 +20,7 @@ class SceneView {
         Camera _camera;
 
 };
+
+}
 
 #endif // SCENEVIEW_H

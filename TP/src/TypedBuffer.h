@@ -5,6 +5,8 @@
 
 #include <vector>
 
+namespace OM3D {
+
 template<typename T>
 class TypedBuffer : public ByteBuffer {
     public:
@@ -25,5 +27,7 @@ class TypedBuffer : public ByteBuffer {
             return BufferMapping<T>(ByteBuffer::map_internal(mapping), byte_size(), handle());
         }
 };
+
+}
 
 #endif // TYPEDBUFFER_H

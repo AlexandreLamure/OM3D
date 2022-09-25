@@ -7,12 +7,14 @@
 
 #include <glm/matrix.hpp>
 
+namespace OM3D {
 namespace shader {
 
 using namespace glm;
 
 #include <../shaders/structs.glsl>
 
+}
 }
 
 #endif // SHADERSTRUCTS_H

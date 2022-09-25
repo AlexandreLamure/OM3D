@@ -4,6 +4,8 @@
 
 #include <shader_structs.h>
 
+namespace OM3D {
+
 Scene::Scene() {
 }
 
@@ -42,4 +44,6 @@ void Scene::render(const Camera& camera) const {
     for(const SceneObject& obj : _objects) {
         obj.render();
     }
+}
+
 }

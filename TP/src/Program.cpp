@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <unordered_set>
 
+
+namespace OM3D {
+
 static std::string read_shader(const std::string& file_name) {
     auto content = read_text_file(std::string(shader_path) + file_name);
     ALWAYS_ASSERT(content.is_ok, "Unable to read shader");
@@ -194,4 +197,6 @@ void Program::set_uniform(u32 name_hash, const glm::mat4& value) {
     if(const int loc = find_location(name_hash); loc >= 0) {
         glProgramUniformMatrix4fv(_handle.get(), loc, 1, false, reinterpret_cast<const float*>(&value));
     }
+}
+
 }

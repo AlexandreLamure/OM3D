@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+namespace OM3D {
+
 static GLuint mapping_to_gl(MappingType mapping) {
     switch(mapping) {
         case MappingType::WriteOnly:
@@ -56,4 +58,6 @@ void* ByteBuffer::map_internal(MappingType mapping) {
 
 const GLHandle& ByteBuffer::handle() const {
     return _handle;
+}
+
 }

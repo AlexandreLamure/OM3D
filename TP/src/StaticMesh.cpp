@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+namespace OM3D {
+
 StaticMesh::StaticMesh(const MeshData& data) :
     _vertex_buffer(data.vertices),
     _index_buffer(data.indices) {
@@ -21,4 +23,6 @@ void StaticMesh::draw() const {
     glEnableVertexAttribArray(3);
 
     glDrawElements(GL_TRIANGLES, int(_index_buffer.element_count()), GL_UNSIGNED_INT, nullptr);
+}
+
 }

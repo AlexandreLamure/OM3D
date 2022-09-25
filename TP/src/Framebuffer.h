@@ -5,6 +5,8 @@
 
 #include <array>
 
+namespace OM3D {
+
 class Framebuffer : NonCopyable {
     public:
         template<size_t N>
@@ -31,5 +33,7 @@ class Framebuffer : NonCopyable {
         GLHandle _handle;
         glm::uvec2 _size = {};
 };
+
+}
 
 #endif // FRAMEBUFFER_H

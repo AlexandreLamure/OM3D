@@ -7,6 +7,8 @@
 
 #include <vector>
 
+namespace OM3D {
+
 class Scene : NonMovable {
 
     public:
@@ -21,5 +23,7 @@ class Scene : NonMovable {
         std::vector<SceneObject> _objects;
         std::vector<PointLight> _point_lights;
 };
+
+}
 
 #endif // SCENE_H

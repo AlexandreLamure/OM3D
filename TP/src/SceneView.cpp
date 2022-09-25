@@ -1,5 +1,7 @@
 #include "SceneView.h"
 
+namespace OM3D {
+
 SceneView::SceneView(const Scene* scene) : _scene(scene) {
 }
 
@@ -15,4 +17,6 @@ void SceneView::render() const {
     if(_scene) {
         _scene->render(_camera);
     }
+}
+
 }

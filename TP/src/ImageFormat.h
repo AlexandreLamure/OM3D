@@ -3,6 +3,8 @@
 
 #include <utils.h>
 
+namespace OM3D {
+
 enum class ImageFormat {
     RGBA8_UNORM,
     RGBA16_FLOAT,
@@ -17,5 +19,7 @@ struct ImageFormatGL {
 };
 
 ImageFormatGL image_format_to_gl(ImageFormat format);
+
+}
 
 #endif // IMAGEFORMAT_H

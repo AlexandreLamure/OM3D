@@ -4,6 +4,8 @@
 #include <graphics.h>
 #include <BufferMapping.h>
 
+namespace OM3D {
+
 class ByteBuffer : NonCopyable {
 
     public:
@@ -14,8 +16,7 @@ class ByteBuffer : NonCopyable {
         ByteBuffer(const void* data, size_t size);
         ~ByteBuffer();
 
-        void bind(BufferUsage usage) const;
-        void bind(BufferUsage usage, u32 index) const;
+        void bind(BufferUsage usage) const; void bind(BufferUsage usage, u32 index) const;
 
         size_t byte_size() const;
 
@@ -29,5 +30,7 @@ class ByteBuffer : NonCopyable {
         GLHandle _handle;
         size_t _size = 0;
 };
+
+}
 
 #endif // BYTEBUFFER_H

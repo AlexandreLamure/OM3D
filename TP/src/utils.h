@@ -19,6 +19,8 @@
 #define DEBUG_ASSERT(cond) ALWAYS_ASSERT(cond, "Assert failed: " #cond)
 #endif
 
+namespace OM3D {
+
 using u8 = uint8_t;
 using u16 = uint16_t;
 using u32 = uint32_t;
@@ -117,5 +119,6 @@ void break_in_debugger();
 double program_time();
 Result<std::string> read_text_file(const std::string& file_name);
 
+}
 
 #endif // UTILS_H
