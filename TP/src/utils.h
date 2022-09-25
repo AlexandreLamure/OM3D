@@ -119,6 +119,8 @@ void break_in_debugger();
 double program_time();
 Result<std::string> read_text_file(const std::string& file_name);
 
+bool ends_with(std::string_view str, std::string_view suffix);
+
 }
 
 #endif // UTILS_H

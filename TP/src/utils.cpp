@@ -77,4 +77,12 @@ Result<std::string> read_text_file(const std::string& file_name) {
     return {false, {}};
 }
 
+
+bool ends_with(std::string_view str, std::string_view suffix) {
+    if(str.size() < suffix.size()) {
+        return false;
+    }
+    return str.substr(str.size() - suffix.size()) == suffix;
+}
+
 }

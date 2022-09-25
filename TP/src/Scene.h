@@ -14,6 +14,8 @@ class Scene : NonMovable {
     public:
         Scene();
 
+        static Result<Scene> from_gltf(const std::string& file_name);
+
         void render(const Camera& camera) const;
 
         void add_object(SceneObject obj);

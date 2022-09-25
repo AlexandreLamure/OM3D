@@ -1,10 +1,5 @@
 #include "StaticMesh.h"
 
-#define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_NO_STB_IMAGE_WRITE
-#define TINYGLTF_NOEXCEPTION
-#include <tinygltf/tiny_gltf.h>
-
 #include <unordered_map>
 #include <charconv>
 #include <iostream>
