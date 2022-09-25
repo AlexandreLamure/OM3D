@@ -7,8 +7,11 @@
 #include <imgui/imgui.h>
 #include <glad/glad.h>
 
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
+#include <algorithm>
 
 namespace OM3D {
 

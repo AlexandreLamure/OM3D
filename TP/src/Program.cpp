@@ -10,7 +10,9 @@ namespace OM3D {
 
 static std::string read_shader(const std::string& file_name, const std::vector<std::string> defines = {}) {
     auto content = read_text_file(std::string(shader_path) + file_name);
-    ALWAYS_ASSERT(content.is_ok, "Unable to read shader");
+    if (!content.is_ok) {
+        FATAL((std::string("Unable to read shader: \"") + std::string(shader_path) + '"').c_str());
+    }
 
     bool define_added = false;
     auto add_defines = [&]() {

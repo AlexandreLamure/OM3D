@@ -6,6 +6,7 @@
 #include <stb/stb_image.h>
 
 #include <cmath>
+#include <algorithm>
 
 namespace OM3D {
 
