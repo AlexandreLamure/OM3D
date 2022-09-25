@@ -12,13 +12,16 @@ namespace OM3D {
 
 class ImGuiRenderer : NonMovable {
     public:
-        ImGuiRenderer();
+        ImGuiRenderer(GLFWwindow* window);
 
-        void render(GLFWwindow* window);
+        void start();
+        void finish();
 
     private:
         void render(const ImDrawData* draw_data);
         float update_dt();
+
+        GLFWwindow* _window = nullptr;
 
         Material _material;
         std::unique_ptr<Texture> _font;

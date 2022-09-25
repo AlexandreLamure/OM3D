@@ -12,6 +12,8 @@
 #include <Framebuffer.h>
 #include <ImGuiRenderer.h>
 
+#include <imgui/imgui.h>
+
 
 using namespace OM3D;
 
@@ -89,7 +91,7 @@ int main(int, char**) {
     glfwSwapInterval(1); // Enable vsync
     init_graphics();
 
-    ImGuiRenderer imgui;
+    ImGuiRenderer imgui(window);
 
     Scene scene;
     SceneView scene_view(&scene);
@@ -136,7 +138,10 @@ int main(int, char**) {
         }
 
         update_dt();
-        process_inputs(window, scene_view.camera());
+
+        if(const auto& io = ImGui::GetIO(); !io.WantCaptureMouse && !io.WantCaptureKeyboard) {
+            process_inputs(window, scene_view.camera());
+        }
 
         {
             framebuffer.bind();
@@ -153,7 +158,8 @@ int main(int, char**) {
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 
-        // imgui.render(window);
+        imgui.start();
+        imgui.finish();
 
         glfwSwapBuffers(window);
     }
