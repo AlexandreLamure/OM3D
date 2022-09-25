@@ -9,6 +9,10 @@
 
 #include <iostream>
 
+#ifdef OS_WIN
+extern "C" int __stdcall IsDebuggerPresent();
+#endif
+
 namespace OM3D {
 
 void debug_out(GLenum, GLenum type, GLuint, GLuint sev, GLsizei, const char* msg, const void*) {
@@ -43,8 +47,7 @@ u32 buffer_usage_to_gl(BufferUsage usage) {
 }
 
 
-static GLuint mesh_vertex_format_vao = 0;
-static GLuint imgui_vertex_format_vao = 0;
+static GLuint global_vao = 0;
 
 void init_graphics() {
     ALWAYS_ASSERT(gladLoadGLLoader((GLADloadproc)(glfwGetProcAddress)), "glad initialization failed");
@@ -54,33 +57,18 @@ void init_graphics() {
     glClearColor(0.5f, 0.7f, 0.8f, 0.0f);
 
     glDebugMessageCallback(&debug_out, nullptr);
+
     glEnable(GL_DEBUG_OUTPUT);
 
-    {
-        glGenVertexArrays(1, &mesh_vertex_format_vao);
-        glBindVertexArray(mesh_vertex_format_vao);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), nullptr);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(3 * sizeof(float)));
-        glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(6 * sizeof(float)));
-        glVertexAttribPointer(3, 3, GL_FLOAT, false, sizeof(Vertex), reinterpret_cast<void*>(8 * sizeof(float)));
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-        glEnableVertexAttribArray(3);
+#ifdef OS_WIN
+    if(::IsDebuggerPresent()) {
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     }
+#endif
 
-    {
-        glGenVertexArrays(1, &imgui_vertex_format_vao);
-    }
-}
+    glGenVertexArrays(1, &global_vao);
+    glBindVertexArray(global_vao);
 
-void set_mesh_vertex_format() {
-    glBindVertexArray(mesh_vertex_format_vao);
-}
-
-void set_imgui_vertex_format() {
-    glBindVertexArray(mesh_vertex_format_vao);
 }
 
 }

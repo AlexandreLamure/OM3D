@@ -285,7 +285,6 @@ void ImGuiRenderer::render(const ImDrawData* draw_data) {
                 tex->bind(0);
             }
 
-            set_imgui_vertex_format();
             glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(ImDrawVert), vertex_offset);
             glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeof(ImDrawVert), vertex_offset + (2 * sizeof(float)));
             glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, false, sizeof(ImDrawVert), vertex_offset + (4 * sizeof(float)));
