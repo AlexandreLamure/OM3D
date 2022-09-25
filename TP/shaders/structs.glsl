@@ -9,6 +9,7 @@ struct FrameData {
     uint point_light_count;
 
     vec3 sun_color;
+    float padding_1;
 };
 
 struct PointLight {

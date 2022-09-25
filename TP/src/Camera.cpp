@@ -23,7 +23,7 @@ static glm::vec3 extract_up(const glm::mat4& view) {
 }
 
 Camera::Camera() {
-    _projection = glm::infinitePerspective(to_rad(60.0f), 16.0f / 9.0f, 0.001f);
+    _projection = glm::infinitePerspective(to_rad(60.0f), 16.0f / 9.0f, 0.1f);
     _view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     update();
 }
