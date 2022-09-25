@@ -7,6 +7,10 @@ namespace OM3D {
 
 enum class ImageFormat {
     RGBA8_UNORM,
+    RGBA8_sRGB,
+    RGB8_UNORM,
+    RGB8_sRGB,
+
     RGBA16_FLOAT,
     Depth32_FLOAT
 };

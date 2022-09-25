@@ -181,6 +181,33 @@ static Result<MeshData> build_mesh_data(const tinygltf::Model& gltf, const tinyg
     return {true, MeshData{std::move(vertices), std::move(indices)}};
 }
 
+static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool sRGB) {
+    if(image.bits != 8 && image.pixel_type != TINYGLTF_COMPONENT_TYPE_BYTE && image.pixel_type != TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+        std::cerr << "Unsupported image format (pixel type)" << std::endl;
+        return {false, {}};
+    }
+
+    ImageFormat format = ImageFormat::RGBA8_UNORM;
+    switch(image.component) {
+        case 3:
+            format = sRGB ? ImageFormat::RGB8_sRGB : ImageFormat::RGB8_UNORM;
+        break;
+
+        case 4:
+            format = sRGB ? ImageFormat::RGBA8_sRGB : ImageFormat::RGBA8_UNORM;
+        break;
+
+        default:
+            std::cerr << "Unsupported image format (components)" << std::endl;
+            return {false, {}};
+    }
+
+    auto data = std::make_unique<u8[]>(image.image.size());
+    std::copy(image.image.begin(), image.image.end(), data.get());
+
+    return {true, TextureData{std::move(data), glm::uvec2(image.width, image.height), format}};
+}
+
 Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
     tinygltf::TinyGLTF ctx;
     tinygltf::Model gltf;
@@ -208,6 +235,8 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
 
     auto scene = std::make_unique<Scene>();
 
+    std::unordered_map<int, std::shared_ptr<Texture>> textures;
+    std::unordered_map<int, std::shared_ptr<Material>> materials;
     for(int i = 0; i != gltf.meshes.size(); ++i) {
         const tinygltf::Mesh& mesh = gltf.meshes[i];
 
@@ -223,8 +252,31 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                 return {false, {}};
             }
 
+            std::shared_ptr<Material> material;
+            if(prim.material >= 0) {
+                auto& mat = materials[prim.material];
+
+                if(!mat) {
+                    const auto& texture_info = gltf.materials[prim.material].pbrMetallicRoughness.baseColorTexture;
+                    const int index = gltf.textures[texture_info.index].source;
+
+                    if(index >= 0) {
+                        auto& texture = textures[index];
+                        if(!texture) {
+                            if(const auto r = build_texture_data(gltf.images[index], true); r.is_ok) {
+                                texture = std::make_shared<Texture>(r.value);
+                            }
+                        }
+                        mat = std::make_shared<Material>(Material::textured_material());
+                        mat->_textures.emplace_back(0u, texture);
+                    }
+                }
+
+                material = mat;
+            }
+
             auto static_mesh = std::make_shared<StaticMesh>(mesh.value);
-            scene->add_object(SceneObject(std::move(static_mesh), Material::empty_material()));
+            scene->add_object(SceneObject(std::move(static_mesh), std::move(material)));
         }
     }
 

@@ -21,14 +21,15 @@ enum class DepthTestMode {
     None
 };
 
-class Material : NonMovable
-{
+class Material {
+
     public:
         Material();
 
         void bind() const;
 
         static std::shared_ptr<Material> empty_material();
+        static const Material& textured_material();
 
     //private:
         std::shared_ptr<Program> _program;

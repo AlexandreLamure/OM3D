@@ -51,8 +51,8 @@ size_t ByteBuffer::byte_size() const {
     return _size;
 }
 
-BufferMapping<u8> ByteBuffer::map_bytes(MappingType mapping) {
-    return BufferMapping<u8>(map_internal(mapping), byte_size(), handle());
+BufferMapping<byte> ByteBuffer::map_bytes(MappingType mapping) {
+    return BufferMapping<byte>(map_internal(mapping), byte_size(), handle());
 }
 
 void* ByteBuffer::map_internal(MappingType mapping) {

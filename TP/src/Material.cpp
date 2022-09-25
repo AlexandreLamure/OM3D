@@ -57,4 +57,12 @@ std::shared_ptr<Material> Material::empty_material() {
     return material;
 }
 
+const Material& Material::textured_material() {
+    static Material material;
+    if(!material._program) {
+        material._program = Program::from_files("lit.frag", "basic.vert", {"TEXTURED"});
+    }
+    return material;
+}
+
 }

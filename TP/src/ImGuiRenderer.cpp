@@ -266,12 +266,12 @@ void ImGuiRenderer::render(const ImDrawData* draw_data) {
     index_buffer.bind(BufferUsage::Index);
     vertex_buffer.bind(BufferUsage::Attribute);
 
-    u8* vertex_offset = nullptr;
-    u8* index_offset = nullptr;
+    byte* vertex_offset = nullptr;
+    byte* index_offset = nullptr;
     for(int c = 0; c != draw_data->CmdListsCount; ++c) {
         const ImDrawList* cmd_list = draw_data->CmdLists[c];
 
-        u8* drawn_index_offset = index_offset;
+        byte* drawn_index_offset = index_offset;
         for(int i = 0; i != cmd_list->CmdBuffer.Size; ++i) {
             const ImDrawCmd& cmd = cmd_list->CmdBuffer[i];
 
