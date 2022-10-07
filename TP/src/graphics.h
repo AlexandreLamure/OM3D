@@ -49,8 +49,16 @@ enum class BufferUsage {
     Storage,
 };
 
+enum class AccessType {
+    WriteOnly,
+    ReadOnly,
+    ReadWrite
+};
 
 u32 buffer_usage_to_gl(BufferUsage usage);
+u32 access_type_to_gl(AccessType access);
+
+u32 align_up_to(u32 val, u32 up_to);
 
 void init_graphics();
 

@@ -268,7 +268,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                             }
                         }
                         mat = std::make_shared<Material>(Material::textured_material());
-                        mat->_textures.emplace_back(0u, texture);
+                        mat->set_texture(0u, texture);
                     }
                 }
 

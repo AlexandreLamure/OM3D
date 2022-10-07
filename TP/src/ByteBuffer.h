@@ -21,10 +21,10 @@ class ByteBuffer : NonCopyable {
 
         size_t byte_size() const;
 
-        BufferMapping<byte> map_bytes(MappingType mapping = MappingType::ReadWrite);
+        BufferMapping<byte> map_bytes(AccessType access = AccessType::ReadWrite);
 
     protected:
-        void* map_internal(MappingType mapping);
+        void* map_internal(AccessType access);
         const GLHandle& handle() const;
 
     private:

@@ -6,21 +6,6 @@
 
 namespace OM3D {
 
-static GLuint mapping_to_gl(MappingType mapping) {
-    switch(mapping) {
-        case MappingType::WriteOnly:
-            return GL_WRITE_ONLY;
-
-        case MappingType::ReadOnly:
-            return GL_READ_ONLY;
-
-        case MappingType::ReadWrite:
-            return GL_READ_WRITE;
-    }
-
-    FATAL("Unknown mapping value");
-}
-
 static GLuint create_buffer_handle() {
     GLuint handle = 0;
     glCreateBuffers(1, &handle);
@@ -51,13 +36,13 @@ size_t ByteBuffer::byte_size() const {
     return _size;
 }
 
-BufferMapping<byte> ByteBuffer::map_bytes(MappingType mapping) {
-    return BufferMapping<byte>(map_internal(mapping), byte_size(), handle());
+BufferMapping<byte> ByteBuffer::map_bytes(AccessType access) {
+    return BufferMapping<byte>(map_internal(access), byte_size(), handle());
 }
 
-void* ByteBuffer::map_internal(MappingType mapping) {
+void* ByteBuffer::map_internal(AccessType access) {
     DEBUG_ASSERT(_handle.is_valid() && _size);
-    return glMapNamedBuffer(_handle.get(), mapping_to_gl(mapping));;
+    return glMapNamedBuffer(_handle.get(), access_type_to_gl(access));
 }
 
 const GLHandle& ByteBuffer::handle() const {

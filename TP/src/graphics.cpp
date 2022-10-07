@@ -40,6 +40,28 @@ u32 buffer_usage_to_gl(BufferUsage usage) {
     FATAL("Unknown usage value");
 }
 
+u32 access_type_to_gl(AccessType access) {
+    switch(access) {
+        case AccessType::WriteOnly:
+            return GL_WRITE_ONLY;
+
+        case AccessType::ReadOnly:
+            return GL_READ_ONLY;
+
+        case AccessType::ReadWrite:
+            return GL_READ_WRITE;
+    }
+
+    FATAL("Unknown access type value");
+}
+
+
+u32 align_up_to(u32 val, u32 up_to) {
+    if(const u32 diff = val % up_to) {
+        return val + up_to - diff;
+    }
+    return val;
+}
 
 static GLuint global_vao = 0;
 

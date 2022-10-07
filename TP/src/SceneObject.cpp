@@ -14,7 +14,7 @@ void SceneObject::render() const {
         return;
     }
 
-   _material->_program->set_uniform(HASH("model"), transform());
+   _material->set_uniform(HASH("model"), transform());
    _material->bind();
     _mesh->draw();
 }

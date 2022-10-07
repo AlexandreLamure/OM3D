@@ -86,11 +86,11 @@ std::unique_ptr<Scene> create_scene() {
         ALWAYS_ASSERT(r.is_ok, "Unable to load mesh");
         std::shared_ptr<StaticMesh> mesh = std::make_shared<StaticMesh>(r.value);
         std::shared_ptr<Material> material = std::make_shared<Material>();
-        material->_program = Program::from_files("lit.frag", "basic.vert", {"TEXTURED"});
+        material->set_program(Program::from_files("lit.frag", "basic.vert", {"TEXTURED"}));
         {
             const auto r = TextureData::from_file(std::string(data_path) + "uv.png");
             ALWAYS_ASSERT(r.is_ok, "Unable to load texture");
-            material->_textures.emplace_back(0u, std::make_shared<Texture>(r.value));
+            material->set_texture(0u, std::make_shared<Texture>(r.value));
         }
         scene->add_object(SceneObject(std::move(mesh), std::move(material)));
     }
@@ -138,10 +138,13 @@ int main(int, char**) {
     SceneView scene_view(scene.get());
 
     auto fps_program = Program::from_files("fps.frag", "screen.vert");
+    auto tonemap_program = Program::from_file("tonemap.comp");
 
     Texture depth(window_size, ImageFormat::Depth32_FLOAT);
-    Texture color(window_size, ImageFormat::RGBA16_FLOAT);
-    Framebuffer framebuffer(&depth, std::array{&color});
+    Texture lit(window_size, ImageFormat::RGBA16_FLOAT);
+    Texture color(window_size, ImageFormat::RGBA8_UNORM);
+    Framebuffer framebuffer(&depth, std::array{&lit});
+    Framebuffer backbuffer(nullptr, std::array{&color});
 
     for(;;) {
         glfwPollEvents();
@@ -160,15 +163,22 @@ int main(int, char**) {
             scene_view.render();
         }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        framebuffer.blit();
-
         {
+            tonemap_program->bind();
+            lit.bind(0);
+            color.bind_as_image(1, AccessType::WriteOnly);
+            glDispatchCompute(align_up_to(window_size.x, 8), align_up_to(window_size.y, 8), 1);
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        backbuffer.blit();
+
+        /*{
             glDisable(GL_DEPTH_TEST);
             fps_program->set_uniform(HASH("delta_time"), dt);
             fps_program->bind();
             glDrawArrays(GL_TRIANGLES, 0, 3);
-        }
+        }*/
 
         imgui.start();
         {

@@ -5,12 +5,6 @@
 
 namespace OM3D {
 
-enum class MappingType {
-    WriteOnly,
-    ReadOnly,
-    ReadWrite
-};
-
 class BufferMappingBase : NonCopyable {
     public:
         BufferMappingBase(BufferMappingBase&& other);

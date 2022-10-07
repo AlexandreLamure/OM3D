@@ -23,8 +23,8 @@ class TypedBuffer : public ByteBuffer {
             return byte_size() / sizeof(T);
         }
 
-        BufferMapping<T> map(MappingType mapping = MappingType::ReadWrite) {
-            return BufferMapping<T>(ByteBuffer::map_internal(mapping), byte_size(), handle());
+        BufferMapping<T> map(AccessType access = AccessType::ReadWrite) {
+            return BufferMapping<T>(ByteBuffer::map_internal(access), byte_size(), handle());
         }
 };
 

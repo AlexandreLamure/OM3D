@@ -186,9 +186,9 @@ ImGuiRenderer::ImGuiRenderer(GLFWwindow* window) : _window(window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
-    _material._program = Program::from_files("imgui.frag", "imgui.vert");
-    _material._depth_test_mode = DepthTestMode::None;
-    _material._blend_mode = BlendMode::Alpha;
+    _material.set_program(Program::from_files("imgui.frag", "imgui.vert"));
+    _material.set_depth_test_mode(DepthTestMode::None);
+    _material.set_blend_mode(BlendMode::Alpha);
 
     _font = create_font();
 
@@ -239,7 +239,7 @@ void ImGuiRenderer::render(const ImDrawData* draw_data) {
     const ImVec2 clip_off = draw_data->DisplayPos;
     const ImVec2 clip_scale = draw_data->FramebufferScale;
 
-    _material._program->set_uniform(HASH("viewport_size"), glm::vec2(draw_data->DisplaySize.x, draw_data->DisplaySize.y));
+    _material.set_uniform(HASH("viewport_size"), glm::vec2(draw_data->DisplaySize.x, draw_data->DisplaySize.y));
     _material.bind();
 
     glEnable(GL_SCISSOR_TEST);
@@ -249,8 +249,8 @@ void ImGuiRenderer::render(const ImDrawData* draw_data) {
     TypedBuffer<ImDrawVert> vertex_buffer(nullptr, draw_data->TotalVtxCount);
 
     {
-        auto indices = index_buffer.map(MappingType::WriteOnly);
-        auto vertices = vertex_buffer.map(MappingType::WriteOnly);
+        auto indices = index_buffer.map(AccessType::WriteOnly);
+        auto vertices = vertex_buffer.map(AccessType::WriteOnly);
 
         size_t index_offset = 0;
         size_t vertex_offset = 0;

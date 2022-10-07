@@ -32,3 +32,25 @@ float attenuation(float distance, float radius) {
 float attenuation(float distance, float radius, float falloff) {
     return attenuation(distance * falloff, radius * falloff);
 }
+
+float sRGB_to_linear(float x) {
+    if(x <= 0.04045) {
+        return x / 12.92;
+    }
+    return pow((x + 0.055) / 1.055, 2.4);
+}
+
+float linear_to_sRGB(float x) {
+    if(x <= 0.0031308) {
+        return x * 12.92;
+    }
+    return 1.055 * pow(x, 1.0 / 2.4) - 0.055;
+}
+
+vec3 sRGB_to_linear(vec3 v) {
+    return vec3(sRGB_to_linear(v.r), sRGB_to_linear(v.g), sRGB_to_linear(v.b));
+}
+
+vec3 linear_to_sRGB(vec3 v) {
+    return vec3(linear_to_sRGB(v.r), linear_to_sRGB(v.g), linear_to_sRGB(v.b));
+}

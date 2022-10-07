@@ -7,6 +7,26 @@ namespace OM3D {
 Material::Material() {
 }
 
+void Material::set_program(std::shared_ptr<Program> prog) {
+    _program = std::move(prog);
+}
+
+void Material::set_blend_mode(BlendMode blend) {
+    _blend_mode = blend;
+}
+
+void Material::set_depth_test_mode(DepthTestMode depth) {
+    _depth_test_mode = depth;
+}
+
+void Material::set_texture(u32 slot, std::shared_ptr<Texture> tex) {
+    if(const auto it = std::find_if(_textures.begin(), _textures.end(), [&](const auto& t) { return t.second == tex; }); it != _textures.end()) {
+        it->second = std::move(tex);
+    } else {
+        _textures.emplace_back(slot, std::move(tex));
+    }
+}
+
 void Material::bind() const {
     switch(_blend_mode) {
         case BlendMode::None:

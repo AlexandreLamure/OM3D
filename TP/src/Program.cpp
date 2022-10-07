@@ -131,25 +131,39 @@ Program::Program(const std::string& frag, const std::string& vert) : _handle(glC
     glDeleteShader(vert_handle);
     glDeleteShader(frag_handle);
 
-    {
-        int uniform_count = 0;
-        glGetProgramiv(_handle.get(), GL_ACTIVE_UNIFORMS, &uniform_count);
+    fetch_uniform_locations();
+}
 
-        for(int i = 0; i != uniform_count; ++i) {
-            char name[1024] = {};
-            int len = 0;
-            int discard = 0;
-            GLenum type = GL_NONE;
+Program::Program(const std::string& comp) : _handle(glCreateProgram()), _is_compute(true) {
+    const GLuint comp_handle = create_shader(comp, GL_COMPUTE_SHADER);
 
-            glGetActiveUniform(_handle.get(), i, sizeof(name), &len, &discard, &type, name);
+    glAttachShader(_handle.get(), comp_handle);
 
-            _uniform_locations.emplace_back(UniformLocationInfo{str_hash(name), glGetUniformLocation(_handle.get(), name)});
-        }
+    link_program(_handle.get());
 
-        std::sort(_uniform_locations.begin(), _uniform_locations.end());
-        ALWAYS_ASSERT(std::unique(_uniform_locations.begin(), _uniform_locations.end()) == _uniform_locations.end(), "Duplicated uniform hash");
+    glDeleteShader(comp_handle);
 
+    fetch_uniform_locations();
+}
+
+void Program::fetch_uniform_locations() {
+    int uniform_count = 0;
+    glGetProgramiv(_handle.get(), GL_ACTIVE_UNIFORMS, &uniform_count);
+
+    for(int i = 0; i != uniform_count; ++i) {
+        char name[1024] = {};
+        int len = 0;
+        int discard = 0;
+        GLenum type = GL_NONE;
+
+        glGetActiveUniform(_handle.get(), i, sizeof(name), &len, &discard, &type, name);
+
+        _uniform_locations.emplace_back(UniformLocationInfo{str_hash(name), glGetUniformLocation(_handle.get(), name)});
     }
+
+    std::sort(_uniform_locations.begin(), _uniform_locations.end());
+    ALWAYS_ASSERT(std::unique(_uniform_locations.begin(), _uniform_locations.end()) == _uniform_locations.end(), "Duplicated uniform hash");
+
 }
 
 Program::~Program() {
@@ -162,6 +176,23 @@ void Program::bind() const {
     glUseProgram(_handle.get());
 }
 
+bool Program::is_compute() const {
+    return _is_compute;
+}
+
+std::shared_ptr<Program> Program::from_file(const std::string& comp, Span<const std::string> defines) {
+    static std::unordered_map<std::vector<std::string>, std::shared_ptr<Program>, CollectionHasher<std::vector<std::string>>> loaded;
+
+    std::vector<std::string> key(defines.begin(), defines.end());
+    key.emplace_back(comp);
+
+    auto& program = loaded[key];
+    if(!program) {
+        program = std::make_shared<Program>(read_shader(comp, defines));
+    }
+    return program;
+}
+
 std::shared_ptr<Program> Program::from_files(const std::string& frag, const std::string& vert, Span<const std::string> defines) {
     static std::unordered_map<std::vector<std::string>, std::shared_ptr<Program>, CollectionHasher<std::vector<std::string>>> loaded;
 
@@ -169,22 +200,11 @@ std::shared_ptr<Program> Program::from_files(const std::string& frag, const std:
     key.emplace_back(frag);
     key.emplace_back(vert);
 
-#if 0
-    auto& weak_program = loaded[key];
-    if(auto program = weak_program.lock()) {
-        return program;
-    }
-
-    auto program = std::make_shared<Program>(read_shader(frag, defines), read_shader(vert, defines));
-    weak_program = program;
-    return program;
-#else
     auto& program = loaded[key];
     if(!program) {
         program = std::make_shared<Program>(read_shader(frag, defines), read_shader(vert, defines));
     }
     return program;
-#endif
 }
 
 int Program::find_location(u32 hash) {

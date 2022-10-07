@@ -20,7 +20,7 @@ void Scene::add_object(PointLight obj) {
 void Scene::render(const Camera& camera) const {
     TypedBuffer<shader::FrameData> buffer(nullptr, 1);
     {
-        auto mapping = buffer.map(MappingType::WriteOnly);
+        auto mapping = buffer.map(AccessType::WriteOnly);
         mapping[0].camera.view_proj = camera.view_proj_matrix();
         mapping[0].point_light_count = u32(_point_lights.size());
         mapping[0].sun_color = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -30,7 +30,7 @@ void Scene::render(const Camera& camera) const {
 
     TypedBuffer<shader::PointLight> light_buffer(nullptr, std::max(_point_lights.size(), size_t(1)));
     {
-        auto mapping = light_buffer.map(MappingType::WriteOnly);
+        auto mapping = light_buffer.map(AccessType::WriteOnly);
         for(size_t i = 0; i != _point_lights.size(); ++i) {
             const auto& light = _point_lights[i];
             mapping[i] = {
