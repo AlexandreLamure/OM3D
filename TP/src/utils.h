@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <utility>
 #include <string>
+#include <array>
 
 #define FWD(var) std::forward<decltype(var)>(var)
 #define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = OnExit([&]() { expr; })

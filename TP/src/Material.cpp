@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include <algorithm>
+
 namespace OM3D {
 
 Material::Material() {
