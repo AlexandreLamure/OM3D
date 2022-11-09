@@ -143,8 +143,8 @@ int main(int, char**) {
     Texture depth(window_size, ImageFormat::Depth32_FLOAT);
     Texture lit(window_size, ImageFormat::RGBA16_FLOAT);
     Texture color(window_size, ImageFormat::RGBA8_UNORM);
-    Framebuffer framebuffer(&depth, std::array{&lit});
-    Framebuffer backbuffer(nullptr, std::array{&color});
+    Framebuffer main_framebuffer(&depth, std::array{&lit});
+    Framebuffer tonemap_framebuffer(nullptr, std::array{&color});
 
     for(;;) {
         glfwPollEvents();
@@ -159,7 +159,7 @@ int main(int, char**) {
         }
 
         {
-            framebuffer.bind();
+            main_framebuffer.bind();
             scene_view.render();
         }
 
@@ -171,7 +171,7 @@ int main(int, char**) {
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        backbuffer.blit();
+        tonemap_framebuffer.blit();
 
         /*{
             glDisable(GL_DEPTH_TEST);
