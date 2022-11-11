@@ -208,7 +208,6 @@ void ImGuiRenderer::start() {
     io.Fonts->TexID = _font.get();
 
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
 }
 
 void ImGuiRenderer::finish() {
