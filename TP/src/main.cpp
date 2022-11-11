@@ -78,22 +78,11 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
 }
 
 
-std::unique_ptr<Scene> create_scene() {
+std::unique_ptr<Scene> create_default_scene() {
     auto scene = std::make_unique<Scene>();
-
-    {
-        const auto r = MeshData::from_obj(std::string(data_path) + "cube.obj");
-        ALWAYS_ASSERT(r.is_ok, "Unable to load mesh");
-        std::shared_ptr<StaticMesh> mesh = std::make_shared<StaticMesh>(r.value);
-        std::shared_ptr<Material> material = std::make_shared<Material>();
-        material->set_program(Program::from_files("lit.frag", "basic.vert", {"TEXTURED"}));
-        {
-            const auto r = TextureData::from_file(std::string(data_path) + "uv.png");
-            ALWAYS_ASSERT(r.is_ok, "Unable to load texture");
-            material->set_texture(0u, std::make_shared<Texture>(r.value));
-        }
-        scene->add_object(SceneObject(std::move(mesh), std::move(material)));
-    }
+    auto result = Scene::from_gltf(std::string(data_path) + "cube.glb");
+    ALWAYS_ASSERT(result.is_ok, "Unable to load default scene");
+    scene = std::move(result.value);
 
     {
         PointLight light;
@@ -134,7 +123,7 @@ int main(int, char**) {
 
     ImGuiRenderer imgui(window);
 
-    std::unique_ptr<Scene> scene = create_scene();
+    std::unique_ptr<Scene> scene = create_default_scene();
     SceneView scene_view(scene.get());
 
     auto fps_program = Program::from_files("fps.frag", "screen.vert");
