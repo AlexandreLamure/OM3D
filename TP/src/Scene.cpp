@@ -18,6 +18,7 @@ void Scene::add_object(PointLight obj) {
 }
 
 void Scene::render(const Camera& camera) const {
+    // Fill and bind frame data buffer
     TypedBuffer<shader::FrameData> buffer(nullptr, 1);
     {
         auto mapping = buffer.map(AccessType::WriteOnly);
@@ -28,6 +29,7 @@ void Scene::render(const Camera& camera) const {
     }
     buffer.bind(BufferUsage::Uniform, 0);
 
+    // Fill and bind lights buffer
     TypedBuffer<shader::PointLight> light_buffer(nullptr, std::max(_point_lights.size(), size_t(1)));
     {
         auto mapping = light_buffer.map(AccessType::WriteOnly);
@@ -43,6 +45,7 @@ void Scene::render(const Camera& camera) const {
     }
     light_buffer.bind(BufferUsage::Storage, 1);
 
+    // Render every object
     for(const SceneObject& obj : _objects) {
         obj.render();
     }

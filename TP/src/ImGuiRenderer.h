@@ -19,7 +19,7 @@ class ImGuiRenderer : NonMovable {
 
     private:
         void render(const ImDrawData* draw_data);
-        float update_dt();
+        float update_delta_time();
 
         GLFWwindow* _window = nullptr;
 

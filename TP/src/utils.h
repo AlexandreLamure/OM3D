@@ -9,11 +9,16 @@
 #include <array>
 
 #define FWD(var) std::forward<decltype(var)>(var)
-#define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = OnExit([&]() { expr; })
-#define FATAL(msg) ::OM3D::fatal((msg), __FILE__, __LINE__)
-#define ALWAYS_ASSERT(cond, msg) do { if(!(cond)) { FATAL(msg); } } while(false)
 #define HASH(str) ([] { static constexpr u32 result = str_hash(str); return result; }())
 
+// Execute expr at scope exit
+#define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = OnExit([&]() { expr; })
+// Print message and terminate immediatly
+#define FATAL(msg) ::OM3D::fatal((msg), __FILE__, __LINE__)
+// Assert in debug and release
+#define ALWAYS_ASSERT(cond, msg) do { if(!(cond)) { FATAL(msg); } } while(false)
+
+// Assert in debug only
 #ifdef NDEBUG
 #define DEBUG_ASSERT(cond) do { /*(void)(cond);*/ } while(false)
 #else
@@ -87,6 +92,7 @@ class OnExit {
         T _ex;
 };
 
+// Similar to std::span
 template<typename T>
 class Span {
     template<typename U>

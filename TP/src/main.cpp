@@ -17,7 +17,7 @@
 
 using namespace OM3D;
 
-static float dt = 0.0f;
+static float delta_time = 0.0f;
 const glm::uvec2 window_size(1600, 900);
 
 
@@ -30,10 +30,10 @@ void glfw_check(bool cond) {
     }
 }
 
-void update_dt() {
+void update_delta_time() {
     static double time = 0.0;
     const double new_time = program_time();
-    dt = float(new_time - time);
+    delta_time = float(new_time - time);
     time = new_time;
 }
 
@@ -59,7 +59,7 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
         }
         const float speed = 10.0f;
         if(movement.length() > 0.0f) {
-            const glm::vec3 new_pos = camera.position() + movement * dt * speed;
+            const glm::vec3 new_pos = camera.position() + movement * delta_time * speed;
             camera.set_view(glm::lookAt(new_pos, new_pos + camera.forward(), camera.up()));
         }
     }
@@ -80,10 +80,13 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
 
 std::unique_ptr<Scene> create_default_scene() {
     auto scene = std::make_unique<Scene>();
+
+    // Load default cube model
     auto result = Scene::from_gltf(std::string(data_path) + "cube.glb");
     ALWAYS_ASSERT(result.is_ok, "Unable to load default scene");
     scene = std::move(result.value);
 
+    // Add lights
     {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, 4.0f));
@@ -141,34 +144,30 @@ int main(int, char**) {
             break;
         }
 
-        update_dt();
+        update_delta_time();
 
         if(const auto& io = ImGui::GetIO(); !io.WantCaptureMouse && !io.WantCaptureKeyboard) {
             process_inputs(window, scene_view.camera());
         }
 
+        // Render the scene
         {
             main_framebuffer.bind();
             scene_view.render();
         }
 
+        // Apply a tonemap in compute shader
         {
             tonemap_program->bind();
             lit.bind(0);
             color.bind_as_image(1, AccessType::WriteOnly);
             glDispatchCompute(align_up_to(window_size.x, 8), align_up_to(window_size.y, 8), 1);
         }
-
+        // Blit tonemap result to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         tonemap_framebuffer.blit();
 
-        /*{
-            glDisable(GL_DEPTH_TEST);
-            fps_program->set_uniform(HASH("delta_time"), dt);
-            fps_program->bind();
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-        }*/
-
+        // GUI
         imgui.start();
         {
             char buffer[1024] = {};

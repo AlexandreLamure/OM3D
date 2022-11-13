@@ -35,6 +35,7 @@ void break_in_debugger() {
 #endif
 }
 
+// Fatal error: print message and terminate
 void fatal(const char* msg, const char* file, int line) {
     std::cerr << msg;
 

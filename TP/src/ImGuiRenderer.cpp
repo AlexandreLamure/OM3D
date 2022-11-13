@@ -204,7 +204,7 @@ void ImGuiRenderer::start() {
     int w, h;
     glfwGetWindowSize(_window, &w, &h);
     io.DisplaySize = ImVec2(float(w), float(h));
-    io.DeltaTime = update_dt();
+    io.DeltaTime = update_delta_time();
     io.Fonts->TexID = _font.get();
 
     ImGui::NewFrame();
@@ -216,7 +216,7 @@ void ImGuiRenderer::finish() {
 }
 
 
-float ImGuiRenderer::update_dt() {
+float ImGuiRenderer::update_delta_time() {
     const auto now = std::chrono::high_resolution_clock::now();
     const float dt = std::chrono::duration_cast<std::chrono::duration<float>>(now - _last).count();
     _last = now;
