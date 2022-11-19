@@ -21,7 +21,7 @@ uniform mat4 model;
 void main() {
     const vec4 position = model * vec4(in_pos, 1.0);
 
-    out_normal = mat3(model) * in_normal;
+    out_normal = normalize(mat3(model) * in_normal);
     out_uv = in_uv;
     out_color = in_color;
     out_position = position.xyz;

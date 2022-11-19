@@ -233,11 +233,6 @@ static glm::mat4 parse_node_matrix(const tinygltf::Node& node) {
 }
 
 static glm::mat4 base_transform() {
-    /*return glm::mat4(
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f);*/
     return glm::mat4(1.0f);
 }
 
@@ -295,7 +290,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
         } else {
             for(int i = 0; i != gltf.nodes.size(); ++i) {
                 node_indices.push_back(i);
-                node_transforms[i] = glm::mat4(1.0f);
+                node_transforms[i] = base_transform();
             }
         }
 
@@ -333,14 +328,18 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                     const int index = gltf.textures[texture_info.index].source;
 
                     if(index >= 0) {
-                        auto& texture = textures[index];
-                        if(!texture) {
-                            if(const auto r = build_texture_data(gltf.images[index], true); r.is_ok) {
-                                texture = std::make_shared<Texture>(r.value);
+                        if(texture_info.texCoord == 0) {
+                            auto& texture = textures[index];
+                            if(!texture) {
+                                if(const auto r = build_texture_data(gltf.images[index], true); r.is_ok) {
+                                    texture = std::make_shared<Texture>(r.value);
+                                }
                             }
+                            mat = std::make_shared<Material>(Material::textured_material());
+                            mat->set_texture(0u, texture);
+                        } else {
+                            std::cerr << "Unsupported texture coordinate channel (" << texture_info.texCoord << ")" << std::endl;
                         }
-                        mat = std::make_shared<Material>(Material::textured_material());
-                        mat->set_texture(0u, texture);
                     }
                 }
 
@@ -350,13 +349,6 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
             auto scene_object = SceneObject(std::make_shared<StaticMesh>(mesh.value), std::move(material));
             scene_object.set_transform(node_transform);
             scene->add_object(std::move(scene_object));
-    }
-
-
-
-
-        for(int i = 0; i != gltf.nodes.size(); ++i) {
-
         }
     }
 
