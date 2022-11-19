@@ -1,6 +1,8 @@
 #include "Scene.h"
 #include "StaticMesh.h"
 
+#include <glm/gtc/quaternion.hpp>
+
 #include <utils.h>
 
 #include <iostream>
@@ -209,6 +211,47 @@ static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool
     return {true, TextureData{std::move(data), glm::uvec2(image.width, image.height), format}};
 }
 
+
+static glm::mat4 parse_node_matrix(const tinygltf::Node& node) {
+    glm::vec3 translation;
+    for(int k = 0; k != node.translation.size(); ++k) {
+        translation[k] = float(node.translation[k]);
+    }
+
+    glm::vec3 scale(1.0f, 1.0f, 1.0f);
+    for(int k = 0; k != node.scale.size(); ++k) {
+        scale[k] = float(node.scale[k]);
+    }
+
+    glm::vec4 rotation(0.0f, 0.0f, 0.0f, 1.0f);
+    for(int k = 0; k != node.rotation.size(); ++k) {
+        rotation[k] = float(node.rotation[k]);
+    }
+
+    const glm::tquat<float> q(rotation.w, rotation.x, rotation.y, rotation.z);
+    return glm::translate(glm::mat4(1.0f), translation) * glm::mat4_cast(q) * glm::scale(glm::mat4(1.0f), scale);
+}
+
+static glm::mat4 base_transform() {
+    /*return glm::mat4(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f);*/
+    return glm::mat4(1.0f);
+}
+
+static void parse_node_transforms(int node_index, const tinygltf::Model& gltf, std::unordered_map<int, glm::mat4>& node_transforms, const glm::mat4& parent_transform = base_transform()) {
+    const tinygltf::Node& node = gltf.nodes[node_index];
+    const glm::mat4 transform = parent_transform * parse_node_matrix(node);
+    node_transforms[node_index] = transform;
+    for(int child : node.children)  {
+        parse_node_transforms(child, gltf, node_transforms, transform);
+    }
+}
+
+
+
 Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
     const double time = program_time();
     DEFER(std::cout << file_name << " loaded in " << std::round((program_time() - time) * 100.0) / 100.0 << "s" << std::endl);
@@ -243,8 +286,31 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
 
     std::unordered_map<int, std::shared_ptr<Texture>> textures;
     std::unordered_map<int, std::shared_ptr<Material>> materials;
-    for(int i = 0; i != gltf.meshes.size(); ++i) {
-        const tinygltf::Mesh& mesh = gltf.meshes[i];
+    std::unordered_map<int, glm::mat4> node_transforms;
+
+    {
+        std::vector<int> node_indices;
+        if(gltf.defaultScene >= 0) {
+            node_indices = gltf.scenes[gltf.defaultScene].nodes;
+        } else {
+            for(int i = 0; i != gltf.nodes.size(); ++i) {
+                node_indices.push_back(i);
+                node_transforms[i] = glm::mat4(1.0f);
+            }
+        }
+
+        for(int node : node_indices) {
+            parse_node_transforms(node, gltf, node_transforms);
+        }
+    }
+
+    for(auto [node_index, node_transform] : node_transforms) {
+        const tinygltf::Node& node = gltf.nodes[node_index];
+        if(node.mesh < 0) {
+            continue;
+        }
+
+        const tinygltf::Mesh& mesh = gltf.meshes[node.mesh];
 
         for(int j = 0; j != mesh.primitives.size(); ++j) {
             const tinygltf::Primitive& prim = mesh.primitives[j];
@@ -281,8 +347,16 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                 material = mat;
             }
 
-            auto static_mesh = std::make_shared<StaticMesh>(mesh.value);
-            scene->add_object(SceneObject(std::move(static_mesh), std::move(material)));
+            auto scene_object = SceneObject(std::make_shared<StaticMesh>(mesh.value), std::move(material));
+            scene_object.set_transform(node_transform);
+            scene->add_object(std::move(scene_object));
+    }
+
+
+
+
+        for(int i = 0; i != gltf.nodes.size(); ++i) {
+
         }
     }
 
