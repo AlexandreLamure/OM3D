@@ -57,7 +57,12 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
         if(glfwGetKey(window, 'A') == GLFW_PRESS) {
             movement -= camera.right();
         }
-        const float speed = 10.0f;
+
+        float speed = 10.0f;
+        if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+            speed *= 10.0f;
+        }
+
         if(movement.length() > 0.0f) {
             const glm::vec3 new_pos = camera.position() + movement * delta_time * speed;
             camera.set_view(glm::lookAt(new_pos, new_pos + camera.forward(), camera.up()));

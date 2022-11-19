@@ -25,6 +25,7 @@ class Scene : NonMovable {
     private:
         std::vector<SceneObject> _objects;
         std::vector<PointLight> _point_lights;
+        glm::vec3 _sun_direction = glm::vec3(0.2f, 1.0f, 0.1f);
 };
 
 }

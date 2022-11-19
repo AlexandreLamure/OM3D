@@ -87,4 +87,13 @@ const Material& Material::textured_material() {
     return material;
 }
 
+const Material& Material::textured_normal_mapped_material() {
+    static Material material;
+    if(!material._program) {
+        material._program = Program::from_files("lit.frag", "basic.vert", std::array<std::string, 2>{"TEXTURED", "NORMAL_MAPPED"});
+    }
+    return material;
+}
+
+
 }

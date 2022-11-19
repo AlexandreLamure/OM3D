@@ -91,9 +91,9 @@ static bool decode_attrib_buffer(const tinygltf::Model& gltf, const std::string&
         decode_attribs(&vertices[0].position);
     } else if(name == "NORMAL") {
         decode_attribs(&vertices[0].normal);
-    }/* else if(name == "TANGENT") {
-        decode_attribs(&vertices[0].tangent);
-    }*/ else if(name == "TEXCOORD_0") {
+    } else if(name == "TANGENT") {
+        decode_attribs(&vertices[0].tangent_bitangent_sign);
+    } else if(name == "TEXCOORD_0") {
         decode_attribs(&vertices[0].uv);
     } else if(name == "COLOR_0") {
         decode_attribs(&vertices[0].color);
@@ -184,7 +184,7 @@ static Result<MeshData> build_mesh_data(const tinygltf::Model& gltf, const tinyg
     return {true, MeshData{std::move(vertices), std::move(indices)}};
 }
 
-static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool sRGB) {
+static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool as_sRGB) {
     if(image.bits != 8 && image.pixel_type != TINYGLTF_COMPONENT_TYPE_BYTE && image.pixel_type != TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
         std::cerr << "Unsupported image format (pixel type)" << std::endl;
         return {false, {}};
@@ -193,11 +193,11 @@ static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool
     ImageFormat format = ImageFormat::RGBA8_UNORM;
     switch(image.component) {
         case 3:
-            format = sRGB ? ImageFormat::RGB8_sRGB : ImageFormat::RGB8_UNORM;
+            format = as_sRGB ? ImageFormat::RGB8_sRGB : ImageFormat::RGB8_UNORM;
         break;
 
         case 4:
-            format = sRGB ? ImageFormat::RGBA8_sRGB : ImageFormat::RGBA8_UNORM;
+            format = as_sRGB ? ImageFormat::RGBA8_sRGB : ImageFormat::RGBA8_UNORM;
         break;
 
         default:
@@ -213,7 +213,7 @@ static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool
 
 
 static glm::mat4 parse_node_matrix(const tinygltf::Node& node) {
-    glm::vec3 translation;
+    glm::vec3 translation(0.0f, 0.0f, 0.0f);
     for(int k = 0; k != node.translation.size(); ++k) {
         translation[k] = float(node.translation[k]);
     }
@@ -245,6 +245,45 @@ static void parse_node_transforms(int node_index, const tinygltf::Model& gltf, s
     }
 }
 
+static void compute_tangents(MeshData& mesh) {
+    for(Vertex& vert : mesh.vertices) {
+        vert.tangent_bitangent_sign = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+
+    for(size_t i = 0; i < mesh.indices.size(); i += 3) {
+        const u32 tri[] = {
+            mesh.indices[i + 0],
+            mesh.indices[i + 1],
+            mesh.indices[i + 2]
+        };
+
+        const glm::vec3 edges[] = {
+            mesh.vertices[tri[1]].position - mesh.vertices[tri[0]].position,
+            mesh.vertices[tri[2]].position - mesh.vertices[tri[0]].position
+        };
+
+        const glm::vec2 uvs[] = {
+            mesh.vertices[tri[0]].uv,
+            mesh.vertices[tri[1]].uv,
+            mesh.vertices[tri[2]].uv
+        };
+
+        const float dt[] = {
+            uvs[1].y - uvs[0].y,
+            uvs[2].y - uvs[0].y
+        };
+
+        const glm::vec3 tangent = -glm::normalize((edges[0] * dt[1]) - (edges[1] * dt[0]));
+        mesh.vertices[tri[0]].tangent_bitangent_sign += glm::vec4(tangent, 0.0f);
+        mesh.vertices[tri[1]].tangent_bitangent_sign += glm::vec4(tangent, 0.0f);
+        mesh.vertices[tri[2]].tangent_bitangent_sign += glm::vec4(tangent, 0.0f);
+    }
+
+    for(Vertex& vert : mesh.vertices) {
+        const glm::vec3 tangent = vert.tangent_bitangent_sign;
+        vert.tangent_bitangent_sign = glm::vec4(glm::normalize(tangent), 1.0f);
+    }
+}
 
 
 Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
@@ -314,9 +353,13 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                 continue;
             }
 
-            const auto mesh = build_mesh_data(gltf, prim);
+            auto mesh = build_mesh_data(gltf, prim);
             if(!mesh.is_ok) {
                 return {false, {}};
+            }
+
+            if(mesh.value.vertices[0].tangent_bitangent_sign == glm::vec4(0.0f)) {
+                compute_tangents(mesh.value);
             }
 
             std::shared_ptr<Material> material;
@@ -324,22 +367,45 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                 auto& mat = materials[prim.material];
 
                 if(!mat) {
-                    const auto& texture_info = gltf.materials[prim.material].pbrMetallicRoughness.baseColorTexture;
-                    const int index = gltf.textures[texture_info.index].source;
+                    const auto& albedo_info = gltf.materials[prim.material].pbrMetallicRoughness.baseColorTexture;
+                    const auto& normal_info = gltf.materials[prim.material].normalTexture;
 
-                    if(index >= 0) {
-                        if(texture_info.texCoord == 0) {
-                            auto& texture = textures[index];
-                            if(!texture) {
-                                if(const auto r = build_texture_data(gltf.images[index], true); r.is_ok) {
-                                    texture = std::make_shared<Texture>(r.value);
-                                }
-                            }
-                            mat = std::make_shared<Material>(Material::textured_material());
-                            mat->set_texture(0u, texture);
-                        } else {
+                    auto load_texture = [&](auto texture_info, bool as_sRGB) -> std::shared_ptr<Texture> {
+                        if(texture_info.texCoord != 0) {
                             std::cerr << "Unsupported texture coordinate channel (" << texture_info.texCoord << ")" << std::endl;
+                            return nullptr;
                         }
+
+                        if(texture_info.index < 0) {
+                            return nullptr;
+                        }
+
+                        const int index = gltf.textures[texture_info.index].source;
+                        if(index < 0) {
+                            return nullptr;
+                        }
+
+                        auto& texture = textures[index];
+                        if(!texture) {
+                            if(const auto r = build_texture_data(gltf.images[index], as_sRGB); r.is_ok) {
+                                texture = std::make_shared<Texture>(r.value);
+                            }
+                        }
+                        return texture;
+                    };
+
+                    auto albedo = load_texture(albedo_info, true);
+                    auto normal = load_texture(normal_info, false);
+
+                    if(!albedo) {
+                        mat = Material::empty_material();
+                    } else if(!normal) {
+                        mat = std::make_shared<Material>(Material::textured_material());
+                        mat->set_texture(0u, albedo);
+                    } else {
+                        mat = std::make_shared<Material>(Material::textured_normal_mapped_material());
+                        mat->set_texture(0u, albedo);
+                        mat->set_texture(1u, normal);
                     }
                 }
 

@@ -54,3 +54,9 @@ vec3 sRGB_to_linear(vec3 v) {
 vec3 linear_to_sRGB(vec3 v) {
     return vec3(linear_to_sRGB(v.r), linear_to_sRGB(v.g), linear_to_sRGB(v.b));
 }
+
+vec3 unpack_normal_map(vec2 normal) {
+    normal = normal * 2.0 - vec2(1.0);
+    return vec3(normal, 1.0 - sqrt(dot(normal, normal)));
+}
+
