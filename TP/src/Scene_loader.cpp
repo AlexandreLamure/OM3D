@@ -214,17 +214,17 @@ static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool
 
 static glm::mat4 parse_node_matrix(const tinygltf::Node& node) {
     glm::vec3 translation(0.0f, 0.0f, 0.0f);
-    for(int k = 0; k != node.translation.size(); ++k) {
+    for(size_t k = 0; k != node.translation.size(); ++k) {
         translation[k] = float(node.translation[k]);
     }
 
     glm::vec3 scale(1.0f, 1.0f, 1.0f);
-    for(int k = 0; k != node.scale.size(); ++k) {
+    for(size_t k = 0; k != node.scale.size(); ++k) {
         scale[k] = float(node.scale[k]);
     }
 
     glm::vec4 rotation(0.0f, 0.0f, 0.0f, 1.0f);
-    for(int k = 0; k != node.rotation.size(); ++k) {
+    for(size_t k = 0; k != node.rotation.size(); ++k) {
         rotation[k] = float(node.rotation[k]);
     }
 
@@ -327,7 +327,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
         if(gltf.defaultScene >= 0) {
             node_indices = gltf.scenes[gltf.defaultScene].nodes;
         } else {
-            for(int i = 0; i != gltf.nodes.size(); ++i) {
+            for(size_t i = 0; i != gltf.nodes.size(); ++i) {
                 node_indices.push_back(i);
                 node_transforms[i] = base_transform();
             }
@@ -346,7 +346,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
 
         const tinygltf::Mesh& mesh = gltf.meshes[node.mesh];
 
-        for(int j = 0; j != mesh.primitives.size(); ++j) {
+        for(size_t j = 0; j != mesh.primitives.size(); ++j) {
             const tinygltf::Primitive& prim = mesh.primitives[j];
 
             if(prim.mode != TINYGLTF_MODE_TRIANGLES) {

@@ -52,7 +52,7 @@ void Framebuffer::bind(bool clear) const {
 void Framebuffer::blit(bool depth) const {
     i32 binding = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &binding);
-    ALWAYS_ASSERT(binding != _handle.get(), "Framebuffer is bound");
+    ALWAYS_ASSERT(u32(binding) != _handle.get(), "Framebuffer is bound");
 
     int viewport[4] = {};
     glGetIntegerv(GL_VIEWPORT, viewport);
