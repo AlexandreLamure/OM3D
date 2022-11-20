@@ -181,28 +181,32 @@ bool Program::is_compute() const {
 }
 
 std::shared_ptr<Program> Program::from_file(const std::string& comp, Span<const std::string> defines) {
-    static std::unordered_map<std::vector<std::string>, std::shared_ptr<Program>, CollectionHasher<std::vector<std::string>>> loaded;
+    static std::unordered_map<std::vector<std::string>, std::weak_ptr<Program>, CollectionHasher<std::vector<std::string>>> loaded;
 
     std::vector<std::string> key(defines.begin(), defines.end());
     key.emplace_back(comp);
 
-    auto& program = loaded[key];
+    auto& weak_program = loaded[key];
+    auto program = weak_program.lock();
     if(!program) {
         program = std::make_shared<Program>(read_shader(comp, defines));
+        weak_program = program;
     }
     return program;
 }
 
 std::shared_ptr<Program> Program::from_files(const std::string& frag, const std::string& vert, Span<const std::string> defines) {
-    static std::unordered_map<std::vector<std::string>, std::shared_ptr<Program>, CollectionHasher<std::vector<std::string>>> loaded;
+    static std::unordered_map<std::vector<std::string>, std::weak_ptr<Program>, CollectionHasher<std::vector<std::string>>> loaded;
 
     std::vector<std::string> key(defines.begin(), defines.end());
     key.emplace_back(frag);
     key.emplace_back(vert);
 
-    auto& program = loaded[key];
+    auto& weak_program = loaded[key];
+    auto program = weak_program.lock();
     if(!program) {
         program = std::make_shared<Program>(read_shader(frag, defines), read_shader(vert, defines));
+        weak_program = program;
     }
     return program;
 }

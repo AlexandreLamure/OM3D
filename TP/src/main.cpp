@@ -190,4 +190,6 @@ int main(int, char**) {
 
         glfwSwapBuffers(window);
     }
+
+    scene = nullptr; // destroy scene and child OpenGL objects
 }
