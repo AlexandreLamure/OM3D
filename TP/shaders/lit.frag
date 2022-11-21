@@ -2,6 +2,8 @@
 
 #include "utils.glsl"
 
+// fragment shader of the main lighting pass
+
 // #define DEBUG_NORMAL
 
 layout(location = 0) out vec4 out_color;

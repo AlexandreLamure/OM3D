@@ -2,6 +2,8 @@
 
 #include "utils.glsl"
 
+// compute shader of a tonemap
+
 layout(local_size_x = 8, local_size_y = 8) in;
 
 layout(binding = 0) uniform sampler2D in_color;

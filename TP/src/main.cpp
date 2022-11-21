@@ -134,7 +134,6 @@ int main(int, char**) {
     std::unique_ptr<Scene> scene = create_default_scene();
     SceneView scene_view(scene.get());
 
-    auto fps_program = Program::from_files("fps.frag", "screen.vert");
     auto tonemap_program = Program::from_file("tonemap.comp");
 
     Texture depth(window_size, ImageFormat::Depth32_FLOAT);
