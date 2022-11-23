@@ -15,3 +15,8 @@ cd TP/build/debug
 cmake ../..
 make
 ```
+
+### Contact
+If you have a problem, please send a mail to
+- alexandre.lamure@epita.fr
+- gregoire.angerand@gmail.com
