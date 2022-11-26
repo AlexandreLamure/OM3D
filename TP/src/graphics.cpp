@@ -9,7 +9,7 @@
 
 namespace OM3D {
 
-void debug_out(GLenum, GLenum type, GLuint, GLuint sev, GLsizei, const char* msg, const void*) {
+void debug_out(GLenum, GLenum type, GLuint, GLenum sev, GLsizei, const char* msg, const void*) {
     if(sev == GL_DEBUG_SEVERITY_NOTIFICATION) {
         return;
     }
