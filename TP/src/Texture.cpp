@@ -47,7 +47,7 @@ Texture::Texture(const TextureData& data) :
     const ImageFormatGL gl_format = image_format_to_gl(_format);
     glTextureStorage2D(_handle.get(), mip_levels(_size), gl_format.internal_format, _size.x, _size.y);
     glTextureSubImage2D(_handle.get(), 0, 0, 0, _size.x, _size.y, gl_format.format, gl_format.component_type, data.data.get());
-    // glGenerateTextureMipmap(_handle.get());
+    glGenerateTextureMipmap(_handle.get());
 }
 
 Texture::Texture(const glm::uvec2 &size, ImageFormat format) :
