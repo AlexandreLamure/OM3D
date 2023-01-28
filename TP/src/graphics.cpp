@@ -198,8 +198,9 @@ void audit_bindings() {
         return v;
     };
 
-
     const int current_program = get(GL_CURRENT_PROGRAM);
+    ALWAYS_ASSERT(current_program && glIsProgram(current_program), "Bound program is destroyed or invalid");
+
 
     auto get_resource_count = [=](GLenum type) {
         int count = 0;
@@ -212,7 +213,6 @@ void audit_bindings() {
         glGetProgramResourceiv(current_program, res_type, index, 1, &property, 1, nullptr, &value);
         return value;
     };
-
 
     {
         const int uniform_count = get_resource_count(GL_UNIFORM);
