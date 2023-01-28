@@ -18,6 +18,10 @@
 using namespace OM3D;
 
 static float delta_time = 0.0f;
+static std::unique_ptr<Scene> scene;
+static SceneView scene_view;
+
+
 
 
 void glfw_check(bool cond) {
@@ -87,6 +91,49 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
     mouse_pos = new_mouse_pos;
 }
 
+void gui(ImGuiRenderer& imgui) {
+    imgui.start();
+    DEFER(imgui.finish());
+
+    bool open_scene_popup = false;
+    if(ImGui::BeginMainMenuBar()) {
+        if(ImGui::BeginMenu("File")) {
+            if(ImGui::MenuItem("Open Scene")) {
+                open_scene_popup = true;
+            }
+            ImGui::End();
+        }
+
+
+        ImGui::Separator();
+
+        ImGui::Text("%.2f ms", delta_time * 1000.0f);
+
+        ImGui::EndMainMenuBar();
+    }
+
+    if(open_scene_popup) {
+        ImGui::OpenPopup("###openscenepopup");
+    }
+
+    if(ImGui::BeginPopup("###openscenepopup")) {
+        char buffer[1024] = {};
+        if(ImGui::InputText("Load scene", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
+            auto result = Scene::from_gltf(buffer);
+            if(!result.is_ok) {
+                std::cerr << "Unable to load scene (" << buffer << ")" << std::endl;
+            } else {
+                scene = std::move(result.value);
+                scene_view = SceneView(scene.get());
+            }
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+}
+
+
+
 
 std::unique_ptr<Scene> create_default_scene() {
     auto scene = std::make_unique<Scene>();
@@ -114,7 +161,6 @@ std::unique_ptr<Scene> create_default_scene() {
 
     return scene;
 }
-
 
 struct RendererState {
     static RendererState create(glm::uvec2 size) {
@@ -144,10 +190,6 @@ struct RendererState {
 };
 
 
-
-void render(const SceneView& view, RendererState& renderer) {}
-
-
 int main(int, char**) {
     DEBUG_ASSERT([] { std::cout << "Debug asserts enabled" << std::endl; return true; }());
 
@@ -169,8 +211,8 @@ int main(int, char**) {
 
     ImGuiRenderer imgui(window);
 
-    std::unique_ptr<Scene> scene = create_default_scene();
-    SceneView scene_view(scene.get());
+    scene = create_default_scene();
+    scene_view = SceneView(scene.get());
 
     auto tonemap_program = Program::from_file("tonemap.comp");
 
@@ -212,25 +254,12 @@ int main(int, char**) {
             renderer.tone_mapped_texture.bind_as_image(1, AccessType::WriteOnly);
             glDispatchCompute(align_up_to(renderer.size.x, 8) / 8, align_up_to(renderer.size.y, 8) / 8, 1);
         }
+
         // Blit tonemap result to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         renderer.tone_map_framebuffer.blit();
 
-        // GUI
-        imgui.start();
-        {
-            char buffer[1024] = {};
-            if(ImGui::InputText("Load scene", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
-                auto result = Scene::from_gltf(buffer);
-                if(!result.is_ok) {
-                    std::cerr << "Unable to load scene (" << buffer << ")" << std::endl;
-                } else {
-                    scene = std::move(result.value);
-                    scene_view = SceneView(scene.get());
-                }
-            }
-        }
-        imgui.finish();
+        gui(imgui);
 
         glfwSwapBuffers(window);
     }
