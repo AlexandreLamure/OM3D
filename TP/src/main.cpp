@@ -20,6 +20,7 @@ using namespace OM3D;
 static float delta_time = 0.0f;
 static std::unique_ptr<Scene> scene;
 static SceneView scene_view;
+static float exposure = 1.0;
 
 
 
@@ -101,9 +102,16 @@ void gui(ImGuiRenderer& imgui) {
             if(ImGui::MenuItem("Open Scene")) {
                 open_scene_popup = true;
             }
-            ImGui::End();
+            ImGui::EndMenu();
         }
 
+        if(ImGui::BeginMenu("Exposure")) {
+            ImGui::DragFloat("Exposure", &exposure, 0.25f, 0.01f, 100.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+            if(exposure != 1.0f && ImGui::Button("Reset")) {
+                exposure = 1.0f;
+            }
+            ImGui::EndMenu();
+        }
 
         ImGui::Separator();
 
@@ -252,6 +260,7 @@ int main(int, char**) {
         {
             renderer.tone_map_framebuffer.bind();
             tonemap_program->bind();
+            tonemap_program->set_uniform(HASH("exposure"), exposure);
             renderer.lit_hdr_texture.bind(0);
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
