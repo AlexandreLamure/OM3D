@@ -3,9 +3,6 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include <iostream>
-#include <vector>
-
 #include <graphics.h>
 #include <SceneView.h>
 #include <Texture.h>
@@ -14,6 +11,9 @@
 
 #include <imgui/imgui.h>
 
+#include <iostream>
+#include <vector>
+#include <filesystem>
 
 using namespace OM3D;
 
@@ -21,6 +21,7 @@ static float delta_time = 0.0f;
 static std::unique_ptr<Scene> scene;
 static SceneView scene_view;
 static float exposure = 1.0;
+static std::vector<std::string> scene_files;
 
 
 
@@ -96,6 +97,8 @@ void gui(ImGuiRenderer& imgui) {
     imgui.start();
     DEFER(imgui.finish());
 
+    // ImGui::ShowDemoWindow();
+
     bool open_scene_popup = false;
     if(ImGui::BeginMainMenuBar()) {
         if(ImGui::BeginMenu("File")) {
@@ -122,20 +125,44 @@ void gui(ImGuiRenderer& imgui) {
 
     if(open_scene_popup) {
         ImGui::OpenPopup("###openscenepopup");
+
+        for(auto&& entry : std::filesystem::directory_iterator(data_path)) {
+            if(entry.status().type() == std::filesystem::file_type::regular) {
+                const auto ext = entry.path().extension();
+                if(ext == ".gltf" || ext == ".glb") {
+                    scene_files.emplace_back(entry.path().string());
+                }
+            }
+        }
     }
 
-    if(ImGui::BeginPopup("###openscenepopup")) {
-        char buffer[1024] = {};
-        if(ImGui::InputText("Load scene", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
-            auto result = Scene::from_gltf(buffer);
+    if(ImGui::BeginPopup("###openscenepopup", ImGuiWindowFlags_AlwaysAutoResize)) {
+        auto load_scene = [](const std::string path) {
+            auto result = Scene::from_gltf(path);
             if(!result.is_ok) {
-                std::cerr << "Unable to load scene (" << buffer << ")" << std::endl;
+                std::cerr << "Unable to load scene (" << path << ")" << std::endl;
             } else {
                 scene = std::move(result.value);
                 scene_view = SceneView(scene.get());
             }
             ImGui::CloseCurrentPopup();
+        };
+
+        char buffer[1024] = {};
+        if(ImGui::InputText("Load scene", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
+            load_scene(buffer);
         }
+
+        if(!scene_files.empty()) {
+            for(const std::string& p : scene_files) {
+                const auto abs = std::filesystem::absolute(p).string();
+                if(ImGui::MenuItem(abs.c_str())) {
+                    load_scene(p);
+                    break;
+                }
+            }
+        }
+
         ImGui::EndPopup();
     }
 }
