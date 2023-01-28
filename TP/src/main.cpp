@@ -134,6 +134,7 @@ void gui(ImGuiRenderer& imgui) {
     if(open_scene_popup) {
         ImGui::OpenPopup("###openscenepopup");
 
+        scene_files.clear();
         for(auto&& entry : std::filesystem::directory_iterator(data_path)) {
             if(entry.status().type() == std::filesystem::file_type::regular) {
                 const auto ext = entry.path().extension();
