@@ -22,6 +22,7 @@
 #ifdef NDEBUG
 #define DEBUG_ASSERT(cond) do { /*(void)(cond);*/ } while(false)
 #else
+#define OM3D_DEBUG
 #define DEBUG_ASSERT(cond) ALWAYS_ASSERT(cond, "Assert failed: " #cond)
 #endif
 

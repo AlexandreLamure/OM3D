@@ -90,11 +90,172 @@ void init_graphics() {
         glClearDepthf(0.0f);
     }
 
+    glActiveTexture(GL_TEXTURE0);
     glEnable(GL_FRAMEBUFFER_SRGB);
 
     glGenVertexArrays(1, &global_vao);
     glBindVertexArray(global_vao);
+}
 
+
+
+[[maybe_unused]]
+static bool is_sampler_type(GLenum type) {
+    switch(type) {
+        case GL_SAMPLER_1D:
+        case GL_SAMPLER_2D:
+        case GL_SAMPLER_3D:
+        case GL_SAMPLER_CUBE:
+        case GL_SAMPLER_1D_SHADOW:
+        case GL_SAMPLER_2D_SHADOW:
+        case GL_SAMPLER_1D_ARRAY:
+        case GL_SAMPLER_2D_ARRAY:
+        case GL_SAMPLER_1D_ARRAY_SHADOW:
+        case GL_SAMPLER_2D_ARRAY_SHADOW:
+        case GL_SAMPLER_2D_MULTISAMPLE:
+        case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+        case GL_SAMPLER_CUBE_SHADOW:
+        case GL_SAMPLER_BUFFER:
+        case GL_SAMPLER_2D_RECT:
+        case GL_SAMPLER_2D_RECT_SHADOW:
+        case GL_INT_SAMPLER_1D:
+        case GL_INT_SAMPLER_2D:
+        case GL_INT_SAMPLER_3D:
+        case GL_INT_SAMPLER_CUBE:
+        case GL_INT_SAMPLER_1D_ARRAY:
+        case GL_INT_SAMPLER_2D_ARRAY:
+        case GL_INT_SAMPLER_2D_MULTISAMPLE:
+        case GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+        case GL_INT_SAMPLER_BUFFER:
+        case GL_INT_SAMPLER_2D_RECT:
+        case GL_UNSIGNED_INT_SAMPLER_1D:
+        case GL_UNSIGNED_INT_SAMPLER_2D:
+        case GL_UNSIGNED_INT_SAMPLER_3D:
+        case GL_UNSIGNED_INT_SAMPLER_CUBE:
+        case GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
+        case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
+        case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE:
+        case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+        case GL_UNSIGNED_INT_SAMPLER_BUFFER:
+        case GL_UNSIGNED_INT_SAMPLER_2D_RECT:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+[[maybe_unused]]
+static bool is_image_type(GLenum type) {
+    switch(type) {
+        case GL_IMAGE_1D:
+        case GL_IMAGE_2D:
+        case GL_IMAGE_3D:
+        case GL_IMAGE_2D_RECT:
+        case GL_IMAGE_CUBE:
+        case GL_IMAGE_BUFFER:
+        case GL_IMAGE_1D_ARRAY:
+        case GL_IMAGE_2D_ARRAY:
+        case GL_IMAGE_2D_MULTISAMPLE:
+        case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+        case GL_INT_IMAGE_1D:
+        case GL_INT_IMAGE_2D:
+        case GL_INT_IMAGE_3D:
+        case GL_INT_IMAGE_2D_RECT:
+        case GL_INT_IMAGE_CUBE:
+        case GL_INT_IMAGE_BUFFER:
+        case GL_INT_IMAGE_1D_ARRAY:
+        case GL_INT_IMAGE_2D_ARRAY:
+        case GL_INT_IMAGE_2D_MULTISAMPLE:
+        case GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+        case GL_UNSIGNED_INT_IMAGE_1D:
+        case GL_UNSIGNED_INT_IMAGE_2D:
+        case GL_UNSIGNED_INT_IMAGE_3D:
+        case GL_UNSIGNED_INT_IMAGE_2D_RECT:
+        case GL_UNSIGNED_INT_IMAGE_CUBE:
+        case GL_UNSIGNED_INT_IMAGE_BUFFER:
+        case GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
+        case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
+        case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE:
+        case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+void audit_bindings() {
+    auto get = [](GLenum e) {
+        int v = 0;
+        glGetIntegerv(e , &v);
+        return v;
+    };
+
+    auto get_at = [](GLenum e, unsigned index) {
+        int v = 0;
+        glGetIntegeri_v(e , index, &v);
+        return v;
+    };
+
+
+    const int current_program = get(GL_CURRENT_PROGRAM);
+
+    auto get_resource_count = [=](GLenum type) {
+        int count = 0;
+        glGetProgramInterfaceiv(current_program, type, GL_ACTIVE_RESOURCES, &count);
+        return count;
+    };
+
+    auto get_resource_property = [=](GLenum res_type, GLenum property, unsigned index) {
+        int value = 0;
+        glGetProgramResourceiv(current_program, res_type, index, 1, &property, 1, nullptr, &value);
+        return value;
+    };
+
+
+    {
+        const int uniform_count = get_resource_count(GL_UNIFORM);
+        for(int i = 0; i != uniform_count; ++i) {
+            const GLenum type = get_resource_property(GL_UNIFORM, GL_TYPE, i);
+
+            if(is_sampler_type(type) || is_image_type(type)) {
+                const int location = get_resource_property(GL_UNIFORM, GL_LOCATION, i);
+
+                unsigned index = 0;
+                glGetUniformuiv(current_program, location, &index);
+                ALWAYS_ASSERT(glIsTexture(get_at(GL_TEXTURE_BINDING_2D, index)), "Bound texture is destroyed or invalid");
+            }
+        }
+    }
+
+    {
+        const int block_count = get_resource_count(GL_UNIFORM_BLOCK);
+        for(int i = 0; i != block_count; ++i) {
+            const unsigned binding = get_resource_property(GL_UNIFORM_BLOCK, GL_BUFFER_BINDING, i);
+
+            const int buffer = get_at(GL_UNIFORM_BUFFER_BINDING, binding);
+            ALWAYS_ASSERT(buffer && glIsBuffer(buffer), "Bound uniform buffer is destroyed or invalid");
+
+            void* mapping = nullptr;
+            glGetNamedBufferPointerv(buffer, GL_BUFFER_MAP_POINTER, &mapping);
+            ALWAYS_ASSERT(!mapping, "Uniform buffer is still mapped");
+        }
+    }
+
+    {
+        const int block_count = get_resource_count(GL_SHADER_STORAGE_BLOCK);
+        for(int i = 0; i != block_count; ++i) {
+            const unsigned binding = get_resource_property(GL_SHADER_STORAGE_BLOCK, GL_BUFFER_BINDING, i);
+
+            const int buffer = get_at(GL_SHADER_STORAGE_BUFFER_BINDING, binding);
+            ALWAYS_ASSERT(buffer && glIsBuffer(buffer), "Bound storage buffer is destroyed or invalid");
+
+            void* mapping = nullptr;
+            glGetNamedBufferPointerv(buffer, GL_BUFFER_MAP_POINTER, &mapping);
+            ALWAYS_ASSERT(!mapping, "Storage buffer is still mapped");
+        }
+    }
 }
 
 }

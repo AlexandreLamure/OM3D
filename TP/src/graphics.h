@@ -62,6 +62,8 @@ u32 align_up_to(u32 val, u32 up_to);
 
 void init_graphics();
 
+void audit_bindings();
+
 }
 
 #endif // GRAPHICS_H
