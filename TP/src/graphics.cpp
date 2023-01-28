@@ -90,6 +90,8 @@ void init_graphics() {
         glClearDepthf(0.0f);
     }
 
+    glEnable(GL_FRAMEBUFFER_SRGB);
+
     glGenVertexArrays(1, &global_vao);
     glBindVertexArray(global_vao);
 
