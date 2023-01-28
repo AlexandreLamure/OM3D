@@ -24,6 +24,7 @@ class Program : NonCopyable {
         bool operator<(const UniformLocationInfo& other) const {
             return name_hash < other.name_hash;
         }
+
         bool operator==(const UniformLocationInfo& other) const {
             return name_hash == other.name_hash;
         }

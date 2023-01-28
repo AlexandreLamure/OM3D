@@ -143,18 +143,20 @@ std::unique_ptr<Scene> create_default_scene() {
     ALWAYS_ASSERT(result.is_ok, "Unable to load default scene");
     scene = std::move(result.value);
 
+    scene->set_sun(glm::vec3(0.2f, 1.0f, 0.1f), glm::vec3(1.0f));
+
     // Add lights
     {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, 4.0f));
-        light.set_color(glm::vec3(0.0f, 10.0f, 0.0f));
+        light.set_color(glm::vec3(0.0f, 50.0f, 0.0f));
         light.set_radius(100.0f);
         scene->add_object(std::move(light));
     }
     {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, -4.0f));
-        light.set_color(glm::vec3(10.0f, 0.0f, 0.0f));
+        light.set_color(glm::vec3(50.0f, 0.0f, 0.0f));
         light.set_radius(50.0f);
         scene->add_object(std::move(light));
     }
@@ -214,8 +216,7 @@ int main(int, char**) {
     scene = create_default_scene();
     scene_view = SceneView(scene.get());
 
-    auto tonemap_program = Program::from_file("tonemap.comp");
-
+    auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
     RendererState renderer;
 
     for(;;) {
@@ -249,10 +250,10 @@ int main(int, char**) {
 
         // Apply a tonemap in compute shader
         {
+            renderer.tone_map_framebuffer.bind();
             tonemap_program->bind();
             renderer.lit_hdr_texture.bind(0);
-            renderer.tone_mapped_texture.bind_as_image(1, AccessType::WriteOnly);
-            glDispatchCompute(align_up_to(renderer.size.x, 8) / 8, align_up_to(renderer.size.y, 8) / 8, 1);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 
         // Blit tonemap result to screen
