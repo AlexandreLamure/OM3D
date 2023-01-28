@@ -10,7 +10,7 @@
 
 namespace OM3D {
 
-class SceneObject : NonCopyable {
+class SceneObject {
 
     public:
         SceneObject(std::shared_ptr<StaticMesh> mesh = nullptr, std::shared_ptr<Material> material = nullptr);

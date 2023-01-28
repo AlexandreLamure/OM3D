@@ -7,7 +7,7 @@
 
 namespace OM3D {
 
-class PointLight : NonCopyable {
+class PointLight {
 
     public:
         PointLight() = default;
