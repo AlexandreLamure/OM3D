@@ -17,6 +17,11 @@ void Scene::add_object(PointLight obj) {
     _point_lights.emplace_back(std::move(obj));
 }
 
+void Scene::set_sun(glm::vec3 direction, glm::vec3 color) {
+    _sun_direction = direction;
+    _sun_color = color;
+}
+
 void Scene::render(const Camera& camera) const {
     // Fill and bind frame data buffer
     TypedBuffer<shader::FrameData> buffer(nullptr, 1);
@@ -24,7 +29,7 @@ void Scene::render(const Camera& camera) const {
         auto mapping = buffer.map(AccessType::WriteOnly);
         mapping[0].camera.view_proj = camera.view_proj_matrix();
         mapping[0].point_light_count = u32(_point_lights.size());
-        mapping[0].sun_color = glm::vec3(1.0f, 1.0f, 1.0f);
+        mapping[0].sun_color = _sun_color;
         mapping[0].sun_dir = glm::normalize(_sun_direction);
     }
     buffer.bind(BufferUsage::Uniform, 0);

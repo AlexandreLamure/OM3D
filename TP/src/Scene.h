@@ -22,10 +22,14 @@ class Scene : NonMovable {
         void add_object(SceneObject obj);
         void add_object(PointLight obj);
 
+        void set_sun(glm::vec3 direction, glm::vec3 color = glm::vec3(1.0f));
+
     private:
         std::vector<SceneObject> _objects;
         std::vector<PointLight> _point_lights;
+
         glm::vec3 _sun_direction = glm::vec3(0.2f, 1.0f, 0.1f);
+        glm::vec3 _sun_color = glm::vec3(1.0f);
 };
 
 }
