@@ -18,7 +18,6 @@
 using namespace OM3D;
 
 static float delta_time = 0.0f;
-const glm::uvec2 window_size(1600, 900);
 
 
 void glfw_check(bool cond) {
@@ -76,7 +75,13 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
             rot = glm::rotate(rot, delta.y, camera.right());
             camera.set_view(glm::lookAt(camera.position(), camera.position() + (glm::mat3(rot) * camera.forward()), (glm::mat3(rot) * camera.up())));
         }
+    }
 
+    {
+        int width = 0;
+        int height = 0;
+        glfwGetWindowSize(window, &width, &height);
+        camera.set_ratio(float(width) / float(height));
     }
 
     mouse_pos = new_mouse_pos;
@@ -111,6 +116,38 @@ std::unique_ptr<Scene> create_default_scene() {
 }
 
 
+struct RendererState {
+    static RendererState create(glm::uvec2 size) {
+        RendererState state;
+
+        state.size = size;
+
+        if(state.size.x > 0 && state.size.y > 0) {
+            state.depth_texture = Texture(size, ImageFormat::Depth32_FLOAT);
+            state.lit_hdr_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
+            state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.main_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.lit_hdr_texture});
+            state.tone_map_framebuffer = Framebuffer(nullptr, std::array{&state.tone_mapped_texture});
+        }
+
+        return state;
+    }
+
+    glm::uvec2 size = {};
+
+    Texture depth_texture;
+    Texture lit_hdr_texture;
+    Texture tone_mapped_texture;
+
+    Framebuffer main_framebuffer;
+    Framebuffer tone_map_framebuffer;
+};
+
+
+
+void render(const SceneView& view, RendererState& renderer) {}
+
+
 int main(int, char**) {
     DEBUG_ASSERT([] { std::cout << "Debug asserts enabled" << std::endl; return true; }());
 
@@ -121,7 +158,8 @@ int main(int, char**) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(window_size.x, window_size.y, "TP window", nullptr, nullptr);
+
+    GLFWwindow* window = glfwCreateWindow(1600, 900, "TP window", nullptr, nullptr);
     glfw_check(window);
     DEFER(glfwDestroyWindow(window));
 
@@ -136,16 +174,23 @@ int main(int, char**) {
 
     auto tonemap_program = Program::from_file("tonemap.comp");
 
-    Texture depth(window_size, ImageFormat::Depth32_FLOAT);
-    Texture lit(window_size, ImageFormat::RGBA16_FLOAT);
-    Texture color(window_size, ImageFormat::RGBA8_UNORM);
-    Framebuffer main_framebuffer(&depth, std::array{&lit});
-    Framebuffer tonemap_framebuffer(nullptr, std::array{&color});
+    RendererState renderer;
 
     for(;;) {
+
         glfwPollEvents();
         if(glfwWindowShouldClose(window) || glfwGetKey(window, GLFW_KEY_ESCAPE)) {
             break;
+        }
+
+        {
+            int width = 0;
+            int height = 0;
+            glfwGetWindowSize(window, &width, &height);
+
+            if(renderer.size != glm::uvec2(width, height)) {
+                renderer = RendererState::create(glm::uvec2(width, height));
+            }
         }
 
         update_delta_time();
@@ -156,20 +201,20 @@ int main(int, char**) {
 
         // Render the scene
         {
-            main_framebuffer.bind();
+            renderer.main_framebuffer.bind();
             scene_view.render();
         }
 
         // Apply a tonemap in compute shader
         {
             tonemap_program->bind();
-            lit.bind(0);
-            color.bind_as_image(1, AccessType::WriteOnly);
-            glDispatchCompute(align_up_to(window_size.x, 8) / 8, align_up_to(window_size.y, 8) / 8, 1);
+            renderer.lit_hdr_texture.bind(0);
+            renderer.tone_mapped_texture.bind_as_image(1, AccessType::WriteOnly);
+            glDispatchCompute(align_up_to(renderer.size.x, 8) / 8, align_up_to(renderer.size.y, 8) / 8, 1);
         }
         // Blit tonemap result to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        tonemap_framebuffer.blit();
+        renderer.tone_map_framebuffer.blit();
 
         // GUI
         imgui.start();

@@ -19,10 +19,15 @@ struct Frustum {
 
 class Camera {
     public:
+        static glm::mat4 perspective(float fov_y, float ratio, float z_near);
+
         Camera();
 
         void set_view(const glm::mat4& matrix);
         void set_proj(const glm::mat4& matrix);
+
+        void set_fov(float fov);
+        void set_ratio(float ratio);
 
         glm::vec3 position() const;
         glm::vec3 forward() const;
@@ -33,18 +38,19 @@ class Camera {
         const glm::mat4& view_matrix() const;
         const glm::mat4& view_proj_matrix() const;
 
+        bool is_orthographic() const;
+
+        float fov() const;
+        float ratio() const;
+
         Frustum build_frustum() const;
 
     private:
         void update();
-        glm::mat4 build_projection(float zNear);
 
         glm::mat4 _projection;
         glm::mat4 _view;
         glm::mat4 _view_proj;
-
-        float _fov_y;
-        float _aspect_ratio;
 };
 
 }
