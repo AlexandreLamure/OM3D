@@ -117,8 +117,16 @@ void gui(ImGuiRenderer& imgui) {
         }
 
         ImGui::Separator();
+        ImGui::TextUnformatted(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
 
+        ImGui::Separator();
         ImGui::Text("%.2f ms", delta_time * 1000.0f);
+
+#ifdef OM3D_DEBUG
+        ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF);
+        ImGui::TextUnformatted("(DEBUG)");
+        ImGui::PopStyleColor();
+#endif
 
         ImGui::EndMainMenuBar();
     }
