@@ -6,11 +6,35 @@
 
 namespace OM3D {
 
+struct WriteMask {
+    GLboolean color[4] = {};
+    GLboolean depth = {};
+
+    static WriteMask get() {
+        WriteMask mask = {};
+        glGetBooleanv(GL_DEPTH_WRITEMASK, &mask.depth);
+        glGetBooleanv(GL_COLOR_WRITEMASK, mask.color);
+        return mask;
+    }
+
+    static void set(WriteMask mask) {
+        glColorMask(mask.color[0], mask.color[1], mask.color[2], mask.color[3]);
+        glDepthMask(mask.depth);
+    }
+
+    static void set_all() {
+        glColorMask(true, true, true, true);
+        glDepthMask(true);
+    }
+};
+
 static GLuint create_framebuffer_handle() {
     GLuint handle = 0;
     glCreateFramebuffers(1, &handle);
     return handle;
 }
+
+
 
 Framebuffer::Framebuffer() {
 }
@@ -59,11 +83,19 @@ void Framebuffer::bind(bool clear) const {
     glViewport(0, 0, _size.x, _size.y);
 
     if(clear) {
+        const WriteMask mask = WriteMask::get();
+        DEFER(WriteMask::set(mask));
+        WriteMask::set_all();
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }
 
 void Framebuffer::blit(bool depth) const {
+    const WriteMask mask = WriteMask::get();
+    DEFER(WriteMask::set(mask));
+    WriteMask::set_all();
+
     i32 binding = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &binding);
     ALWAYS_ASSERT(u32(binding) != _handle.get(), "Framebuffer is bound");
