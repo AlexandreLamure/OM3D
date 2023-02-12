@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include <graphics.h>
-#include <SceneView.h>
+#include <Scene.h>
 #include <Texture.h>
 #include <Framebuffer.h>
 #include <ImGuiRenderer.h>
@@ -19,7 +19,6 @@ using namespace OM3D;
 
 static float delta_time = 0.0f;
 static std::unique_ptr<Scene> scene;
-static SceneView scene_view;
 static float exposure = 1.0;
 static std::vector<std::string> scene_files;
 
@@ -152,7 +151,6 @@ void gui(ImGuiRenderer& imgui) {
                 std::cerr << "Unable to load scene (" << path << ")" << std::endl;
             } else {
                 scene = std::move(result.value);
-                scene_view = SceneView(scene.get());
             }
             ImGui::CloseCurrentPopup();
         };
@@ -258,7 +256,6 @@ int main(int, char**) {
     ImGuiRenderer imgui(window);
 
     scene = create_default_scene();
-    scene_view = SceneView(scene.get());
 
     auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
     RendererState renderer;
@@ -283,13 +280,13 @@ int main(int, char**) {
         update_delta_time();
 
         if(const auto& io = ImGui::GetIO(); !io.WantCaptureMouse && !io.WantCaptureKeyboard) {
-            process_inputs(window, scene_view.camera());
+            process_inputs(window, scene->camera());
         }
 
         // Render the scene
         {
             renderer.main_framebuffer.bind();
-            scene_view.render();
+            scene->render();
         }
 
         // Apply a tonemap in compute shader
