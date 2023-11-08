@@ -9,10 +9,10 @@
 #include <array>
 
 #define FWD(var) std::forward<decltype(var)>(var)
-#define HASH(str) ([] { static constexpr u32 result = str_hash(str); return result; }())
+#define HASH(str) ([] { static constexpr u32 result = ::OM3D::str_hash(str); return result; }())
 
 // Execute expr at scope exit
-#define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = OnExit([&]() { expr; })
+#define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = ::OM3D::ScopeGuard([&]() { expr; })
 // Print message and terminate immediatly
 #define FATAL(msg) ::OM3D::fatal((msg), __FILE__, __LINE__)
 // Assert in debug and release
@@ -77,15 +77,15 @@ struct [[nodiscard]] Result<void> {
 };
 
 template<typename T>
-class OnExit {
+class ScopeGuard {
     public:
-        inline OnExit(T&& t) : _ex(FWD(t)) {
+        inline ScopeGuard(T&& t) : _ex(FWD(t)) {
         }
 
-        inline OnExit(OnExit&& other) : _ex(std::move(other._ex)) {
+        inline ScopeGuard(ScopeGuard&& other) : _ex(std::move(other._ex)) {
         }
 
-        inline ~OnExit() {
+        inline ~ScopeGuard() {
             _ex();
         }
 
