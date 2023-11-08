@@ -13,8 +13,16 @@ void Scene::add_object(SceneObject obj) {
     _objects.emplace_back(std::move(obj));
 }
 
-void Scene::add_object(PointLight obj) {
+void Scene::add_light(PointLight obj) {
     _point_lights.emplace_back(std::move(obj));
+}
+
+Span<const SceneObject> Scene::objects() const {
+    return _objects;
+}
+
+Span<const PointLight> Scene::point_lights() const {
+    return _point_lights;
 }
 
 Camera& Scene::camera() {

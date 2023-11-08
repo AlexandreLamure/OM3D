@@ -453,7 +453,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
             const float intensity = glm::dot(color, glm::vec3(1.0f));
             light.set_radius(std::sqrt(intensity * 1000.0f)); // Put radius where lum < 0.1%
         }
-        scene->add_object(light);
+        scene->add_light(light);
     }
 
 

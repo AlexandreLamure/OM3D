@@ -128,6 +128,12 @@ void gui(ImGuiRenderer& imgui) {
             ImGui::EndMenu();
         }
 
+        if(scene && ImGui::BeginMenu("Scene Info")) {
+            ImGui::Text("%u objects", u32(scene->objects().size()));
+            ImGui::Text("%u point lights", u32(scene->point_lights().size()));
+            ImGui::EndMenu();
+        }
+
         ImGui::Separator();
         ImGui::TextUnformatted(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
 
@@ -206,14 +212,14 @@ std::unique_ptr<Scene> create_default_scene() {
         light.set_position(glm::vec3(1.0f, 2.0f, 4.0f));
         light.set_color(glm::vec3(0.0f, 50.0f, 0.0f));
         light.set_radius(100.0f);
-        scene->add_object(std::move(light));
+        scene->add_light(std::move(light));
     }
     {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, -4.0f));
         light.set_color(glm::vec3(50.0f, 0.0f, 0.0f));
         light.set_radius(50.0f);
-        scene->add_object(std::move(light));
+        scene->add_light(std::move(light));
     }
 
     return scene;
