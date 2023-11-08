@@ -14,6 +14,8 @@
 
 namespace OM3D {
 
+bool display_gltf_loading_warnings = false;
+
 static size_t component_count(int type) {
     switch(type) {
         case TINYGLTF_TYPE_SCALAR: return 1;
@@ -31,7 +33,9 @@ static bool decode_attrib_buffer(const tinygltf::Model& gltf, const std::string&
     const tinygltf::BufferView& buffer = gltf.bufferViews[accessor.bufferView];
 
     if(accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT) {
-        std::cerr << "Unsupported component type (" << accessor.componentType << ") for \"" << name << "\"" << std::endl;
+        if(display_gltf_loading_warnings) {
+            std::cerr << "Unsupported component type (" << accessor.componentType << ") for \"" << name << "\"" << std::endl;
+        }
         return false;
     }
 
@@ -49,7 +53,9 @@ static bool decode_attrib_buffer(const tinygltf::Model& gltf, const std::string&
         DEBUG_ASSERT(accessor.count == vertex_count);
 
         if(components != size) {
-            std::cerr << "Expected VEC" << size << " attribute, got VEC" << components << std::endl;
+            if(display_gltf_loading_warnings) {
+                std::cerr << "Expected VEC" << size << " attribute, got VEC" << components << std::endl;
+            }
         }
 
         const size_t min_size = std::min(size, components);
@@ -98,7 +104,9 @@ static bool decode_attrib_buffer(const tinygltf::Model& gltf, const std::string&
     } else if(name == "COLOR_0") {
         decode_attribs(&vertices[0].color);
     } else {
-        std::cerr << "Attribute \"" << name << "\" is not supported" << std::endl;
+        if(display_gltf_loading_warnings) {
+            std::cerr << "Attribute \"" << name << "\" is not supported" << std::endl;
+        }
     }
     return true;
 }
@@ -321,6 +329,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
     std::unordered_map<int, std::shared_ptr<Texture>> textures;
     std::unordered_map<int, std::shared_ptr<Material>> materials;
     std::unordered_map<int, glm::mat4> node_transforms;
+    std::vector<std::pair<int, int>> light_nodes;
 
     {
         std::vector<int> node_indices;
@@ -333,13 +342,25 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
             }
         }
 
-        for(int node : node_indices) {
-            parse_node_transforms(node, gltf, node_transforms);
+        for(const int node_index : node_indices) {
+            parse_node_transforms(node_index, gltf, node_transforms);
+        }
+
+        for(const int node_index : node_indices) {
+            const auto& node = gltf.nodes[node_index];
+            if(const auto it = node.extensions.find("KHR_lights_punctual"); it != node.extensions.end()) {
+                const int light_index = it->second.Get("light").Get<int>();
+                if(light_index < 0 || light_index >= gltf.lights.size()) {
+                    continue;
+                }
+                light_nodes.emplace_back(std::pair{node_index, light_index});
+            }
         }
     }
 
     for(auto [node_index, node_transform] : node_transforms) {
         const tinygltf::Node& node = gltf.nodes[node_index];
+
         if(node.mesh < 0) {
             continue;
         }
@@ -417,6 +438,24 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
             scene->add_object(std::move(scene_object));
         }
     }
+
+    for(auto [node_index, light_index] : light_nodes) {
+        const auto& gltf_light = gltf.lights[light_index];
+
+        const glm::vec3 color = glm::vec3(float(gltf_light.color[0]), float(gltf_light.color[1]), float(gltf_light.color[2])) * float(gltf_light.intensity);;
+
+        PointLight light;
+        light.set_position(node_transforms[node_index][3]);
+        light.set_color(color);
+        if(gltf_light.range > 0.0) {
+            light.set_radius(float(gltf_light.range));
+        } else {
+            const float intensity = glm::dot(color, glm::vec3(1.0f));
+            light.set_radius(std::sqrt(intensity * 1000.0f)); // Put radius where lum < 0.1%
+        }
+        scene->add_object(light);
+    }
+
 
     return {true, std::move(scene)};
 }
