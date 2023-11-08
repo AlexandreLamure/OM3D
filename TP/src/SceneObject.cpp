@@ -16,11 +16,6 @@ void SceneObject::render() const {
 
     _material->set_uniform(HASH("model"), transform());
     _material->bind();
-
-#ifdef OM3D_DEBUG
-    audit_bindings();
-#endif
-
     _mesh->draw();
 }
 

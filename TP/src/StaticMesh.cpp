@@ -4,6 +4,8 @@
 
 namespace OM3D {
 
+extern bool audit_bindings_before_draw;
+
 StaticMesh::StaticMesh(const MeshData& data) :
     _vertex_buffer(data.vertices),
     _index_buffer(data.indices) {
@@ -29,6 +31,10 @@ void StaticMesh::draw() const {
     glEnableVertexAttribArray(2);
     glEnableVertexAttribArray(3);
     glEnableVertexAttribArray(4);
+
+    if(audit_bindings_before_draw) {
+        audit_bindings();
+    }
 
     glDrawElements(GL_TRIANGLES, int(_index_buffer.element_count()), GL_UNSIGNED_INT, nullptr);
 }

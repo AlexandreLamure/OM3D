@@ -22,8 +22,21 @@ static std::unique_ptr<Scene> scene;
 static float exposure = 1.0;
 static std::vector<std::string> scene_files;
 
+namespace OM3D {
+extern bool audit_bindings_before_draw;
+}
 
+void parse_args(int argc, char** argv) {
+    for(int i = 1; i < argc; ++i) {
+        const std::string_view arg = argv[i];
 
+        if(arg == "--validate") {
+            OM3D::audit_bindings_before_draw = true;
+        } else {
+            std::cerr << "Unknown argument \"" << arg << "\"" << std::endl;
+        }
+    }
+}
 
 void glfw_check(bool cond) {
     if(!cond) {
@@ -234,8 +247,13 @@ struct RendererState {
 };
 
 
-int main(int, char**) {
+
+
+
+int main(int argc, char** argv) {
     DEBUG_ASSERT([] { std::cout << "Debug asserts enabled" << std::endl; return true; }());
+
+    parse_args(argc, argv);
 
     glfw_check(glfwInit());
     DEFER(glfwTerminate());

@@ -9,6 +9,11 @@
 
 namespace OM3D {
 
+bool audit_bindings_before_draw = false;
+
+
+
+
 void debug_out(GLenum, GLenum type, GLuint, GLenum sev, GLsizei, const char* msg, const void*) {
     if(sev == GL_DEBUG_SEVERITY_NOTIFICATION) {
         return;
