@@ -315,6 +315,9 @@ int main(int argc, char** argv) {
 
         // Apply a tonemap in compute shader
         {
+            // Deactivate backface culling
+            glDisable(GL_CULL_FACE);
+
             renderer.tone_map_framebuffer.bind();
             tonemap_program->bind();
             tonemap_program->set_uniform(HASH("exposure"), exposure);

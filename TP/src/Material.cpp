@@ -29,6 +29,10 @@ void Material::set_texture(u32 slot, std::shared_ptr<Texture> tex) {
     }
 }
 
+void Material::set_backface_culling(bool enabled) {
+    _backface_culling = enabled;
+}
+
 void Material::bind() const {
     switch(_blend_mode) {
         case BlendMode::None:
@@ -62,6 +66,12 @@ void Material::bind() const {
             // We are using reverse-Z
             glDepthFunc(GL_LEQUAL);
         break;
+    }
+
+    if (_backface_culling) {
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CCW);
     }
 
     for(const auto& texture : _textures) {
