@@ -2,6 +2,7 @@
 
 #include <TypedBuffer.h>
 
+#include <algorithm>
 #include <shader_structs.h>
 
 namespace OM3D {

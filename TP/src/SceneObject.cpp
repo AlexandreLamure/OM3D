@@ -59,8 +59,4 @@ SphericalBoundingBox SceneObject::bounding_box() const {
     return _mesh->bounding_box();
 }
 
-    StaticMesh &SceneObject::mesh() const {
-        return *_mesh;
-    }
-
 }
