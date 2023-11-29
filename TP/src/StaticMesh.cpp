@@ -1,15 +1,28 @@
 #include "StaticMesh.h"
 
-#include <glad/glad.h>
-
 namespace OM3D {
 
 extern bool audit_bindings_before_draw;
 
 StaticMesh::StaticMesh(const MeshData& data) :
-    _vertex_buffer(data.vertices),
-    _index_buffer(data.indices) {
+_vertex_buffer(data.vertices),
+_index_buffer(data.indices) {
+
+    // Compute bounding sphere
+    glm::vec3 min = glm::vec3(std::numeric_limits<float>::max());
+    glm::vec3 max = glm::vec3(std::numeric_limits<float>::min());
+
+    for(const Vertex& v : data.vertices) {
+        // Calculate min
+        min = glm::min(min, v.position);
+        // Calculate max
+        max = glm::max(max, v.position);
+    }
+
+    _bounding_box.center = (min + max) / 2.0f;
+    _bounding_box.radius = glm::distance(_bounding_box.center, max);
 }
+
 
 void StaticMesh::draw() const {
     _vertex_buffer.bind(BufferUsage::Attribute);
@@ -36,7 +49,11 @@ void StaticMesh::draw() const {
         audit_bindings();
     }
 
+
     glDrawElements(GL_TRIANGLES, int(_index_buffer.element_count()), GL_UNSIGNED_INT, nullptr);
 }
 
+const SphericalBoundingBox& StaticMesh::bounding_box() const {
+    return _bounding_box;
+}
 }
