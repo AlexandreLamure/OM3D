@@ -21,8 +21,7 @@ class SceneObject {
         void set_transform(const glm::mat4& tr);
         const glm::mat4& transform() const;
 
-        bool check_frustum(const Frustum frustum) const;
-        StaticMesh& mesh() const;
+        bool check_frustum(const Camera camera) const;
 
         SphericalBoundingBox bounding_box() const;
 

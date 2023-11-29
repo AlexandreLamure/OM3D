@@ -35,23 +35,24 @@ const glm::mat4& SceneObject::transform() const {
     return _transform;
 }
 
-bool SceneObject::check_frustum(const Frustum frustum) const {
+bool SceneObject::check_frustum(const Camera camera) const {
+    auto frustum = camera.build_frustum();
     auto bounding_sphere = bounding_box();
+    auto camToSphere = bounding_sphere.center - camera.position();
 
-    float distToNear = glm::dot(bounding_sphere.center, frustum._near_normal) - bounding_sphere.radius;
-    float distToTop = glm::dot(bounding_sphere.center, frustum._top_normal) - bounding_sphere.radius;
-    float distToBottom = glm::dot(bounding_sphere.center, frustum._bottom_normal) - bounding_sphere.radius;
-    float distToRight = glm::dot(bounding_sphere.center, frustum._right_normal) - bounding_sphere.radius;
-    float distToLeft = glm::dot(bounding_sphere.center, frustum._left_normal) - bounding_sphere.radius;
+    float distToNear = glm::dot(camToSphere, frustum._near_normal) + bounding_sphere.radius;
+    float distToTop = glm::dot(camToSphere, frustum._top_normal) + bounding_sphere.radius;
+    float distToBottom = glm::dot(camToSphere, frustum._bottom_normal) + bounding_sphere.radius;
+    float distToRight = glm::dot(camToSphere, frustum._right_normal) + bounding_sphere.radius;
+    float distToLeft = glm::dot(camToSphere, frustum._left_normal) + bounding_sphere.radius;
 
     // Check if the sphere is completely outside any of the frustum planes
-    if(distToNear > 0.0f || distToTop > 0.0f || distToBottom > 0.0f || distToRight > 0.0f || distToLeft > 0.0f) {
+    if(distToNear < 0.0f || distToTop < 0.0f || distToBottom < 0.0f || distToRight < 0.0f || distToLeft < 0.0f) {
         return false;
     }
 
     // Print the distance to the near plane
-    std::cout << "Distance to near plane: " << distToNear << std::endl;
-
+    std::cout << "Dist to planes: " << distToRight << ", " << distToLeft << ", " << distToTop << ", " << distToBottom << ", " << distToNear << std::endl;
     return true;  // Bounding sphere is at least partially inside the frustum
 }
 
