@@ -38,6 +38,10 @@ class GLHandle : NonCopyable {
             return _handle;
         }
 
+        bool operator==(const GLHandle& other) const {
+            return _handle == other._handle;
+        }
+
     private:
         u32 _handle = 0;
 };

@@ -66,12 +66,20 @@ void Scene::render() const {
     }
     light_buffer.bind(BufferUsage::Storage, 1);
 
+    // for instancing
+    // get the number of unique meshes
+    std::vector<StaticMesh> _meshes;
+
     auto frustum = camera().build_frustum();
     // Render every object
     for(const SceneObject& obj : _objects) {
         // is my object seen ? (inside the camera frustum)
-        if (obj.check_frustum(frustum))
-            obj.render();
+        if (obj.check_frustum(frustum)) {
+//            obj.render();
+            if (std::find(_meshes.begin(), _meshes.end(), obj.mesh()) == _meshes.end())
+                _meshes.emplace_back(obj.mesh());
+        }
+
     }
 }
 

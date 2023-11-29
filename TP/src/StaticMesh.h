@@ -33,6 +33,11 @@ class StaticMesh : NonCopyable {
         // Getter for bounding box
         const SphericalBoundingBox& bounding_box() const;
 
+        // equal operator
+        bool operator==(const StaticMesh& other) const {
+            return _vertex_buffer == other._vertex_buffer && _index_buffer == other._index_buffer;
+        }
+
         void draw() const;
 
     private:

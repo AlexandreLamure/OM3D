@@ -10,7 +10,12 @@
     <option name="reloaded" value="true" />
   </component>
   <component name="CMakeRunConfigurationManager">
-    <generated />
+    <generated>
+      <config projectName="TP" targetName="TP" />
+      <config projectName="TP" targetName="uninstall" />
+      <config projectName="TP" targetName="update_mappings" />
+      <config projectName="TP" targetName="glfw" />
+    </generated>
   </component>
   <component name="CMakeSettings">
     <configurations>
@@ -57,6 +62,7 @@
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
+    "structure.view.defaults.are.configured": "true",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -114,7 +120,7 @@
       <option name="presentableId" value="Default" />
       <updated>1701196057919</updated>
       <workItem from="1701196058975" duration="5152000" />
-      <workItem from="1701250764048" duration="2509000" />
+      <workItem from="1701250764048" duration="7718000" />
     </task>
     <task id="LOCAL-00001" summary="build compatible with home pc + gitignore">
       <option name="closed" value="true" />

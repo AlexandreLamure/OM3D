@@ -23,6 +23,10 @@ class ByteBuffer : NonCopyable {
 
         BufferMapping<byte> map_bytes(AccessType access = AccessType::ReadWrite);
 
+        bool operator==(const ByteBuffer& other) const {
+            return _handle == other._handle;
+        }
+
     protected:
         void* map_internal(AccessType access);
         const GLHandle& handle() const;

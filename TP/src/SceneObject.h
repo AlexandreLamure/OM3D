@@ -22,6 +22,7 @@ class SceneObject {
         const glm::mat4& transform() const;
 
         bool check_frustum(const Frustum frustum) const;
+        StaticMesh& mesh() const;
 
         SphericalBoundingBox bounding_box() const;
 
