@@ -7,7 +7,6 @@ layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec2 in_uv;
 layout(location = 3) in vec4 in_tangent_bitangent_sign;
 layout(location = 4) in vec3 in_color;
-layout(location = 6) in mat4 instanceMatrix; // The instancing data
 
 layout(location = 0) out vec3 out_normal;
 layout(location = 1) out vec2 out_uv;
@@ -20,11 +19,16 @@ layout(binding = 0) uniform Data {
     FrameData frame;
 };
 
+//layout(location = 6) buffer instances
+//{
+//    mat4 instanceMatrix[];
+//};// The instancing data
+
 uniform mat4 model;
 
 void main() {
-    //const vec4 position = model * vec4(in_pos, 1.0);
-    const vec4 position = model * instanceMatrix;
+    const vec4 position = model * vec4(in_pos, 1.0);
+    //const vec4 position = instanceMatrix[gl_InstanceID] * vec4(in_pos, 1.0);
 
     out_normal = normalize(mat3(model) * in_normal);
     out_tangent = normalize(mat3(model) * in_tangent_bitangent_sign.xyz);

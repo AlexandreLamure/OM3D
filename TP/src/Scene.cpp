@@ -71,51 +71,32 @@ void Scene::render() const {
     }
     light_buffer.bind(BufferUsage::Storage, 1);
 
-    // for instancing
-    // get the number of unique meshes
-    std::vector<std::shared_ptr<Material>> materials;
-
     // Render every object
-//    for(const SceneObject& obj : _objects) {
-//        // is my object seen ? (inside the camera frustum)
-//        if (obj.check_frustum(camera())) {
-//            //obj.render();
-//            if (std::find(materials.begin(), materials.end(), obj.material()) == materials.end())
-//                materials.emplace_back(obj.material());
-//        }
-//
-//    }
-
-    for(const auto& mat : materials) {
-        mat->bind();
-        glm::mat4 transforms[MAX_INSTANCE];
-        int i = 0;
-        for (const SceneObject& obj : _objects) {
-            if (!obj.check_frustum(camera()) || obj.material() != mat) continue;
-            transforms[i++] = obj.transform();
-        }
-        GLuint transformBuffer;
-        if (i <= 0) continue;
-        glGenBuffers(1, &transformBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), transforms, GL_STATIC_DRAW);
-
-        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-        glEnableVertexAttribArray(5);
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-        glEnableVertexAttribArray(6);
-
-        glVertexAttribDivisor(3, 1);
-        glVertexAttribDivisor(4, 1);
-        glVertexAttribDivisor(5, 1);
-        glVertexAttribDivisor(6, 1);
-
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 36, i);
+    for(const SceneObject& obj : _objects) {
+        // is my object seen ? (inside the camera frustum)
+        if (obj.check_frustum(camera()))
+            obj.render();
     }
+
+    // failing to instance TwT
+//    for(const auto& mat : _materials) {
+//        glm::mat4 transforms[MAX_INSTANCE];
+//        int i = 0;
+//        SceneObject object_to_instance;
+//        for (const SceneObject& obj : _objects) {
+//            if (!obj.check_frustum(camera()) || obj.material() != mat) continue;
+//            transforms[i++] = obj.transform();
+//            object_to_instance = obj;
+//        }
+//        if (i <= 0) continue;
+//        object_to_instance.setup();
+//
+//        TypedBuffer<glm::mat4> ssbo(transforms);
+//        ssbo.bind(BufferUsage::Storage, 6);
+//
+//
+//        glDrawElementsInstanced(GL_TRIANGLES, object_to_instance.index_buffer_count(), GL_UNSIGNED_INT, nullptr, i);
+//    }
 
 }
 

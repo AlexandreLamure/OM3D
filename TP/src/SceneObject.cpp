@@ -13,6 +13,20 @@ SceneObject::SceneObject(std::shared_ptr<StaticMesh> mesh, std::shared_ptr<Mater
     _material(std::move(material)) {
 }
 
+void SceneObject::setup() const {
+    if(!_material || !_mesh) {
+        return;
+    }
+
+    _material->set_uniform(HASH("model"), transform());
+    _material->set_backface_culling(true);
+    _material->bind();
+
+    _mesh->setup();
+    // Disable backface culling for the rest of the objects
+    glDisable(GL_CULL_FACE);
+}
+
 void SceneObject::render() const {
     if(!_material || !_mesh) {
         return;
