@@ -24,14 +24,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ba7ed963-3f65-4067-b722-bc639f3a065b" name="Changes" comment="build compatible with home pc + gitignore">
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shaders/basic.vert" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/basic.vert" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Scene.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Scene.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Scene.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Scene.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/SceneObject.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/SceneObject.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/SceneObject.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/SceneObject.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,7 +74,7 @@
   }
 }</component>
   <component name="RunManager" selected="CMake Application.TP">
-    <configuration name="TP" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="TP" TARGET_NAME="TP" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="TP" RUN_TARGET_NAME="TP">
+    <configuration name="TP" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="--validate" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="TP" TARGET_NAME="TP" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="TP" RUN_TARGET_NAME="TP">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -132,6 +126,7 @@
       <workItem from="1701268485729" duration="1493000" />
       <workItem from="1701270327183" duration="969000" />
       <workItem from="1701305804810" duration="313000" />
+      <workItem from="1701331715567" duration="5106000" />
     </task>
     <task id="LOCAL-00001" summary="build compatible with home pc + gitignore">
       <option name="closed" value="true" />
