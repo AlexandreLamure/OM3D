@@ -22,6 +22,7 @@ class SceneObject {
         const glm::mat4& transform() const;
 
         bool check_frustum(const Camera camera) const;
+        std::shared_ptr<Material> material() const { return _material; }
 
         SphericalBoundingBox bounding_box() const;
 

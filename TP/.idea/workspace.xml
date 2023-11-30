@@ -24,10 +24,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ba7ed963-3f65-4067-b722-bc639f3a065b" name="Changes" comment="build compatible with home pc + gitignore">
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shaders/basic.vert" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/basic.vert" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Scene.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Scene.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Scene.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Scene.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/SceneObject.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/SceneObject.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/SceneObject.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/SceneObject.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +47,10 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/src/Program.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/SceneObject.h" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
@@ -123,6 +131,7 @@
       <workItem from="1701250764048" duration="7718000" />
       <workItem from="1701268485729" duration="1493000" />
       <workItem from="1701270327183" duration="969000" />
+      <workItem from="1701305804810" duration="313000" />
     </task>
     <task id="LOCAL-00001" summary="build compatible with home pc + gitignore">
       <option name="closed" value="true" />

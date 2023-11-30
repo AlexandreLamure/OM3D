@@ -52,7 +52,7 @@ bool SceneObject::check_frustum(const Camera camera) const {
     }
 
     // Print the distance to the near plane
-    std::cout << "Dist to planes: " << distToRight << ", " << distToLeft << ", " << distToTop << ", " << distToBottom << ", " << distToNear << std::endl;
+    //std::cout << "Dist to planes: " << distToRight << ", " << distToLeft << ", " << distToTop << ", " << distToBottom << ", " << distToNear << std::endl;
     return true;  // Bounding sphere is at least partially inside the frustum
 }
 
