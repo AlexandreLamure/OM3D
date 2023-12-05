@@ -105,6 +105,8 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
     mouse_pos = new_mouse_pos;
 }
 
+u32 g_buffer_mode = 0;  // 0 for albedo, 1 for normal, 2 for depth
+
 void gui(ImGuiRenderer& imgui) {
     imgui.start();
     DEFER(imgui.finish());
@@ -131,6 +133,16 @@ void gui(ImGuiRenderer& imgui) {
         if(scene && ImGui::BeginMenu("Scene Info")) {
             ImGui::Text("%u objects", u32(scene->objects().size()));
             ImGui::Text("%u point lights", u32(scene->point_lights().size()));
+            ImGui::EndMenu();
+        }
+
+        if(ImGui::BeginMenu("G_buffer")) {
+            if (ImGui::MenuItem("Albedo"))
+                g_buffer_mode = 0;
+            if (ImGui::MenuItem("Normal"))
+                g_buffer_mode = 1;
+            if (ImGui::MenuItem("Depth"))
+                g_buffer_mode = 2;
             ImGui::EndMenu();
         }
 
@@ -233,10 +245,11 @@ struct RendererState {
 
         if(state.size.x > 0 && state.size.y > 0) {
             state.depth_texture = Texture(size, ImageFormat::Depth32_FLOAT);
-            state.lit_hdr_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
-            state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM);
-            state.main_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.lit_hdr_texture});
-            state.tone_map_framebuffer = Framebuffer(nullptr, std::array{&state.tone_mapped_texture});
+            state.albedo_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
+            state.normal_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
+//            state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.main_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.albedo_texture, &state.normal_texture});
+//            state.tone_map_framebuffer = Framebuffer(nullptr, std::array{&state.tone_mapped_texture});
         }
 
         return state;
@@ -245,13 +258,13 @@ struct RendererState {
     glm::uvec2 size = {};
 
     Texture depth_texture;
-    Texture lit_hdr_texture;
-    Texture tone_mapped_texture;
+    Texture albedo_texture;
+    Texture normal_texture;
+//    Texture tone_mapped_texture;
 
     Framebuffer main_framebuffer;
-    Framebuffer tone_map_framebuffer;
+//    Framebuffer tone_map_framebuffer;
 };
-
 
 
 
@@ -281,10 +294,13 @@ int main(int argc, char** argv) {
 
     scene = create_default_scene();
 
-    auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
+    auto g_buffer_program = Program::from_files("g_buffer.frag", "screen.vert");
     RendererState renderer;
 
     for(;;) {
+
+        // set uniform value g_buffer_mode
+        g_buffer_program->set_uniform(HASH("g_buffer_mode"), g_buffer_mode);
 
         glfwPollEvents();
         if(glfwWindowShouldClose(window) || glfwGetKey(window, GLFW_KEY_ESCAPE)) {
@@ -313,21 +329,21 @@ int main(int argc, char** argv) {
             scene->render();
         }
 
-        // Apply a tonemap in compute shader
-        {
-            // Deactivate backface culling
-            glDisable(GL_CULL_FACE);
-
-            renderer.tone_map_framebuffer.bind();
-            tonemap_program->bind();
-            tonemap_program->set_uniform(HASH("exposure"), exposure);
-            renderer.lit_hdr_texture.bind(0);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-        }
-
-        // Blit tonemap result to screen
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        renderer.tone_map_framebuffer.blit();
+//        // Apply a tonemap in compute shader
+//        {
+//            // Deactivate backface culling
+//            glDisable(GL_CULL_FACE);
+//
+//            renderer.tone_map_framebuffer.bind();
+//            g_buffer_program->bind();
+//            g_buffer_program->set_uniform(HASH("exposure"), exposure);
+//            renderer.lit_hdr_texture.bind(0);
+//            glDrawArrays(GL_TRIANGLES, 0, 3);
+//        }
+//
+//        // Blit tonemap result to screen
+//        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//        renderer.tone_map_framebuffer.blit();
 
         gui(imgui);
 
