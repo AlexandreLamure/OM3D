@@ -79,24 +79,24 @@ void Scene::render() const {
     }
 
     // failing to instance TwT
-//    for(const auto& mat : _materials) {
-//        glm::mat4 transforms[MAX_INSTANCE];
-//        int i = 0;
-//        SceneObject object_to_instance;
-//        for (const SceneObject& obj : _objects) {
-//            if (!obj.check_frustum(camera()) || obj.material() != mat) continue;
-//            transforms[i++] = obj.transform();
-//            object_to_instance = obj;
-//        }
-//        if (i <= 0) continue;
-//        object_to_instance.setup();
-//
-//        TypedBuffer<glm::mat4> ssbo(transforms);
-//        ssbo.bind(BufferUsage::Storage, 6);
-//
-//
-//        glDrawElementsInstanced(GL_TRIANGLES, object_to_instance.index_buffer_count(), GL_UNSIGNED_INT, nullptr, i);
-//    }
+    /*for(const auto& mat : _materials) {
+        glm::mat4 transforms[MAX_INSTANCE];
+        int i = 0;
+        SceneObject object_to_instance;
+        for (const SceneObject& obj : _objects) {
+            if (!obj.check_frustum(camera()) || obj.material() != mat) continue;
+            transforms[i++] = obj.transform();
+            object_to_instance = obj;
+        }
+        if (i <= 0) continue;
+        object_to_instance.setup();
+
+        TypedBuffer<glm::mat4> ssbo(transforms);
+        ssbo.bind(BufferUsage::Storage, 6);
+
+
+        glDrawElementsInstanced(GL_TRIANGLES, object_to_instance.index_buffer_count(), GL_UNSIGNED_INT, nullptr, i);
+    }*/
 
 }
 

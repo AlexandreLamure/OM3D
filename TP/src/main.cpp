@@ -19,7 +19,6 @@ using namespace OM3D;
 
 static float delta_time = 0.0f;
 static std::unique_ptr<Scene> scene;
-static float exposure = 1.0;
 static std::vector<std::string> scene_files;
 
 namespace OM3D {
@@ -105,7 +104,12 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
     mouse_pos = new_mouse_pos;
 }
 
-u32 g_buffer_mode = 0;  // 0 for albedo, 1 for normal, 2 for depth
+u32 g_buffer_mode = 0;  // 0: none, 1: albedo, 2: normal, 3: depth
+
+void set_g_buffer_mode(u32 mode) {
+    g_buffer_mode = mode;
+    printf("g_buffer_mode = %d\n", g_buffer_mode);
+}
 
 void gui(ImGuiRenderer& imgui) {
     imgui.start();
@@ -122,14 +126,6 @@ void gui(ImGuiRenderer& imgui) {
             ImGui::EndMenu();
         }
 
-        if(ImGui::BeginMenu("Exposure")) {
-            ImGui::DragFloat("Exposure", &exposure, 0.25f, 0.01f, 100.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-            if(exposure != 1.0f && ImGui::Button("Reset")) {
-                exposure = 1.0f;
-            }
-            ImGui::EndMenu();
-        }
-
         if(scene && ImGui::BeginMenu("Scene Info")) {
             ImGui::Text("%u objects", u32(scene->objects().size()));
             ImGui::Text("%u point lights", u32(scene->point_lights().size()));
@@ -137,12 +133,14 @@ void gui(ImGuiRenderer& imgui) {
         }
 
         if(ImGui::BeginMenu("G_buffer")) {
-            if (ImGui::MenuItem("Albedo"))
-                g_buffer_mode = 0;
-            if (ImGui::MenuItem("Normal"))
-                g_buffer_mode = 1;
-            if (ImGui::MenuItem("Depth"))
-                g_buffer_mode = 2;
+            if(ImGui::MenuItem("None"))
+                set_g_buffer_mode(0);
+            if(ImGui::MenuItem("Albedo"))
+                set_g_buffer_mode(1);
+            if(ImGui::MenuItem("Normal"))
+                set_g_buffer_mode(2);
+            if(ImGui::MenuItem("Depth"))
+                set_g_buffer_mode(3);
             ImGui::EndMenu();
         }
 
@@ -212,7 +210,7 @@ std::unique_ptr<Scene> create_default_scene() {
     auto scene = std::make_unique<Scene>();
 
     // Load default cube model
-    auto result = Scene::from_gltf(std::string(data_path) + "forest.glb");
+    auto result = Scene::from_gltf(std::string(data_path) + "cube.glb");
     ALWAYS_ASSERT(result.is_ok, "Unable to load default scene");
     scene = std::move(result.value);
 
@@ -245,11 +243,12 @@ struct RendererState {
 
         if(state.size.x > 0 && state.size.y > 0) {
             state.depth_texture = Texture(size, ImageFormat::Depth32_FLOAT);
+            state.color_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
             state.albedo_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
             state.normal_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
-//            state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM);
-            state.main_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.albedo_texture, &state.normal_texture});
-//            state.tone_map_framebuffer = Framebuffer(nullptr, std::array{&state.tone_mapped_texture});
+            state.display_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.g_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.color_texture,&state.albedo_texture, &state.normal_texture});
+            state.display_framebuffer = Framebuffer(nullptr, std::array{&state.display_texture});
         }
 
         return state;
@@ -258,12 +257,13 @@ struct RendererState {
     glm::uvec2 size = {};
 
     Texture depth_texture;
+    Texture color_texture;
     Texture albedo_texture;
     Texture normal_texture;
-//    Texture tone_mapped_texture;
+    Texture display_texture;
 
-    Framebuffer main_framebuffer;
-//    Framebuffer tone_map_framebuffer;
+    Framebuffer g_framebuffer;
+    Framebuffer display_framebuffer;
 };
 
 
@@ -282,7 +282,7 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-    GLFWwindow* window = glfwCreateWindow(1600, 900, "TP window", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "TP window", nullptr, nullptr);
     glfw_check(window);
     DEFER(glfwDestroyWindow(window));
 
@@ -294,13 +294,12 @@ int main(int argc, char** argv) {
 
     scene = create_default_scene();
 
-    auto g_buffer_program = Program::from_files("g_buffer.frag", "screen.vert");
+    auto g_buffer_program = Program::from_files("display_g_buffer.frag", "screen.vert");
     RendererState renderer;
 
     for(;;) {
 
-        // set uniform value g_buffer_mode
-        g_buffer_program->set_uniform(HASH("g_buffer_mode"), g_buffer_mode);
+
 
         glfwPollEvents();
         if(glfwWindowShouldClose(window) || glfwGetKey(window, GLFW_KEY_ESCAPE)) {
@@ -325,25 +324,27 @@ int main(int argc, char** argv) {
 
         // Render the scene
         {
-            renderer.main_framebuffer.bind();
+            renderer.g_framebuffer.bind();
             scene->render();
         }
 
-//        // Apply a tonemap in compute shader
-//        {
-//            // Deactivate backface culling
-//            glDisable(GL_CULL_FACE);
-//
-//            renderer.tone_map_framebuffer.bind();
-//            g_buffer_program->bind();
-//            g_buffer_program->set_uniform(HASH("exposure"), exposure);
-//            renderer.lit_hdr_texture.bind(0);
-//            glDrawArrays(GL_TRIANGLES, 0, 3);
-//        }
-//
-//        // Blit tonemap result to screen
-//        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//        renderer.tone_map_framebuffer.blit();
+        // Apply display_g_buffer.frag
+        {
+            renderer.display_framebuffer.bind();
+            g_buffer_program->bind();
+
+            // set uniform value g_buffer_mode
+            g_buffer_program->set_uniform(HASH("g_buffer_mode"), g_buffer_mode);
+            renderer.color_texture.bind(0);
+            renderer.albedo_texture.bind(1);
+            renderer.normal_texture.bind(2);
+            renderer.depth_texture.bind(3);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+
+        // Blit display result to screen
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        renderer.display_framebuffer.blit();
 
         gui(imgui);
 
