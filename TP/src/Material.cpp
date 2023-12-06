@@ -6,8 +6,7 @@
 
 namespace OM3D {
 
-Material::Material() {
-}
+Material::Material() = default;
 
 void Material::set_program(std::shared_ptr<Program> prog) {
     _program = std::move(prog);
@@ -85,7 +84,7 @@ std::shared_ptr<Material> Material::empty_material() {
     auto material = weak_material.lock();
     if(!material) {
         material = std::make_shared<Material>();
-        material->_program = Program::from_files("lit.frag", "basic.vert");
+        material->_program = Program::from_files("g_buffer.frag", "basic.vert");
         weak_material = material;
     }
     return material;
@@ -93,13 +92,13 @@ std::shared_ptr<Material> Material::empty_material() {
 
 Material Material::textured_material() {
     Material material;
-    material._program = Program::from_files("lit.frag", "basic.vert", {"TEXTURED"});
+    material._program = Program::from_files("g_buffer.frag", "basic.vert", {"TEXTURED"});
     return material;
 }
 
 Material Material::textured_normal_mapped_material() {
     Material material;
-    material._program = Program::from_files("lit.frag", "basic.vert", std::array<std::string, 2>{"TEXTURED", "NORMAL_MAPPED"});
+    material._program = Program::from_files("g_buffer.frag", "basic.vert", std::array<std::string, 2>{"TEXTURED", "NORMAL_MAPPED"});
     return material;
 }
 

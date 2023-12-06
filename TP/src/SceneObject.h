@@ -21,15 +21,19 @@ class SceneObject {
         void set_transform(const glm::mat4& tr);
         const glm::mat4& transform() const;
 
-        bool check_frustum(const Frustum frustum) const;
+        bool check_frustum(const Camera camera) const;
+        std::shared_ptr<Material> material() const { return _material; }
 
         SphericalBoundingBox bounding_box() const;
+        void setup() const;
+        int index_buffer_count() {return _mesh->index_buffer_count();}
 
     private:
         glm::mat4 _transform = glm::mat4(1.0f);
 
         std::shared_ptr<StaticMesh> _mesh;
         std::shared_ptr<Material> _material;
+
 };
 
 }

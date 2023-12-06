@@ -33,6 +33,7 @@ class Scene : NonMovable {
     private:
         std::vector<SceneObject> _objects;
         std::vector<PointLight> _point_lights;
+        std::vector<std::shared_ptr<Material>> _materials;
 
         glm::vec3 _sun_direction = glm::vec3(0.2f, 1.0f, 0.1f);
         glm::vec3 _sun_color = glm::vec3(1.0f);

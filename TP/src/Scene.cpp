@@ -2,6 +2,7 @@
 
 #include <TypedBuffer.h>
 
+#include <algorithm>
 #include <shader_structs.h>
 
 namespace OM3D {
@@ -10,6 +11,8 @@ Scene::Scene() {
 }
 
 void Scene::add_object(SceneObject obj) {
+    if (std::find(_materials.begin(), _materials.end(), obj.material()) == _materials.end())
+        _materials.emplace_back(obj.material());
     _objects.emplace_back(std::move(obj));
 }
 
@@ -37,6 +40,8 @@ void Scene::set_sun(glm::vec3 direction, glm::vec3 color) {
     _sun_direction = direction;
     _sun_color = color;
 }
+
+#define MAX_INSTANCE 100
 
 void Scene::render() const {
     // Fill and bind frame data buffer
@@ -66,13 +71,33 @@ void Scene::render() const {
     }
     light_buffer.bind(BufferUsage::Storage, 1);
 
-    auto frustum = camera().build_frustum();
     // Render every object
     for(const SceneObject& obj : _objects) {
         // is my object seen ? (inside the camera frustum)
-        if (obj.check_frustum(frustum))
+        if (obj.check_frustum(camera()))
             obj.render();
     }
+
+    // failing to instance TwT
+    /*for(const auto& mat : _materials) {
+        glm::mat4 transforms[MAX_INSTANCE];
+        int i = 0;
+        SceneObject object_to_instance;
+        for (const SceneObject& obj : _objects) {
+            if (!obj.check_frustum(camera()) || obj.material() != mat) continue;
+            transforms[i++] = obj.transform();
+            object_to_instance = obj;
+        }
+        if (i <= 0) continue;
+        object_to_instance.setup();
+
+        TypedBuffer<glm::mat4> ssbo(transforms);
+        ssbo.bind(BufferUsage::Storage, 6);
+
+
+        glDrawElementsInstanced(GL_TRIANGLES, object_to_instance.index_buffer_count(), GL_UNSIGNED_INT, nullptr, i);
+    }*/
+
 }
 
 }

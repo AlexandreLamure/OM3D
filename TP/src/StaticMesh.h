@@ -33,7 +33,9 @@ class StaticMesh : NonCopyable {
         // Getter for bounding box
         const SphericalBoundingBox& bounding_box() const;
 
+        void setup() const;
         void draw() const;
+        int index_buffer_count() {return int(_index_buffer.element_count());}
 
     private:
         TypedBuffer<Vertex> _vertex_buffer;

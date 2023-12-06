@@ -19,7 +19,6 @@ using namespace OM3D;
 
 static float delta_time = 0.0f;
 static std::unique_ptr<Scene> scene;
-static float exposure = 1.0;
 static std::vector<std::string> scene_files;
 
 namespace OM3D {
@@ -105,6 +104,13 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
     mouse_pos = new_mouse_pos;
 }
 
+u32 g_buffer_mode = 0;  // 0: none, 1: albedo, 2: normal, 3: depth
+
+void set_g_buffer_mode(u32 mode) {
+    g_buffer_mode = mode;
+    printf("g_buffer_mode = %d\n", g_buffer_mode);
+}
+
 void gui(ImGuiRenderer& imgui) {
     imgui.start();
     DEFER(imgui.finish());
@@ -120,17 +126,21 @@ void gui(ImGuiRenderer& imgui) {
             ImGui::EndMenu();
         }
 
-        if(ImGui::BeginMenu("Exposure")) {
-            ImGui::DragFloat("Exposure", &exposure, 0.25f, 0.01f, 100.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-            if(exposure != 1.0f && ImGui::Button("Reset")) {
-                exposure = 1.0f;
-            }
-            ImGui::EndMenu();
-        }
-
         if(scene && ImGui::BeginMenu("Scene Info")) {
             ImGui::Text("%u objects", u32(scene->objects().size()));
             ImGui::Text("%u point lights", u32(scene->point_lights().size()));
+            ImGui::EndMenu();
+        }
+
+        if(ImGui::BeginMenu("G_buffer")) {
+            if(ImGui::MenuItem("None"))
+                set_g_buffer_mode(0);
+            if(ImGui::MenuItem("Albedo"))
+                set_g_buffer_mode(1);
+            if(ImGui::MenuItem("Normal"))
+                set_g_buffer_mode(2);
+            if(ImGui::MenuItem("Depth"))
+                set_g_buffer_mode(3);
             ImGui::EndMenu();
         }
 
@@ -233,10 +243,12 @@ struct RendererState {
 
         if(state.size.x > 0 && state.size.y > 0) {
             state.depth_texture = Texture(size, ImageFormat::Depth32_FLOAT);
-            state.lit_hdr_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
-            state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM);
-            state.main_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.lit_hdr_texture});
-            state.tone_map_framebuffer = Framebuffer(nullptr, std::array{&state.tone_mapped_texture});
+            state.color_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
+            state.albedo_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
+            state.normal_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
+            state.display_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.g_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.color_texture,&state.albedo_texture, &state.normal_texture});
+            state.display_framebuffer = Framebuffer(nullptr, std::array{&state.display_texture});
         }
 
         return state;
@@ -245,13 +257,14 @@ struct RendererState {
     glm::uvec2 size = {};
 
     Texture depth_texture;
-    Texture lit_hdr_texture;
-    Texture tone_mapped_texture;
+    Texture color_texture;
+    Texture albedo_texture;
+    Texture normal_texture;
+    Texture display_texture;
 
-    Framebuffer main_framebuffer;
-    Framebuffer tone_map_framebuffer;
+    Framebuffer g_framebuffer;
+    Framebuffer display_framebuffer;
 };
-
 
 
 
@@ -269,7 +282,7 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-    GLFWwindow* window = glfwCreateWindow(1600, 900, "TP window", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "TP window", nullptr, nullptr);
     glfw_check(window);
     DEFER(glfwDestroyWindow(window));
 
@@ -281,10 +294,12 @@ int main(int argc, char** argv) {
 
     scene = create_default_scene();
 
-    auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
+    auto g_buffer_program = Program::from_files("display_g_buffer.frag", "screen.vert");
     RendererState renderer;
 
     for(;;) {
+
+
 
         glfwPollEvents();
         if(glfwWindowShouldClose(window) || glfwGetKey(window, GLFW_KEY_ESCAPE)) {
@@ -309,25 +324,27 @@ int main(int argc, char** argv) {
 
         // Render the scene
         {
-            renderer.main_framebuffer.bind();
+            renderer.g_framebuffer.bind();
             scene->render();
         }
 
-        // Apply a tonemap in compute shader
+        // Apply display_g_buffer.frag
         {
-            // Deactivate backface culling
-            glDisable(GL_CULL_FACE);
+            renderer.display_framebuffer.bind();
+            g_buffer_program->bind();
 
-            renderer.tone_map_framebuffer.bind();
-            tonemap_program->bind();
-            tonemap_program->set_uniform(HASH("exposure"), exposure);
-            renderer.lit_hdr_texture.bind(0);
+            // set uniform value g_buffer_mode
+            g_buffer_program->set_uniform(HASH("g_buffer_mode"), g_buffer_mode);
+            renderer.color_texture.bind(0);
+            renderer.albedo_texture.bind(1);
+            renderer.normal_texture.bind(2);
+            renderer.depth_texture.bind(3);
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 
-        // Blit tonemap result to screen
+        // Blit display result to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        renderer.tone_map_framebuffer.blit();
+        renderer.display_framebuffer.blit();
 
         gui(imgui);
 
