@@ -4,10 +4,9 @@
 
 layout(location = 0) out vec4 out_frag;
 
-layout(binding = 0) uniform sampler2D in_color;
-layout(binding = 1) uniform sampler2D in_albedo;
-layout(binding = 2) uniform sampler2D in_normal;
-layout(binding = 3) uniform sampler2D in_depth;
+layout(binding = 0) uniform sampler2D in_albedo;
+layout(binding = 1) uniform sampler2D in_normal;
+layout(binding = 2) uniform sampler2D in_depth;
 
 uniform uint g_buffer_mode;
 
@@ -16,8 +15,7 @@ void main() {
     vec3 frag;
     switch (g_buffer_mode) {
         case 0:
-            frag = texelFetch(in_color, coord, 0).rgb;
-            break;
+            // never happens
         case 1:
             frag = texelFetch(in_albedo, coord, 0).rgb;
             break;

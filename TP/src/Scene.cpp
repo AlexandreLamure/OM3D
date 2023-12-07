@@ -45,20 +45,20 @@ void Scene::set_sun(glm::vec3 direction, glm::vec3 color) {
 
 void Scene::render() const {
     // Fill and bind frame data buffer
-    TypedBuffer<shader::FrameData> buffer(nullptr, 1);
+    _data_buffer = TypedBuffer<shader::FrameData>(nullptr, 1);
     {
-        auto mapping = buffer.map(AccessType::WriteOnly);
+        auto mapping = _data_buffer.map(AccessType::WriteOnly);
         mapping[0].camera.view_proj = _camera.view_proj_matrix();
         mapping[0].point_light_count = u32(_point_lights.size());
         mapping[0].sun_color = _sun_color;
         mapping[0].sun_dir = glm::normalize(_sun_direction);
     }
-    buffer.bind(BufferUsage::Uniform, 0);
+    _data_buffer.bind(BufferUsage::Uniform, 0);
 
     // Fill and bind lights buffer
-    TypedBuffer<shader::PointLight> light_buffer(nullptr, std::max(_point_lights.size(), size_t(1)));
+    _light_buffer = TypedBuffer<shader::PointLight>(nullptr, std::max(_point_lights.size(), size_t(1)));
     {
-        auto mapping = light_buffer.map(AccessType::WriteOnly);
+        auto mapping = _light_buffer.map(AccessType::WriteOnly);
         for(size_t i = 0; i != _point_lights.size(); ++i) {
             const auto& light = _point_lights[i];
             mapping[i] = {
@@ -69,12 +69,12 @@ void Scene::render() const {
             };
         }
     }
-    light_buffer.bind(BufferUsage::Storage, 1);
+    _light_buffer.bind(BufferUsage::Storage, 1);
 
     // Render every object
     for(const SceneObject& obj : _objects) {
         // is my object seen ? (inside the camera frustum)
-        if (obj.check_frustum(camera()))
+        //if (obj.check_frustum(camera())) // TODO: Reintroduce this once bug is crushed
             obj.render();
     }
 

@@ -8,6 +8,11 @@
 #include <vector>
 #include <memory>
 
+#include <TypedBuffer.h>
+
+#include <algorithm>
+#include <shader_structs.h>
+
 namespace OM3D {
 
 class Scene : NonMovable {
@@ -30,6 +35,8 @@ class Scene : NonMovable {
 
         void set_sun(glm::vec3 direction, glm::vec3 color = glm::vec3(1.0f));
 
+    TypedBuffer<shader::FrameData> data_buffer() {return _data_buffer;}
+        TypedBuffer<shader::PointLight> light_buffer() => _light_buffer;
     private:
         std::vector<SceneObject> _objects;
         std::vector<PointLight> _point_lights;
@@ -40,6 +47,8 @@ class Scene : NonMovable {
 
 
         Camera _camera;
+        TypedBuffer<shader::FrameData> _data_buffer;
+        TypedBuffer<shader::PointLight> _light_buffer;
 };
 
 }

@@ -210,7 +210,7 @@ std::unique_ptr<Scene> create_default_scene() {
     auto scene = std::make_unique<Scene>();
 
     // Load default cube model
-    auto result = Scene::from_gltf(std::string(data_path) + "cube.glb");
+    auto result = Scene::from_gltf(std::string(data_path) + "bistro_lights.glb");
     ALWAYS_ASSERT(result.is_ok, "Unable to load default scene");
     scene = std::move(result.value);
 
@@ -243,12 +243,15 @@ struct RendererState {
 
         if(state.size.x > 0 && state.size.y > 0) {
             state.depth_texture = Texture(size, ImageFormat::Depth32_FLOAT);
-            state.color_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
             state.albedo_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
             state.normal_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
             state.display_texture = Texture(size, ImageFormat::RGBA8_UNORM);
-            state.g_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.color_texture,&state.albedo_texture, &state.normal_texture});
+            state.lighting_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
+//            state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.g_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.albedo_texture, &state.normal_texture});
             state.display_framebuffer = Framebuffer(nullptr, std::array{&state.display_texture});
+            state.lighting_framebuffer = Framebuffer(nullptr, std::array{&state.lighting_texture});
+//            state.tone_map_framebuffer = Framebuffer(nullptr, std::array{&state.tone_mapped_texture});
         }
 
         return state;
@@ -257,17 +260,17 @@ struct RendererState {
     glm::uvec2 size = {};
 
     Texture depth_texture;
-    Texture color_texture;
     Texture albedo_texture;
     Texture normal_texture;
     Texture display_texture;
+    Texture lighting_texture;
+//    Texture tone_mapped_texture;
 
     Framebuffer g_framebuffer;
     Framebuffer display_framebuffer;
+    Framebuffer lighting_framebuffer;
+//    Framebuffer tone_map_framebuffer;
 };
-
-
-
 
 int main(int argc, char** argv) {
     DEBUG_ASSERT([] { std::cout << "Debug asserts enabled" << std::endl; return true; }());
@@ -295,12 +298,13 @@ int main(int argc, char** argv) {
     scene = create_default_scene();
 
     auto g_buffer_program = Program::from_files("display_g_buffer.frag", "screen.vert");
+    auto sun_lightning_program = Program::from_files("sunlight.frag", "screen.vert");
+    auto point_lightning_program = Program::from_files("pointlight.frag", "screen.vert");
+//    auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
+
     RendererState renderer;
 
     for(;;) {
-
-
-
         glfwPollEvents();
         if(glfwWindowShouldClose(window) || glfwGetKey(window, GLFW_KEY_ESCAPE)) {
             break;
@@ -328,23 +332,44 @@ int main(int argc, char** argv) {
             scene->render();
         }
 
-        // Apply display_g_buffer.frag
-        {
+        if (g_buffer_mode > 0) {
             renderer.display_framebuffer.bind();
             g_buffer_program->bind();
 
             // set uniform value g_buffer_mode
             g_buffer_program->set_uniform(HASH("g_buffer_mode"), g_buffer_mode);
-            renderer.color_texture.bind(0);
-            renderer.albedo_texture.bind(1);
-            renderer.normal_texture.bind(2);
-            renderer.depth_texture.bind(3);
+            renderer.albedo_texture.bind(0);
+            renderer.normal_texture.bind(1);
+            renderer.depth_texture.bind(2);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+
+            // Blit display result to screen
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            renderer.display_framebuffer.blit();
+
+            gui(imgui);
+
+            glfwSwapBuffers(window);
+            continue;
+        }
+
+        // Apply lightning.frag
+        {
+            renderer.lighting_framebuffer.bind();
+            sun_lightning_program->bind();
+
+            renderer.albedo_texture.bind(0);
+            renderer.normal_texture.bind(1);
+            renderer.depth_texture.bind(2);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+
+            point_lightning_program->bind();
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 
         // Blit display result to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        renderer.display_framebuffer.blit();
+        renderer.lighting_framebuffer.blit();
 
         gui(imgui);
 
