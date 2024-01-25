@@ -221,48 +221,76 @@ int Program::find_location(u32 hash) {
 void Program::set_uniform(u32 name_hash, u32 value) {
     if(const int loc = find_location(name_hash); loc >= 0) {
         glProgramUniform1ui(_handle.get(), loc, value);
+    } else {
+        FATAL((std::string("Unable to set uniform with value: u32(") + std::to_string(value) + ")").c_str());
     }
 }
 
 void Program::set_uniform(u32 name_hash, float value) {
     if(const int loc = find_location(name_hash); loc >= 0) {
         glProgramUniform1f(_handle.get(), loc, value);
+    } else {
+        FATAL((std::string("Unable to set uniform with value: float(") + std::to_string(value) + ")").c_str());
     }
 }
 
 void Program::set_uniform(u32 name_hash, glm::vec2 value) {
     if(const int loc = find_location(name_hash); loc >= 0) {
         glProgramUniform2f(_handle.get(), loc, value.x, value.y);
+    } else {
+        FATAL((std::string("Unable to set uniform with value: vec2(") + std::to_string(value[0]) + ", "
+                + std::to_string(value[1]) + ")").c_str());
     }
 }
 
 void Program::set_uniform(u32 name_hash, glm::vec3 value) {
     if(const int loc = find_location(name_hash); loc >= 0) {
         glProgramUniform3f(_handle.get(), loc, value.x, value.y, value.z);
+    } else {
+        FATAL((std::string("Unable to set uniform with value: vec3(") + std::to_string(value[0]) + ", "
+                + std::to_string(value[1]) + ", " + std::to_string(value[2]) + ")").c_str());
     }
 }
 
 void Program::set_uniform(u32 name_hash, glm::vec4 value) {
     if(const int loc = find_location(name_hash); loc >= 0) {
         glProgramUniform4f(_handle.get(), loc, value.x, value.y, value.z, value.w);
+    } else {
+        FATAL((std::string("Unable to set uniform with value: vec4(")
+            + std::to_string(value[0]) + ", " + std::to_string(value[1]) + ", " + std::to_string(value[2]) + ", " + std::to_string(value[3]) + ")")
+                .c_str());
     }
 }
 
 void Program::set_uniform(u32 name_hash, const glm::mat2& value) {
     if(const int loc = find_location(name_hash); loc >= 0) {
         glProgramUniformMatrix2fv(_handle.get(), loc, 1, false, reinterpret_cast<const float*>(&value));
+    } else {
+        FATAL((std::string("Unable to set uniform with value: mat2(")
+            + std::to_string(value[0][0]) + ", " + std::to_string(value[1][0]) + ", "
+            + std::to_string(value[0][1]) + ", " + std::to_string(value[1][1]) + ")").c_str());
     }
 }
 
 void Program::set_uniform(u32 name_hash, const glm::mat3& value) {
     if(const int loc = find_location(name_hash); loc >= 0) {
         glProgramUniformMatrix3fv(_handle.get(), loc, 1, false, reinterpret_cast<const float*>(&value));
+    } else {
+        FATAL((std::string("Unable to set uniform with value: mat3(")
+            + std::to_string(value[0][0]) + ", " + std::to_string(value[1][0]) + ", " + std::to_string(value[2][0]) + ", "
+            + std::to_string(value[0][1]) + ", " + std::to_string(value[1][1]) + ", " + std::to_string(value[2][1]) + ", "
+            + std::to_string(value[0][2]) + ", " + std::to_string(value[1][2]) + ", " + std::to_string(value[2][2]) + ")").c_str());
     }
 }
 
 void Program::set_uniform(u32 name_hash, const glm::mat4& value) {
     if(const int loc = find_location(name_hash); loc >= 0) {
         glProgramUniformMatrix4fv(_handle.get(), loc, 1, false, reinterpret_cast<const float*>(&value));
+    } else {
+        FATAL((std::string("Unable to set uniform with value: mat4(")
+            + std::to_string(value[0][0]) + ", " + std::to_string(value[1][0]) + ", " + std::to_string(value[2][0]) + ", " + std::to_string(value[3][0]) + ", "
+            + std::to_string(value[0][1]) + ", " + std::to_string(value[1][1]) + ", " + std::to_string(value[2][1]) + ", " + std::to_string(value[3][1]) + ", "
+            + std::to_string(value[0][2]) + ", " + std::to_string(value[1][2]) + ", " + std::to_string(value[2][2]) + ", " + std::to_string(value[3][2]) + ")").c_str());
     }
 }
 
