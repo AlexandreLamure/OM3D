@@ -19,7 +19,7 @@ void debug_out(GLenum, GLenum type, GLuint, GLenum sev, GLsizei, const char* msg
         return;
     }
 
-    const bool is_error = type == GL_DEBUG_TYPE_ERROR;
+    const bool is_error = (type == GL_DEBUG_TYPE_ERROR || type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR);
     (is_error ? std::cerr : std::cout) << (sev == GL_DEBUG_SEVERITY_HIGH ? "[GL][HIGH] " : "[GL] ") << msg << std::endl;
 
     if(is_error) {
