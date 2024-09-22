@@ -1,6 +1,6 @@
 #include "Texture.h"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -47,6 +47,11 @@ Texture::Texture(const TextureData& data) :
     const ImageFormatGL gl_format = image_format_to_gl(_format);
     glTextureStorage2D(_handle.get(), mip_levels(_size), gl_format.internal_format, _size.x, _size.y);
     glTextureSubImage2D(_handle.get(), 0, 0, 0, _size.x, _size.y, gl_format.format, gl_format.component_type, data.data.get());
+
+    if(bindless_enabled()) {
+        _bindless = glGetTextureHandleARB(_handle.get());
+        glMakeTextureHandleResidentARB(_bindless);
+    }
 }
 
 Texture::Texture(const glm::uvec2 &size, ImageFormat format) :
@@ -56,6 +61,11 @@ Texture::Texture(const glm::uvec2 &size, ImageFormat format) :
 
     const ImageFormatGL gl_format = image_format_to_gl(_format);
     glTextureStorage2D(_handle.get(), 1, gl_format.internal_format, _size.x, _size.y);
+
+    if(bindless_enabled()) {
+        _bindless = glGetTextureHandleARB(_handle.get());
+        glMakeTextureHandleResidentARB(_bindless);
+    }
 }
 
 Texture::~Texture() {
@@ -72,7 +82,11 @@ void Texture::bind_as_image(u32 index, AccessType access) {
     glBindImageTexture(index, _handle.get(), 0, false, 0, access_type_to_gl(access), image_format_to_gl(_format).internal_format);
 }
 
-const glm::uvec2& Texture::size() const {
+u64 Texture::bindless_handle() const {
+    return _bindless;
+}
+
+glm::uvec2 Texture::size() const {
     return _size;
 }
 

@@ -5,7 +5,7 @@
 #include <glm/vec2.hpp>
 
 #include <imgui/imgui.h>
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 
 #define GLFW_INCLUDE_NONE

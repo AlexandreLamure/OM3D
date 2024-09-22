@@ -1,4 +1,5 @@
-#include <glad/glad.h>
+
+#include <glad/gl.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -16,6 +17,7 @@
 #include <filesystem>
 
 using namespace OM3D;
+
 
 static float delta_time = 0.0f;
 static std::unique_ptr<Scene> scene;
@@ -106,6 +108,9 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
 }
 
 void gui(ImGuiRenderer& imgui) {
+    const ImVec4 error_text_color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+    const ImVec4 warning_text_color = ImVec4(1.0f, 0.8f, 0.4f, 1.0f);
+
     imgui.start();
     DEFER(imgui.finish());
 
@@ -141,10 +146,13 @@ void gui(ImGuiRenderer& imgui) {
         ImGui::Text("%.2f ms", delta_time * 1000.0f);
 
 #ifdef OM3D_DEBUG
-        ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF);
-        ImGui::TextUnformatted("(DEBUG)");
-        ImGui::PopStyleColor();
+        ImGui::TextColored(warning_text_color, "(DEBUG)");
 #endif
+
+        if(!bindless_enabled()) {
+            ImGui::TextColored(error_text_color, "(Bindless textures not supported)");
+        }
+
 
         ImGui::EndMainMenuBar();
     }

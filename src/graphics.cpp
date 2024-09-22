@@ -1,6 +1,6 @@
 #include "graphics.h"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -10,9 +10,6 @@
 namespace OM3D {
 
 bool audit_bindings_before_draw = false;
-
-
-
 
 void debug_out(GLenum, GLenum type, GLuint, GLenum sev, GLsizei, const char* msg, const void*) {
     if(sev == GL_DEBUG_SEVERITY_NOTIFICATION) {
@@ -68,10 +65,14 @@ u32 align_up_to(u32 val, u32 up_to) {
     return val;
 }
 
-static GLuint global_vao = 0;
+
+
+bool bindless_enabled() {
+    return GLAD_GL_ARB_bindless_texture != 0;
+}
 
 void init_graphics() {
-    ALWAYS_ASSERT(gladLoadGLLoader((GLADloadproc)(glfwGetProcAddress)), "glad initialization failed");
+    ALWAYS_ASSERT(gladLoadGL(glfwGetProcAddress), "glad initialization failed");
 
     std::cout << "OpenGL " << glGetString(GL_VERSION) << " initialized on " << glGetString(GL_VENDOR) << " " << glGetString(GL_RENDERER) << " using GLSL " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
@@ -98,9 +99,15 @@ void init_graphics() {
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_FRAMEBUFFER_SRGB);
 
+    GLuint global_vao = 0;
     glGenVertexArrays(1, &global_vao);
     glBindVertexArray(global_vao);
 }
+
+
+
+
+
 
 
 
