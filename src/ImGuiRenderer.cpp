@@ -7,11 +7,13 @@
 #include <imgui/imgui.h>
 #include <glad/gl.h>
 
-
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
+
+#include <imgui/fa-solid-900.h>
+
 
 namespace OM3D {
 
@@ -140,8 +142,19 @@ static ImGuiKey key_to_imgui(int key) {
 
 static std::unique_ptr<Texture> create_font() {
     ImFontAtlas* fonts = ImGui::GetIO().Fonts;
-
     fonts->AddFontDefault();
+
+    ImFontConfig config;
+    {
+        config.MergeMode = true;
+        config.PixelSnapH = true;
+        config.OversampleV = 2;
+        config.OversampleH = 2;
+        config.FontDataOwnedByAtlas = false;
+    }
+    const ImWchar icon_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+    fonts->AddFontFromMemoryCompressedTTF(font_awesome_compressed_data, font_awesome_compressed_size, 13.0f, &config, icon_ranges);
+
     u8* font_data = nullptr;
     int width = 0;
     int height = 0;

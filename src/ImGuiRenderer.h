@@ -5,6 +5,8 @@
 
 #include <chrono>
 
+#include <imgui/IconsFontAwesome5.h>
+
 struct ImDrawData;
 struct GLFWwindow;
 

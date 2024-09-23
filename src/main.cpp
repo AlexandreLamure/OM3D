@@ -146,14 +146,14 @@ void gui(ImGuiRenderer& imgui) {
         ImGui::Text("%.2f ms", delta_time * 1000.0f);
 
 #ifdef OM3D_DEBUG
-        ImGui::TextColored(warning_text_color, "(DEBUG)");
+        ImGui::Separator();
+        ImGui::TextColored(warning_text_color, ICON_FA_BUG " (DEBUG)");
 #endif
 
         if(!bindless_enabled()) {
-            ImGui::TextColored(error_text_color, "(Bindless textures not supported)");
+            ImGui::Separator();
+            ImGui::TextColored(error_text_color, ICON_FA_EXCLAMATION_TRIANGLE " Bindless textures not supported");
         }
-
-
         ImGui::EndMainMenuBar();
     }
 
