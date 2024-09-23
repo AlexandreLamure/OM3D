@@ -268,4 +268,12 @@ void Program::set_uniform(u32 name_hash, const glm::mat4& value) {
     }
 }
 
+void Program::set_uniform(u32 name_hash, u64 value) {
+    DEBUG_ASSERT(bindless_enabled());
+    DEBUG_ASSERT(glProgramUniformHandleui64ARB);
+    if(const int loc = find_location(name_hash); loc >= 0) {
+        glProgramUniformHandleui64ARB(_handle.get(), loc, value);
+    }
+}
+
 }
