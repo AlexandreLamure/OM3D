@@ -1,55 +1,88 @@
 #include "TimestampQuery.h"
 
+#include <string>
 #include <deque>
 #include <vector>
-#include <algorithm>
-#include <iterator>
 
 #include <glad/gl.h>
 
 namespace OM3D {
 
-using FrameMarkers = std::vector<std::pair<std::string_view, TimestampQuery>>;
+namespace profile {
+    struct Marker {
+        std::string name;
+        u32 contained_zones;
+        double cpu_time;
+        TimestampQuery query;
+    };
 
-static FrameMarkers marker_queries;
-static std::deque<FrameMarkers> waiting_profiles;
-static std::vector<std::pair<std::string_view, double>> last_profile;
+    static std::vector<Marker> current_frame;
 
-void push_marker(std::string_view name, TimestampQuery query) {
-    query.end();
-    if(auto it = std::find_if(marker_queries.begin(), marker_queries.end(), [&](const auto& marker) { return marker.first == name; }); it != marker_queries.end()) {
-        it->second = std::move(query);
-    } else {
-        marker_queries.emplace_back(name, std::move(query));
+    static std::deque<std::vector<Marker>> queued_frames;
+    static std::vector<ProfileZone> ready;
+
+    u32 begin_profile_zone(const char* name) {
+        const u32 index = u32(current_frame.size());
+
+        // Either you forgot to call process_profile_markers every frame, or you have too many marker
+        // In the later case, you can just remove this assert
+        ALWAYS_ASSERT(index < 65536, "Too many profile markers");
+
+        Marker& marker = current_frame.emplace_back();
+        marker.name = name;
+        marker.cpu_time = program_time();
+        marker.query.begin();
+
+        return index;
+    }
+
+    void end_profile_zone(u32 zone_id) {
+        Marker& marker = current_frame[zone_id];
+        marker.cpu_time = program_time() - marker.cpu_time;
+        marker.contained_zones = u32(current_frame.size()) - zone_id - 1;
+        marker.query.end();
     }
 }
 
-void process_profile_markers() {
-    std::swap(waiting_profiles.emplace_back(), marker_queries);
-    DEBUG_ASSERT(marker_queries.empty());
 
-    FrameMarkers last_ready;
-    while(!waiting_profiles.empty()) {
+
+
+void process_profile_markers() {
+    profile::queued_frames.emplace_back().swap(profile::current_frame);
+    DEBUG_ASSERT(profile::current_frame.empty());
+
+    std::vector<profile::Marker> ready_frame;
+    while(!profile::queued_frames.empty()) {
+        auto& frame = profile::queued_frames.front();
+
         bool ready = true;
-        for(auto& [name, query] : waiting_profiles.front()) {
-            if(!query.seconds().is_ok) {
+        for(auto& marker : frame) {
+            if(!marker.query.seconds().is_ok) {
                 ready = false;
                 break;
             }
         }
 
         if(ready) {
-            last_ready = std::move(waiting_profiles.front());
-            waiting_profiles.pop_front();
+            ready_frame = std::move(frame);
+            profile::queued_frames.pop_front();
+        } else {
+            break;
         }
     }
 
-    last_profile.clear();
-    std::transform(last_ready.begin(), last_ready.end(), std::back_inserter(last_profile), [](const auto& marker) { return std::make_pair(marker.first, marker.second.seconds(true).value); });
+    profile::ready.clear();
+    for(auto& marker : ready_frame) {
+        ProfileZone& zone = profile::ready.emplace_back();
+        zone.name = std::move(marker.name);
+        zone.contained_zones = marker.contained_zones;
+        zone.cpu_time = float(marker.cpu_time);
+        zone.gpu_time = float(marker.query.seconds(true).value);
+    }
 }
 
-Span<std::pair<std::string_view, double>> previous_profile() {
-    return last_profile;
+Span<ProfileZone> retrieve_profile() {
+    return profile::ready;
 }
 
 

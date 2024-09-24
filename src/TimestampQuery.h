@@ -3,12 +3,13 @@
 
 #include <graphics.h>
 
-#include <string_view>
+#include <string>
 #include <utility>
 
 namespace OM3D {
 
-#define PROFILE_GPU(name_expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(gpu_prof) = ::OM3D::ScopeGuard([query = ::OM3D::TimestampQuery::create_and_begin(), name = name_expr]() mutable { ::OM3D::push_marker(name, std::move(query)); })
+#define PROFILE_GPU(name_expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(gpu_prof) = ::OM3D::ScopeGuard([zone_id = ::OM3D::profile::begin_profile_zone(name_expr)] { ::OM3D::profile::end_profile_zone(zone_id); })
+
 
 class TimestampQuery : NonCopyable {
     enum class State {
@@ -43,10 +44,22 @@ class TimestampQuery : NonCopyable {
 };
 
 
-void push_marker(std::string_view name, TimestampQuery query);
-void process_profile_markers();
-Span<std::pair<std::string_view, double>> previous_profile();
 
+struct ProfileZone {
+    std::string name;
+    u32 contained_zones = 0;
+    float cpu_time = 0.0f;
+    float gpu_time = 0.0f;
+};
+
+Span<ProfileZone> retrieve_profile();
+void process_profile_markers();
+
+
+namespace profile {
+    u32 begin_profile_zone(const char* name);
+    void end_profile_zone(u32 zone_id);
+}
 
 }
 

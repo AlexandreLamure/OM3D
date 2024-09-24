@@ -114,7 +114,7 @@ void gui(ImGuiRenderer& imgui) {
 
     static bool open_gpu_profiler = false;
 
-    PROFILE_GPU("imgui");
+    PROFILE_GPU("GUI");
 
     imgui.start();
     DEFER(imgui.finish());
@@ -212,7 +212,6 @@ void gui(ImGuiRenderer& imgui) {
     if(open_gpu_profiler) {
         if(ImGui::Begin(ICON_FA_CLOCK " GPU Profiler")) {
             const ImGuiTableFlags table_flags =
-                ImGuiTableFlags_Sortable |
                 ImGuiTableFlags_SortTristate |
                 ImGuiTableFlags_NoSavedSettings |
                 ImGuiTableFlags_SizingFixedFit |
@@ -222,22 +221,42 @@ void gui(ImGuiRenderer& imgui) {
 
             ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, ImVec4(1, 1, 1, 0.01f));
 
-            if(ImGui::BeginTable("##timetable", 2, table_flags)) {
-                ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort);
-                ImGui::TableSetupColumn("GPU (ms)", ImGuiTableColumnFlags_NoResize, 100.0f);
+            if(ImGui::BeginTable("##timetable", 3, table_flags)) {
+                ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("CPU (ms)", ImGuiTableColumnFlags_NoResize, 70.0f);
+                ImGui::TableSetupColumn("GPU (ms)", ImGuiTableColumnFlags_NoResize, 70.0f);
                 ImGui::TableHeadersRow();
 
-                for(const auto& [name, time] : previous_profile()) {
-                    const float t = float(std::min(time / 0.008, 1.0)); // 8ms = red
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(t, 1.0f - t, 0.0f, 1.0f));
-                    DEFER(ImGui::PopStyleColor());
+                std::vector<u32> indents;
+                for(const auto& zone : retrieve_profile()) {
+                    auto color_from_time = [](float time) {
+                        const float t = std::min(time / 0.008f, 1.0f); // 8ms = red
+                        return ImVec4(t, 1.0f - t, 0.0f, 1.0f);
+                    };
 
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::TextUnformatted(name.data(), name.data() + name.size());
+                    ImGui::TextUnformatted(zone.name.data());
 
                     ImGui::TableSetColumnIndex(1);
-                    ImGui::Text("%.2f", float(time * 1000.0));
+                    ImGui::PushStyleColor(ImGuiCol_Text, color_from_time(zone.cpu_time));
+                    ImGui::Text("%.2f", zone.cpu_time * 1000.0f);
+
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::PushStyleColor(ImGuiCol_Text, color_from_time(zone.gpu_time));
+                    ImGui::Text("%.2f", zone.gpu_time * 1000.0f);
+
+                    ImGui::PopStyleColor(2);
+
+                    if(!indents.empty() && --indents.back() == 0) {
+                        indents.pop_back();
+                        ImGui::Unindent();
+                    }
+
+                    if(zone.contained_zones) {
+                        indents.push_back(zone.contained_zones);
+                        ImGui::Indent();
+                    }
                 }
 
                 ImGui::EndTable();
@@ -365,34 +384,40 @@ int main(int argc, char** argv) {
             process_inputs(window, scene->camera());
         }
 
-        // Render the scene
+        // Draw everything
         {
-            PROFILE_GPU("main pass");
+            PROFILE_GPU("Frame");
 
-            renderer.main_framebuffer.bind();
-            scene->render();
+            // Render the scene
+            {
+                PROFILE_GPU("Main pass");
+
+                renderer.main_framebuffer.bind();
+                scene->render();
+            }
+
+            // Apply a tonemap in compute shader
+            {
+                PROFILE_GPU("Tonemap");
+
+                renderer.tone_map_framebuffer.bind();
+                tonemap_program->bind();
+                tonemap_program->set_uniform(HASH("exposure"), exposure);
+                renderer.lit_hdr_texture.bind(0);
+                glDrawArrays(GL_TRIANGLES, 0, 3);
+            }
+
+            // Blit tonemap result to screen
+            {
+                PROFILE_GPU("Blit");
+
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                renderer.tone_map_framebuffer.blit();
+            }
+
+            // Draw GUI on top
+            gui(imgui);
         }
-
-        // Apply a tonemap in compute shader
-        {
-            PROFILE_GPU("tonemap");
-
-            renderer.tone_map_framebuffer.bind();
-            tonemap_program->bind();
-            tonemap_program->set_uniform(HASH("exposure"), exposure);
-            renderer.lit_hdr_texture.bind(0);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-        }
-
-        // Blit tonemap result to screen
-        {
-            PROFILE_GPU("blit");
-
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            renderer.tone_map_framebuffer.blit();
-        }
-
-        gui(imgui);
 
         glfwSwapBuffers(window);
     }
