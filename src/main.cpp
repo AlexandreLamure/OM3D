@@ -220,6 +220,7 @@ void gui(ImGuiRenderer& imgui) {
                 ImGuiTableFlags_RowBg;
 
             ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, ImVec4(1, 1, 1, 0.01f));
+            DEFER(ImGui::PopStyleColor());
 
             if(ImGui::BeginTable("##timetable", 3, table_flags)) {
                 ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
@@ -261,11 +262,8 @@ void gui(ImGuiRenderer& imgui) {
 
                 ImGui::EndTable();
             }
-
-            ImGui::PopStyleColor();
-
-            ImGui::End();
         }
+        ImGui::End();
     }
 }
 
