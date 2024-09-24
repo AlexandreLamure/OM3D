@@ -8,6 +8,7 @@
 #include <Scene.h>
 #include <Texture.h>
 #include <Framebuffer.h>
+#include <TimestampQuery.h>
 #include <ImGuiRenderer.h>
 
 #include <imgui/imgui.h>
@@ -111,6 +112,10 @@ void gui(ImGuiRenderer& imgui) {
     const ImVec4 error_text_color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
     const ImVec4 warning_text_color = ImVec4(1.0f, 0.8f, 0.4f, 1.0f);
 
+    static bool open_gpu_profiler = false;
+
+    PROFILE_GPU("imgui");
+
     imgui.start();
     DEFER(imgui.finish());
 
@@ -137,6 +142,10 @@ void gui(ImGuiRenderer& imgui) {
             ImGui::Text("%u objects", u32(scene->objects().size()));
             ImGui::Text("%u point lights", u32(scene->point_lights().size()));
             ImGui::EndMenu();
+        }
+
+        if(ImGui::MenuItem("GPU Profiler")) {
+            open_gpu_profiler = true;
         }
 
         ImGui::Separator();
@@ -198,6 +207,46 @@ void gui(ImGuiRenderer& imgui) {
         }
 
         ImGui::EndPopup();
+    }
+
+    if(open_gpu_profiler) {
+        if(ImGui::Begin(ICON_FA_CLOCK " GPU Profiler")) {
+            const ImGuiTableFlags table_flags =
+                ImGuiTableFlags_Sortable |
+                ImGuiTableFlags_SortTristate |
+                ImGuiTableFlags_NoSavedSettings |
+                ImGuiTableFlags_SizingFixedFit |
+                ImGuiTableFlags_BordersInnerV |
+                ImGuiTableFlags_Resizable |
+                ImGuiTableFlags_RowBg;
+
+            ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, ImVec4(1, 1, 1, 0.01f));
+
+            if(ImGui::BeginTable("##timetable", 2, table_flags)) {
+                ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort);
+                ImGui::TableSetupColumn("GPU (ms)", ImGuiTableColumnFlags_NoResize, 100.0f);
+                ImGui::TableHeadersRow();
+
+                for(const auto& [name, time] : previous_profile()) {
+                    const float t = float(std::min(time / 0.008, 1.0)); // 8ms = red
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(t, 1.0f - t, 0.0f, 1.0f));
+                    DEFER(ImGui::PopStyleColor());
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted(name.data(), name.data() + name.size());
+
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%.2f", float(time * 1000.0));
+                }
+
+                ImGui::EndTable();
+            }
+
+            ImGui::PopStyleColor();
+
+            ImGui::End();
+        }
     }
 }
 
@@ -277,7 +326,7 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-    GLFWwindow* window = glfwCreateWindow(1600, 900, "TP window", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1600, 900, "OM3D", nullptr, nullptr);
     glfw_check(window);
     DEFER(glfwDestroyWindow(window));
 
@@ -293,11 +342,12 @@ int main(int argc, char** argv) {
     RendererState renderer;
 
     for(;;) {
-
         glfwPollEvents();
         if(glfwWindowShouldClose(window) || glfwGetKey(window, GLFW_KEY_ESCAPE)) {
             break;
         }
+
+        process_profile_markers();
 
         {
             int width = 0;
@@ -317,12 +367,16 @@ int main(int argc, char** argv) {
 
         // Render the scene
         {
+            PROFILE_GPU("main pass");
+
             renderer.main_framebuffer.bind();
             scene->render();
         }
 
         // Apply a tonemap in compute shader
         {
+            PROFILE_GPU("tonemap");
+
             renderer.tone_map_framebuffer.bind();
             tonemap_program->bind();
             tonemap_program->set_uniform(HASH("exposure"), exposure);
@@ -331,8 +385,12 @@ int main(int argc, char** argv) {
         }
 
         // Blit tonemap result to screen
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        renderer.tone_map_framebuffer.blit();
+        {
+            PROFILE_GPU("blit");
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            renderer.tone_map_framebuffer.blit();
+        }
 
         gui(imgui);
 

@@ -12,7 +12,7 @@
 #define HASH(str) ([] { static constexpr u32 result = ::OM3D::str_hash(str); return result; }())
 
 // Execute expr at scope exit
-#define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = ::OM3D::ScopeGuard([&]() { expr; })
+#define DEFER(expr) auto CREATE_UNIQUE_NAME_WITH_PREFIX(defer) = ::OM3D::ScopeGuard([&] { expr; })
 // Print message and terminate immediatly
 #define FATAL(msg) ::OM3D::fatal((msg), __FILE__, __LINE__)
 // Assert in debug and release
@@ -69,6 +69,10 @@ template<typename T>
 struct [[nodiscard]] Result {
     bool is_ok;
     T value;
+
+    const T& value_or(const T& default_val) const {
+        return is_ok ? value : default_val;
+    }
 };
 
 template<>
