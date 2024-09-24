@@ -51,6 +51,7 @@ void process_profile_markers() {
     profile::queued_frames.emplace_back().swap(profile::current_frame);
     DEBUG_ASSERT(profile::current_frame.empty());
 
+    bool any_profile_ready = false;
     std::vector<profile::Marker> ready_frame;
     while(!profile::queued_frames.empty()) {
         auto& frame = profile::queued_frames.front();
@@ -64,6 +65,7 @@ void process_profile_markers() {
         }
 
         if(ready) {
+            any_profile_ready = true;
             ready_frame = std::move(frame);
             profile::queued_frames.pop_front();
         } else {
@@ -71,13 +73,15 @@ void process_profile_markers() {
         }
     }
 
-    profile::ready.clear();
-    for(auto& marker : ready_frame) {
-        ProfileZone& zone = profile::ready.emplace_back();
-        zone.name = std::move(marker.name);
-        zone.contained_zones = marker.contained_zones;
-        zone.cpu_time = float(marker.cpu_time);
-        zone.gpu_time = float(marker.query.seconds(true).value);
+    if(any_profile_ready) {
+        profile::ready.clear();
+        for(auto& marker : ready_frame) {
+            ProfileZone& zone = profile::ready.emplace_back();
+            zone.name = std::move(marker.name);
+            zone.contained_zones = marker.contained_zones;
+            zone.cpu_time = float(marker.cpu_time);
+            zone.gpu_time = float(marker.query.seconds(true).value);
+        }
     }
 }
 
