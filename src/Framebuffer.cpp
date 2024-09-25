@@ -78,16 +78,24 @@ Framebuffer::~Framebuffer() {
 }
 
 
-void Framebuffer::bind(bool clear) const {
+void Framebuffer::bind(bool clear_depth, bool clear_color) const {
     glBindFramebuffer(GL_FRAMEBUFFER, _handle.get());
     glViewport(0, 0, _size.x, _size.y);
 
-    if(clear) {
+    GLenum clear_mask = 0;
+    if(clear_color) {
+        clear_mask |= GL_COLOR_BUFFER_BIT;
+    }
+    if(clear_depth) {
+        clear_mask |= GL_DEPTH_BUFFER_BIT;
+    }
+
+    if(clear_mask) {
         const WriteMask mask = WriteMask::get();
         DEFER(WriteMask::set(mask));
         WriteMask::set_all();
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(clear_mask);
     }
 }
 

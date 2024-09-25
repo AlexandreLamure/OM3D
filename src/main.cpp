@@ -390,7 +390,7 @@ int main(int argc, char** argv) {
             {
                 PROFILE_GPU("Main pass");
 
-                renderer.main_framebuffer.bind();
+                renderer.main_framebuffer.bind(true, true);
                 scene->render();
             }
 
@@ -398,7 +398,7 @@ int main(int argc, char** argv) {
             {
                 PROFILE_GPU("Tonemap");
 
-                renderer.tone_map_framebuffer.bind();
+                renderer.tone_map_framebuffer.bind(false, true);
                 tonemap_program->bind();
                 tonemap_program->set_uniform(HASH("exposure"), exposure);
                 renderer.lit_hdr_texture.bind(0);

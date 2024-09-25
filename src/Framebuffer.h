@@ -22,7 +22,7 @@ class Framebuffer : NonCopyable {
 
         ~Framebuffer();
 
-        void bind(bool clear = true) const;
+        void bind(bool clear_depth, bool clear_color) const;
         void blit(bool depth = false) const;
 
         const glm::uvec2& size() const;
