@@ -7,10 +7,20 @@
 
 #include <iostream>
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NOEXCEPTION
 #include <tinygltf/tiny_gltf.h>
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 namespace OM3D {
 
@@ -170,6 +180,15 @@ static Result<MeshData> build_mesh_data(const tinygltf::Model& gltf, const tinyg
         }
     }
 
+    AABB aabb = {};
+    if(!vertices.empty()) {
+        aabb.min = aabb.max = vertices[0].position;
+        for(size_t i = 1; i < vertices.size(); ++i) {
+            aabb.min = glm::min(aabb.min, vertices[i].position);
+            aabb.max = glm::max(aabb.max, vertices[i].position);
+        }
+    }
+
 
     std::vector<u32> indices;
     {
@@ -189,7 +208,7 @@ static Result<MeshData> build_mesh_data(const tinygltf::Model& gltf, const tinyg
         }
     }
 
-    return {true, MeshData{std::move(vertices), std::move(indices)}};
+    return {true, MeshData{std::move(vertices), std::move(indices), aabb}};
 }
 
 static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool as_sRGB) {
