@@ -180,16 +180,6 @@ static Result<MeshData> build_mesh_data(const tinygltf::Model& gltf, const tinyg
         }
     }
 
-    AABB aabb = {};
-    if(!vertices.empty()) {
-        aabb.min = aabb.max = vertices[0].position;
-        for(size_t i = 1; i < vertices.size(); ++i) {
-            aabb.min = glm::min(aabb.min, vertices[i].position);
-            aabb.max = glm::max(aabb.max, vertices[i].position);
-        }
-    }
-
-
     std::vector<u32> indices;
     {
         tinygltf::Accessor accessor = gltf.accessors[prim.indices];
@@ -208,7 +198,7 @@ static Result<MeshData> build_mesh_data(const tinygltf::Model& gltf, const tinyg
         }
     }
 
-    return {true, MeshData{std::move(vertices), std::move(indices), aabb}};
+    return {true, MeshData{std::move(vertices), std::move(indices)}};
 }
 
 static Result<TextureData> build_texture_data(const tinygltf::Image& image, bool as_sRGB) {
