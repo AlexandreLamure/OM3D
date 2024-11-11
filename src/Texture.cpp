@@ -52,6 +52,8 @@ Texture::Texture(const TextureData& data) :
         _bindless = glGetTextureHandleARB(_handle.get());
         glMakeTextureHandleResidentARB(_bindless);
     }
+
+    //glGenerateTextureMipmap(_handle.get());
 }
 
 Texture::Texture(const glm::uvec2 &size, ImageFormat format) :
