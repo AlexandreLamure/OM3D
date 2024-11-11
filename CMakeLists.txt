@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 if(MSVC)
     set(COMPILE_OPTIONS /permissive- /W3 -D_CRT_SECURE_NO_DEPRECATE /Zc:preprocessor /wd5105)
 else()
-    set(EXTRA_WARNINGS -Wconversion -Wfloat-conversion -Woverloaded-virtual -Wnon-virtual-dtor)
+    set(EXTRA_WARNINGS -Wfloat-conversion)
     set(COMPILE_OPTIONS -pedantic -Werror -Wall -Wextra ${EXTRA_WARNINGS})
 endif()
 

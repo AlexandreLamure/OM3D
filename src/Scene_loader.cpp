@@ -10,7 +10,6 @@
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-qualifiers"
-#pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
 #define TINYGLTF_IMPLEMENTATION
@@ -359,7 +358,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
             const auto& node = gltf.nodes[node_index];
             if(const auto it = node.extensions.find("KHR_lights_punctual"); it != node.extensions.end()) {
                 const int light_index = it->second.Get("light").Get<int>();
-                if(light_index < 0 || light_index >= gltf.lights.size()) {
+                if(light_index < 0 || light_index >= static_cast<int>(gltf.lights.size())) {
                     continue;
                 }
                 light_nodes.emplace_back(std::pair{node_index, light_index});
