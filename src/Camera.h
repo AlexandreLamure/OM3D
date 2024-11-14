@@ -2,22 +2,23 @@
 #define CAMERA_H
 
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <utils.h>
 
-namespace OM3D {
+namespace OM3D
+{
 
-struct Frustum {
-    glm::vec3 _near_normal;
-    // No far plane (zFar is +inf)
-    glm::vec3 _top_normal;
-    glm::vec3 _bottom_normal;
-    glm::vec3 _right_normal;
-    glm::vec3 _left_normal;
-};
+    struct Frustum
+    {
+        glm::vec3 _near_normal;
+        // No far plane (zFar is +inf)
+        glm::vec3 _top_normal;
+        glm::vec3 _bottom_normal;
+        glm::vec3 _right_normal;
+        glm::vec3 _left_normal;
+    };
 
-
-class Camera {
+    class Camera
+    {
     public:
         static glm::mat4 perspective(float fov_y, float ratio, float z_near);
 
@@ -51,8 +52,8 @@ class Camera {
         glm::mat4 _projection;
         glm::mat4 _view;
         glm::mat4 _view_proj;
-};
+    };
 
-}
+} // namespace OM3D
 
 #endif // CAMERA_H

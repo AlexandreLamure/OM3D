@@ -1,27 +1,26 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <graphics.h>
 #include <ImageFormat.h>
-
 #include <glm/vec2.hpp>
-
-#include <vector>
+#include <graphics.h>
 #include <memory>
+#include <vector>
 
+namespace OM3D
+{
 
-namespace OM3D {
+    struct TextureData
+    {
+        std::unique_ptr<u8[]> data;
+        glm::uvec2 size = {};
+        ImageFormat format;
 
-struct TextureData {
-    std::unique_ptr<u8[]> data;
-    glm::uvec2 size = {};
-    ImageFormat format;
+        static Result<TextureData> from_file(const std::string& file_name);
+    };
 
-    static Result<TextureData> from_file(const std::string& file_name);
-};
-
-class Texture {
-
+    class Texture
+    {
     public:
         Texture() = default;
         Texture(Texture&&) = default;
@@ -30,7 +29,7 @@ class Texture {
         ~Texture();
 
         Texture(const TextureData& data);
-        Texture(const glm::uvec2 &size, ImageFormat format);
+        Texture(const glm::uvec2& size, ImageFormat format);
 
         void bind(u32 index) const;
         void bind_as_image(u32 index, AccessType access);
@@ -38,7 +37,6 @@ class Texture {
         u64 bindless_handle() const;
 
         glm::uvec2 size() const;
-
 
         static u32 mip_levels(glm::uvec2 size);
 
@@ -49,8 +47,8 @@ class Texture {
         glm::uvec2 _size = {};
         u64 _bindless = {};
         ImageFormat _format;
-};
+    };
 
-}
+} // namespace OM3D
 
 #endif // TEXTURE_H

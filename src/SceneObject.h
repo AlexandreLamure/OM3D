@@ -1,19 +1,19 @@
 #ifndef SCENEOBJECT_H
 #define SCENEOBJECT_H
 
-#include <StaticMesh.h>
 #include <Material.h>
-
+#include <StaticMesh.h>
+#include <glm/matrix.hpp>
 #include <memory>
 
-#include <glm/matrix.hpp>
+namespace OM3D
+{
 
-namespace OM3D {
-
-class SceneObject {
-
+    class SceneObject
+    {
     public:
-        SceneObject(std::shared_ptr<StaticMesh> mesh = nullptr, std::shared_ptr<Material> material = nullptr);
+        SceneObject(std::shared_ptr<StaticMesh> mesh = nullptr,
+                    std::shared_ptr<Material> material = nullptr);
 
         void render() const;
 
@@ -25,8 +25,8 @@ class SceneObject {
 
         std::shared_ptr<StaticMesh> _mesh;
         std::shared_ptr<Material> _material;
-};
+    };
 
-}
+} // namespace OM3D
 
 #endif // SCENEOBJECT_H

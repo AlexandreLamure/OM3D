@@ -1,34 +1,36 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include <graphics.h>
-
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 #include <glm/mat2x2.hpp>
 #include <glm/mat3x3.hpp>
 #include <glm/mat4x4.hpp>
-
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <graphics.h>
 #include <memory>
 #include <vector>
 
-namespace OM3D {
+namespace OM3D
+{
 
-class Program : NonCopyable {
+    class Program : NonCopyable
+    {
+        struct UniformLocationInfo
+        {
+            u32 name_hash;
+            int location;
 
-    struct UniformLocationInfo {
-        u32 name_hash;
-        int location;
+            bool operator<(const UniformLocationInfo& other) const
+            {
+                return name_hash < other.name_hash;
+            }
 
-        bool operator<(const UniformLocationInfo& other) const {
-            return name_hash < other.name_hash;
-        }
-
-        bool operator==(const UniformLocationInfo& other) const {
-            return name_hash == other.name_hash;
-        }
-    };
+            bool operator==(const UniformLocationInfo& other) const
+            {
+                return name_hash == other.name_hash;
+            }
+        };
 
     public:
         Program() = default;
@@ -43,8 +45,12 @@ class Program : NonCopyable {
 
         bool is_compute() const;
 
-        static std::shared_ptr<Program> from_file(const std::string& comp, Span<const std::string> defines = {});
-        static std::shared_ptr<Program> from_files(const std::string& frag, const std::string& vert, Span<const std::string> defines = {});
+        static std::shared_ptr<Program>
+        from_file(const std::string& comp,
+                  Span<const std::string> defines = {});
+        static std::shared_ptr<Program>
+        from_files(const std::string& frag, const std::string& vert,
+                   Span<const std::string> defines = {});
 
         void set_uniform(u32 name_hash, u32 value);
         void set_uniform(u32 name_hash, float value);
@@ -56,8 +62,9 @@ class Program : NonCopyable {
         void set_uniform(u32 name_hash, const glm::mat4& value);
         void set_uniform(u32 name_hash, u64 value);
 
-        template<typename T>
-        void set_uniform(std::string_view name, const T& value) {
+        template <typename T>
+        void set_uniform(std::string_view name, const T& value)
+        {
             set_uniform(str_hash(name), value);
         }
 
@@ -69,9 +76,8 @@ class Program : NonCopyable {
         std::vector<UniformLocationInfo> _uniform_locations;
 
         bool _is_compute = false;
+    };
 
-};
-
-}
+} // namespace OM3D
 
 #endif // PROGRAM_H

@@ -1,13 +1,14 @@
 #ifndef BYTEBUFFER_H
 #define BYTEBUFFER_H
 
-#include <graphics.h>
 #include <BufferMapping.h>
+#include <graphics.h>
 
-namespace OM3D {
+namespace OM3D
+{
 
-class ByteBuffer : NonCopyable {
-
+    class ByteBuffer : NonCopyable
+    {
     public:
         ByteBuffer() = default;
         ByteBuffer(ByteBuffer&&) = default;
@@ -21,7 +22,8 @@ class ByteBuffer : NonCopyable {
 
         size_t byte_size() const;
 
-        BufferMapping<byte> map_bytes(AccessType access = AccessType::ReadWrite);
+        BufferMapping<byte>
+        map_bytes(AccessType access = AccessType::ReadWrite);
 
     protected:
         void* map_internal(AccessType access);
@@ -30,8 +32,8 @@ class ByteBuffer : NonCopyable {
     private:
         GLHandle _handle;
         size_t _size = 0;
-};
+    };
 
-}
+} // namespace OM3D
 
 #endif // BYTEBUFFER_H
