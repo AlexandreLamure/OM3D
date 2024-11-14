@@ -8,8 +8,8 @@ MOOC: https://moodle.epita.fr/course/view.php?id=2292
 Requirements: cmake 3.20 minimum, C++17, and OpenGL 4.5.
 ```bash
 # At the project root
-mkdir -p TP/build/debug
-cd TP/build/debug
+mkdir -p build/debug
+cd build/debug
 cmake ../..
 make
 ```
