@@ -1,2 +1,4 @@
 /build/
 *.user
+compile_commands.json
+.cache
