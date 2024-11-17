@@ -372,6 +372,7 @@ struct RendererState
                 &state.depth_texture, std::array{ &state.lit_hdr_texture });
             state.tone_map_framebuffer =
                 Framebuffer(nullptr, std::array{ &state.tone_mapped_texture });
+            state.z_prepass_framebuffer = Framebuffer(&state.depth_texture);
         }
 
         return state;
@@ -385,6 +386,7 @@ struct RendererState
 
     Framebuffer main_framebuffer;
     Framebuffer tone_map_framebuffer;
+    Framebuffer z_prepass_framebuffer;
 };
 
 int main(int argc, char** argv)
@@ -416,6 +418,8 @@ int main(int argc, char** argv)
     scene = create_default_scene();
 
     auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
+    auto z_prepass_program =
+        Program::from_files("z_prepass.frag", "basic.vert");
     RendererState renderer;
 
     for (;;)
@@ -452,12 +456,25 @@ int main(int argc, char** argv)
         {
             PROFILE_GPU("Frame");
 
+            // Z prepass
+            // {
+            //     PROFILE_GPU("Z pass");
+            //     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Z
+            //     pass"); renderer.z_prepass_framebuffer.bind(true, false);
+            //     z_prepass_program->bind();
+            //     scene->render(true);
+            //     glPopDebugGroup();
+            // }
+
             // Render the scene
             {
                 PROFILE_GPU("Main pass");
 
+                glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1,
+                                 "Main pass");
                 renderer.main_framebuffer.bind(true, true);
                 scene->render();
+                glPopDebugGroup();
             }
 
             // Apply a tonemap in compute shader

@@ -18,7 +18,7 @@ namespace OM3D
         static Result<std::unique_ptr<Scene>>
         from_gltf(const std::string& file_name);
 
-        void render() const;
+        void render(bool z_prepass = false) const;
 
         void add_object(SceneObject obj);
         void add_light(PointLight obj);

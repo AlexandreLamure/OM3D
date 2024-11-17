@@ -45,7 +45,7 @@ namespace OM3D
         _sun_color = color;
     }
 
-    void Scene::render() const
+    void Scene::render(bool z_prepass) const
     {
         // Fill and bind frame data buffer
         TypedBuffer<shader::FrameData> buffer(nullptr, 1);
@@ -75,7 +75,7 @@ namespace OM3D
         // Render every object
         for (const SceneObject& obj : _objects)
         {
-            obj.render(_camera);
+            obj.render(_camera, z_prepass);
         }
     }
 
