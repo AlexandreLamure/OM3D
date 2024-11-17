@@ -75,7 +75,7 @@ namespace OM3D
         // Render every object
         for (const SceneObject& obj : _objects)
         {
-            obj.render();
+            obj.render(_camera);
         }
     }
 

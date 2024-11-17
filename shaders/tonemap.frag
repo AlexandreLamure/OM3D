@@ -10,8 +10,6 @@ layout(binding = 0) uniform sampler2D in_hdr;
 
 uniform float exposure = 1.0;
 
-
-
 float reinhard(float hdr) {
     return hdr / (hdr + 1.0);
 }
@@ -28,5 +26,3 @@ void main() {
 
     out_color = vec4(hdr, 1.0);
 }
-
-

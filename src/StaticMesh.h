@@ -6,8 +6,16 @@
 #include <graphics.h>
 #include <vector>
 
+#include "Camera.h"
+
 namespace OM3D
 {
+
+    struct Sphere
+    {
+        glm::vec3 center;
+        float radius;
+    };
 
     struct MeshData
     {
@@ -24,11 +32,12 @@ namespace OM3D
 
         StaticMesh(const MeshData& data);
 
-        void draw() const;
+        void draw(const Camera& camera) const;
 
     private:
         TypedBuffer<Vertex> _vertex_buffer;
         TypedBuffer<u32> _index_buffer;
+        Sphere _bounding_sphere;
     };
 
 } // namespace OM3D
