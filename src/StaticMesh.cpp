@@ -35,24 +35,26 @@ namespace OM3D
         _bounding_sphere = { center, radius };
     }
 
-    static bool in_plane(const glm::vec3& n, const glm::vec3& p,
-                         const Sphere& s)
-    {
-        glm::vec3 v = s.center + glm::normalize(n) * s.radius;
-        glm::vec3 x = v - p;
-        return glm::dot(x, n) >= 0;
-    }
+    // static bool in_plane(const glm::vec3& n, const glm::vec3& p,
+    //                      const Sphere& s)
+    // {
+    //     glm::vec3 v = s.center + glm::normalize(n) * s.radius;
+    //     glm::vec3 x = v - p;
+    //     return glm::dot(x, n) >= 0;
+    // }
 
     void StaticMesh::draw(const glm::vec3& camera, const Frustum& f) const
     {
+        (void)f;
+        (void)camera;
         // Checking the frustum part
-        bool to_draw = in_plane(f._left_normal, camera, _bounding_sphere);
-        to_draw &= in_plane(f._top_normal, camera, _bounding_sphere);
-        to_draw &= in_plane(f._right_normal, camera, _bounding_sphere);
-        to_draw &= in_plane(f._bottom_normal, camera, _bounding_sphere);
-        to_draw &= in_plane(f._near_normal, camera, _bounding_sphere);
-        if (!to_draw)
-            return;
+        // bool to_draw = in_plane(f._left_normal, camera, _bounding_sphere);
+        // to_draw &= in_plane(f._top_normal, camera, _bounding_sphere);
+        // to_draw &= in_plane(f._right_normal, camera, _bounding_sphere);
+        // to_draw &= in_plane(f._bottom_normal, camera, _bounding_sphere);
+        // to_draw &= in_plane(f._near_normal, camera, _bounding_sphere);
+        // if (!to_draw)
+        //     return;
 
         _vertex_buffer.bind(BufferUsage::Attribute);
         _index_buffer.bind(BufferUsage::Index);

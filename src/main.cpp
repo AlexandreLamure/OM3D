@@ -1,4 +1,5 @@
 
+#include <array>
 #include <glad/gl.h>
 
 #define GLFW_INCLUDE_NONE
@@ -368,11 +369,19 @@ struct RendererState
             state.depth_texture = Texture(size, ImageFormat::Depth32_FLOAT);
             state.lit_hdr_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
             state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.g_albedo_texture = Texture(size, ImageFormat::RGBA8_sRGB);
+            state.g_normal_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.g_debug_texture = Texture(size, ImageFormat::RGBA8_UNORM);
             state.main_framebuffer = Framebuffer(
                 &state.depth_texture, std::array{ &state.lit_hdr_texture });
             state.tone_map_framebuffer =
                 Framebuffer(nullptr, std::array{ &state.tone_mapped_texture });
             state.z_prepass_framebuffer = Framebuffer(&state.depth_texture);
+            state.g_framebuffer = Framebuffer(
+                &state.depth_texture,
+                std::array{ &state.g_albedo_texture, &state.g_normal_texture });
+            state.g_debug_framebuffer =
+                Framebuffer(nullptr, std::array{ &state.g_debug_texture });
         }
 
         return state;
@@ -386,7 +395,17 @@ struct RendererState
 
     Framebuffer main_framebuffer;
     Framebuffer tone_map_framebuffer;
+
+    // Z Prepass
     Framebuffer z_prepass_framebuffer;
+
+    // G Buffer
+    Framebuffer g_framebuffer;
+    Texture g_albedo_texture;
+    Texture g_normal_texture;
+
+    Framebuffer g_debug_framebuffer;
+    Texture g_debug_texture;
 };
 
 int main(int argc, char** argv)
@@ -418,6 +437,7 @@ int main(int argc, char** argv)
     scene = create_default_scene();
 
     auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
+    auto g_debug_program = Program::from_files("g_debug.frag", "screen.vert");
     RendererState renderer;
 
     for (;;)
@@ -455,38 +475,49 @@ int main(int argc, char** argv)
             PROFILE_GPU("Frame");
 
             // Z prepass
-            {
-                PROFILE_GPU("Z pass");
-                renderer.z_prepass_framebuffer.bind(true, false);
-                scene->render();
-            }
+            // {
+            //     PROFILE_GPU("Z pass");
+            //     renderer.z_prepass_framebuffer.bind(true, false);
+            //     scene->render();
+            // }
 
             // Render the scene
             {
                 PROFILE_GPU("Main pass");
 
-                renderer.main_framebuffer.bind(false, true);
+                renderer.g_framebuffer.bind(true, true);
                 scene->render();
             }
 
-            // Apply a tonemap in compute shader
             {
-                PROFILE_GPU("Tonemap");
+                PROFILE_GPU("G buffer albedo");
 
                 glDisable(GL_CULL_FACE);
-                renderer.tone_map_framebuffer.bind(false, true);
-                tonemap_program->bind();
-                tonemap_program->set_uniform(HASH("exposure"), exposure);
-                renderer.lit_hdr_texture.bind(0);
+                renderer.g_debug_framebuffer.bind(false, true);
+                g_debug_program->bind();
+                // Might be an if here
+                renderer.g_normal_texture.bind(0);
                 glDrawArrays(GL_TRIANGLES, 0, 3);
             }
+
+            // Apply a tonemap in compute shader
+            // {
+            //     PROFILE_GPU("Tonemap");
+            //
+            //     glDisable(GL_CULL_FACE);
+            //     renderer.tone_map_framebuffer.bind(false, true);
+            //     tonemap_program->bind();
+            //     tonemap_program->set_uniform(HASH("exposure"), exposure);
+            //     renderer.lit_hdr_texture.bind(0);
+            //     glDrawArrays(GL_TRIANGLES, 0, 3);
+            // }
 
             // Blit tonemap result to screen
             {
                 PROFILE_GPU("Blit");
 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                renderer.tone_map_framebuffer.blit();
+                renderer.g_debug_framebuffer.blit();
             }
 
             // Draw GUI on top
