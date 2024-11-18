@@ -6,6 +6,8 @@
 #include <glm/matrix.hpp>
 #include <memory>
 
+#include "Camera.h"
+
 namespace OM3D
 {
 
@@ -15,7 +17,7 @@ namespace OM3D
         SceneObject(std::shared_ptr<StaticMesh> mesh = nullptr,
                     std::shared_ptr<Material> material = nullptr);
 
-        void render(const Camera& camera, bool z_prepass = false) const;
+        void render(const Camera& camera, const Frustum& frustum) const;
 
         void set_transform(const glm::mat4& tr);
         const glm::mat4& transform() const;

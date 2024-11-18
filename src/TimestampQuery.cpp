@@ -37,6 +37,8 @@ namespace OM3D
             marker.cpu_time = program_time();
             marker.query.begin();
 
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, index, -1, name);
+
             return index;
         }
 
@@ -46,6 +48,7 @@ namespace OM3D
             marker.cpu_time = program_time() - marker.cpu_time;
             marker.contained_zones = u32(current_frame.size()) - zone_id - 1;
             marker.query.end();
+            glPopDebugGroup();
         }
     } // namespace profile
 

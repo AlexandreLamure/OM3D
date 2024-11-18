@@ -418,8 +418,6 @@ int main(int argc, char** argv)
     scene = create_default_scene();
 
     auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
-    auto z_prepass_program =
-        Program::from_files("z_prepass.frag", "basic.vert");
     RendererState renderer;
 
     for (;;)
@@ -457,24 +455,18 @@ int main(int argc, char** argv)
             PROFILE_GPU("Frame");
 
             // Z prepass
-            // {
-            //     PROFILE_GPU("Z pass");
-            //     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Z
-            //     pass"); renderer.z_prepass_framebuffer.bind(true, false);
-            //     z_prepass_program->bind();
-            //     scene->render(true);
-            //     glPopDebugGroup();
-            // }
+            {
+                PROFILE_GPU("Z pass");
+                renderer.z_prepass_framebuffer.bind(true, false);
+                scene->render();
+            }
 
             // Render the scene
             {
                 PROFILE_GPU("Main pass");
 
-                glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1,
-                                 "Main pass");
-                renderer.main_framebuffer.bind(true, true);
+                renderer.main_framebuffer.bind(false, true);
                 scene->render();
-                glPopDebugGroup();
             }
 
             // Apply a tonemap in compute shader

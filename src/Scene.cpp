@@ -3,6 +3,8 @@
 #include <TypedBuffer.h>
 #include <shader_structs.h>
 
+#include "Camera.h"
+
 namespace OM3D
 {
 
@@ -58,24 +60,28 @@ namespace OM3D
         }
         buffer.bind(BufferUsage::Uniform, 0);
 
-        // Fill and bind lights buffer
-        TypedBuffer<shader::PointLight> light_buffer(
-            nullptr, std::max(_point_lights.size(), size_t(1)));
+        if (!z_prepass)
         {
-            auto mapping = light_buffer.map(AccessType::WriteOnly);
-            for (size_t i = 0; i != _point_lights.size(); ++i)
+            // Fill and bind lights buffer
+            TypedBuffer<shader::PointLight> light_buffer(
+                nullptr, std::max(_point_lights.size(), size_t(1)));
             {
-                const auto& light = _point_lights[i];
-                mapping[i] = { light.position(), light.radius(), light.color(),
-                               0.0f };
+                auto mapping = light_buffer.map(AccessType::WriteOnly);
+                for (size_t i = 0; i != _point_lights.size(); ++i)
+                {
+                    const auto& light = _point_lights[i];
+                    mapping[i] = { light.position(), light.radius(),
+                                   light.color(), 0.0f };
+                }
             }
+            light_buffer.bind(BufferUsage::Storage, 1);
         }
-        light_buffer.bind(BufferUsage::Storage, 1);
 
+        const Frustum f = _camera.build_frustum();
         // Render every object
         for (const SceneObject& obj : _objects)
         {
-            obj.render(_camera, z_prepass);
+            obj.render(_camera, f);
         }
     }
 

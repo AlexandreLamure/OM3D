@@ -13,19 +13,16 @@ namespace OM3D
         , _material(std::move(material))
     {}
 
-    void SceneObject::render(const Camera& camera, bool z_prepass) const
+    void SceneObject::render(const Camera& camera, const Frustum& frustum) const
     {
         if (!_material || !_mesh)
         {
             return;
         }
 
-        if (!z_prepass)
-        {
-            _material->set_uniform(HASH("model"), transform());
-            _material->bind();
-        }
-        _mesh->draw(camera);
+        _material->set_uniform(HASH("model"), transform());
+        _material->bind();
+        _mesh->draw((glm::vec4(camera.position(), 1.0) * transform()), frustum);
     }
 
     void SceneObject::set_transform(const glm::mat4& tr)

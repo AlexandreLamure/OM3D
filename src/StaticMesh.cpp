@@ -43,24 +43,19 @@ namespace OM3D
         return glm::dot(x, n) >= 0;
     }
 
-    void StaticMesh::draw(const Camera& camera) const
+    void StaticMesh::draw(const glm::vec3& camera, const Frustum& f) const
     {
-        _vertex_buffer.bind(BufferUsage::Attribute);
-        _index_buffer.bind(BufferUsage::Index);
-
         // Checking the frustum part
-        const Frustum f = camera.build_frustum();
-        bool to_draw =
-            in_plane(f._left_normal, camera.position(), _bounding_sphere);
-        to_draw &= in_plane(f._top_normal, camera.position(), _bounding_sphere);
-        to_draw &=
-            in_plane(f._right_normal, camera.position(), _bounding_sphere);
-        to_draw &=
-            in_plane(f._bottom_normal, camera.position(), _bounding_sphere);
-        to_draw &=
-            in_plane(f._near_normal, camera.position(), _bounding_sphere);
+        bool to_draw = in_plane(f._left_normal, camera, _bounding_sphere);
+        to_draw &= in_plane(f._top_normal, camera, _bounding_sphere);
+        to_draw &= in_plane(f._right_normal, camera, _bounding_sphere);
+        to_draw &= in_plane(f._bottom_normal, camera, _bounding_sphere);
+        to_draw &= in_plane(f._near_normal, camera, _bounding_sphere);
         if (!to_draw)
             return;
+
+        _vertex_buffer.bind(BufferUsage::Attribute);
+        _index_buffer.bind(BufferUsage::Index);
 
         // Vertex position
         glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), nullptr);

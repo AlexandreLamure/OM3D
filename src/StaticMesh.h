@@ -32,7 +32,7 @@ namespace OM3D
 
         StaticMesh(const MeshData& data);
 
-        void draw(const Camera& camera) const;
+        void draw(const glm::vec3& pos, const Frustum& frustum) const;
 
     private:
         TypedBuffer<Vertex> _vertex_buffer;
