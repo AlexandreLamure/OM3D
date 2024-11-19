@@ -50,12 +50,15 @@ namespace OM3D
     void StaticMesh::draw(const glm::vec3& camera, const glm::mat4& transform,
                           const Frustum& f) const
     {
-        // Checking the frustum part
+        //  Updating the bounding sphere with the transformation applied to the
+        //  object
         glm::vec3 updated_center =
             transform * glm::vec4(_bounding_sphere.center, 1.0);
         glm::vec3 updated_far_point =
             transform * glm::vec4(_bounding_sphere.far_point, 1.0);
         float radius = length(updated_center - updated_far_point);
+
+        // Checking if the object is visible to the camera
         bool to_draw = in_plane(f._left_normal, camera, updated_center, radius);
         to_draw &= in_plane(f._top_normal, camera, updated_center, radius);
         to_draw &= in_plane(f._right_normal, camera, updated_center, radius);
