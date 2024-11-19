@@ -166,6 +166,14 @@ void gui(ImGuiRenderer& imgui)
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Debug"))
+        {
+            ImGui::RadioButton("Albedo", &imgui._debug_texture, 0);
+            ImGui::RadioButton("Normal", &imgui._debug_texture, 1);
+            ImGui::RadioButton("Depth", &imgui._debug_texture, 2);
+            ImGui::EndMenu();
+        }
+
         if (scene && ImGui::BeginMenu("Scene Info"))
         {
             ImGui::Text("%u objects", u32(scene->objects().size()));
@@ -495,8 +503,11 @@ int main(int argc, char** argv)
                 glDisable(GL_CULL_FACE);
                 renderer.g_debug_framebuffer.bind(false, true);
                 g_debug_program->bind();
+                u32 texture = imgui._debug_texture;
+                g_debug_program->set_uniform(HASH("texture"), texture);
                 // Might be an if here
-                renderer.g_normal_texture.bind(0);
+                renderer.g_albedo_texture.bind(0);
+                renderer.g_normal_texture.bind(1);
                 glDrawArrays(GL_TRIANGLES, 0, 3);
             }
 
