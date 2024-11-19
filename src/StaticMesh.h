@@ -14,7 +14,7 @@ namespace OM3D
     struct Sphere
     {
         glm::vec3 center;
-        float radius;
+        glm::vec3 far_point;
     };
 
     struct MeshData
@@ -32,7 +32,8 @@ namespace OM3D
 
         StaticMesh(const MeshData& data);
 
-        void draw(const glm::vec3& pos, const Frustum& frustum) const;
+        void draw(const glm::vec3& pos, const glm::mat4& transform,
+                  const Frustum& frustum) const;
 
     private:
         TypedBuffer<Vertex> _vertex_buffer;
