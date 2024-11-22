@@ -23,7 +23,8 @@ void main() {
     }
     else
     {
-        color = texelFetch(in_depth, coord, 0).rgb;
+        float depth = texelFetch(in_depth, coord, 0).r;
+        color = vec3(pow(depth, 0.35));
     }
     out_color = vec4(color, 1.f);
 }
