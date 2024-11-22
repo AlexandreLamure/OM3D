@@ -2,6 +2,8 @@
 #include <array>
 #include <glad/gl.h>
 
+#include "imgui/imgui_internal.h"
+
 #define GLFW_INCLUDE_NONE
 #include <Framebuffer.h>
 #include <GLFW/glfw3.h>
@@ -168,9 +170,14 @@ void gui(ImGuiRenderer& imgui)
 
         if (ImGui::BeginMenu("Debug"))
         {
-            ImGui::RadioButton("Albedo", &imgui._debug_texture, 0);
-            ImGui::RadioButton("Normal", &imgui._debug_texture, 1);
-            ImGui::RadioButton("Depth", &imgui._debug_texture, 2);
+            ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+            if (ImGui::Selectable("Albedo", imgui._debug_texture == 0))
+                imgui._debug_texture = 0;
+            if (ImGui::Selectable("Normal", imgui._debug_texture == 1))
+                imgui._debug_texture = 1;
+            if (ImGui::Selectable("Depth", imgui._debug_texture == 2))
+                imgui._debug_texture = 2;
+            ImGui::PopItemFlag();
             ImGui::EndMenu();
         }
 
@@ -483,31 +490,31 @@ int main(int argc, char** argv)
             PROFILE_GPU("Frame");
 
             // Z prepass
-            // {
-            //     PROFILE_GPU("Z pass");
-            //     renderer.z_prepass_framebuffer.bind(true, false);
-            //     scene->render();
-            // }
+            {
+                PROFILE_GPU("Z pass");
+                renderer.z_prepass_framebuffer.bind(true, false);
+                scene->render();
+            }
 
             // Render the scene
             {
                 PROFILE_GPU("Main pass");
 
-                renderer.g_framebuffer.bind(true, true);
+                renderer.g_framebuffer.bind(false, true);
                 scene->render();
             }
 
             {
-                PROFILE_GPU("G buffer albedo");
+                PROFILE_GPU("G buffer debug");
 
                 glDisable(GL_CULL_FACE);
-                renderer.g_debug_framebuffer.bind(false, true);
+                renderer.g_debug_framebuffer.bind(true, true);
                 g_debug_program->bind();
-                u32 texture = imgui._debug_texture;
-                g_debug_program->set_uniform(HASH("texture"), texture);
-                // Might be an if here
+                g_debug_program->set_uniform(HASH("texture"),
+                                             imgui._debug_texture);
                 renderer.g_albedo_texture.bind(0);
                 renderer.g_normal_texture.bind(1);
+                renderer.depth_texture.bind(2);
                 glDrawArrays(GL_TRIANGLES, 0, 3);
             }
 
@@ -520,7 +527,7 @@ int main(int argc, char** argv)
             //     tonemap_program->bind();
             //     tonemap_program->set_uniform(HASH("exposure"), exposure);
             //     renderer.lit_hdr_texture.bind(0);
-            //     glDrawArrays(GL_TRIANGLES, 0, 3);
+            //(     glDrawArrays(GL_TRIANGLES, 0, 3);
             // }
 
             // Blit tonemap result to screen

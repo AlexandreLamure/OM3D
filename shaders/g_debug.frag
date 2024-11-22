@@ -6,6 +6,7 @@ layout(location = 0) out vec4 out_color;
 
 layout(binding = 0) uniform sampler2D in_albedo;
 layout(binding = 1) uniform sampler2D in_normal;
+layout(binding = 2) uniform sampler2D in_depth;
 
 uniform uint texture;
 
@@ -22,7 +23,7 @@ void main() {
     }
     else
     {
-        color = vec3(gl_FragCoord.z);
+        color = texelFetch(in_depth, coord, 0).rgb;
     }
     out_color = vec4(color, 1.f);
 }
