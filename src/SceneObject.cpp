@@ -20,9 +20,10 @@ namespace OM3D
             return;
         }
 
-        _material->set_uniform(HASH("model"), transform());
+        const glm::mat4 t = transform();
+        _material->set_uniform(HASH("model"), t);
         _material->bind();
-        _mesh->draw((glm::vec4(camera.position(), 1.0) * transform()), frustum);
+        _mesh->draw(camera.position(), t, frustum);
     }
 
     void SceneObject::set_transform(const glm::mat4& tr)
