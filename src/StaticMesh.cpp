@@ -39,6 +39,7 @@ namespace OM3D
         _bounding_sphere = { center, far_point.position };
     }
 
+
     static bool in_plane(const glm::vec3& n, const glm::vec3& p,
                          const glm::vec3 center, float radius)
     {
@@ -47,9 +48,11 @@ namespace OM3D
         return glm::dot(x, n) >= 0;
     }
 
+
     void StaticMesh::draw(const glm::vec3& camera, const glm::mat4& transform,
                           const Frustum& f) const
     {
+
         //  Updating the bounding sphere with the transformation applied to the
         //  object
         glm::vec3 updated_center =
@@ -66,6 +69,7 @@ namespace OM3D
         to_draw &= in_plane(f._near_normal, camera, updated_center, radius);
         if (!to_draw)
             return;
+
 
         _vertex_buffer.bind(BufferUsage::Attribute);
         _index_buffer.bind(BufferUsage::Index);

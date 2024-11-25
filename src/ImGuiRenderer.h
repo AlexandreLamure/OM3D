@@ -18,6 +18,7 @@ namespace OM3D
 
         void start();
         void finish();
+        u32 _debug_texture = 0;
 
     private:
         void render(const ImDrawData* draw_data);

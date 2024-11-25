@@ -95,7 +95,8 @@ namespace OM3D
         if (!material)
         {
             material = std::make_shared<Material>();
-            material->_program = Program::from_files("lit.frag", "basic.vert");
+            material->_program =
+                Program::from_files("g_buffer.frag", "basic.vert");
             weak_material = material;
         }
         return material;
@@ -105,7 +106,7 @@ namespace OM3D
     {
         Material material;
         material._program =
-            Program::from_files("lit.frag", "basic.vert", { "TEXTURED" });
+            Program::from_files("g_buffer.frag", "basic.vert", { "TEXTURED" });
         return material;
     }
 
@@ -113,7 +114,7 @@ namespace OM3D
     {
         Material material;
         material._program = Program::from_files(
-            "lit.frag", "basic.vert",
+            "g_buffer.frag", "basic.vert",
             std::array<std::string, 2>{ "TEXTURED", "NORMAL_MAPPED" });
         return material;
     }
