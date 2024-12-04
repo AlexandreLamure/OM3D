@@ -40,6 +40,7 @@
           xorg.libXinerama
           xorg.libXcursor
           xorg.libXi
+          libglvnd
         ];
         shellHook = ''
             export LD_LIBRARY_PATH="''${LD_LIBRARY_PATH}''${LD_LIBRARY_PATH:+:}${pkgs.libglvnd}/lib"

@@ -16,6 +16,7 @@
 #include <imgui/imgui.h>
 #include <iostream>
 #include <vector>
+#include <shader_structs.h>
 
 using namespace OM3D;
 
@@ -171,6 +172,8 @@ void gui(ImGuiRenderer& imgui)
         if (ImGui::BeginMenu("Debug"))
         {
             ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+            if (ImGui::Selectable("None", imgui._debug_texture == 3))
+                imgui._debug_texture = 3;
             if (ImGui::Selectable("Albedo", imgui._debug_texture == 0))
                 imgui._debug_texture = 0;
             if (ImGui::Selectable("Normal", imgui._debug_texture == 1))
@@ -453,6 +456,7 @@ int main(int argc, char** argv)
 
     auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
     auto g_debug_program = Program::from_files("g_debug.frag", "screen.vert");
+    auto g_render_program = Program::from_files("g_render.frag", "screen.vert");
     RendererState renderer;
 
     for (;;)
@@ -509,9 +513,24 @@ int main(int argc, char** argv)
 
                 glDisable(GL_CULL_FACE);
                 renderer.g_debug_framebuffer.bind(true, true);
-                g_debug_program->bind();
-                g_debug_program->set_uniform(HASH("texture"),
-                                             imgui._debug_texture);
+
+                if (imgui._debug_texture != 3)
+                {
+                    g_debug_program->bind();
+                    g_debug_program->set_uniform(HASH("texture"),
+                                                 imgui._debug_texture);
+                }
+                else
+                {
+                    TypedBuffer<shader::FrameData> buffer(nullptr, 1);
+                    {
+                        auto mapping = buffer.map(AccessType::WriteOnly);
+                        mapping[0].sun_color = glm::vec3(1.0f);
+                        mapping[0].sun_dir = glm::normalize(glm::vec3(0.2f, 1.0f, 0.1f));
+                    }
+                    buffer.bind(BufferUsage::Uniform, 3);
+                    g_render_program->bind();
+                }
                 renderer.g_albedo_texture.bind(0);
                 renderer.g_normal_texture.bind(1);
                 renderer.depth_texture.bind(2);
