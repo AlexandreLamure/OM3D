@@ -85,4 +85,9 @@ namespace OM3D
         }
     }
 
+    const glm::mat4& Scene::view_proj_matrix() const
+    {
+        return _camera.view_proj_matrix();
+    }
+
 } // namespace OM3D

@@ -31,6 +31,7 @@ namespace OM3D
 
         void set_sun(glm::vec3 direction, glm::vec3 color = glm::vec3(1.0f));
 
+        const glm::mat4& view_proj_matrix() const;
     private:
         std::vector<SceneObject> _objects;
         std::vector<PointLight> _point_lights;

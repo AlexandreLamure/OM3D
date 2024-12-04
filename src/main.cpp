@@ -512,29 +512,35 @@ int main(int argc, char** argv)
                 PROFILE_GPU("G buffer debug");
 
                 glDisable(GL_CULL_FACE);
-                renderer.g_debug_framebuffer.bind(true, true);
 
+                renderer.g_debug_framebuffer.bind(true, true);
                 if (imgui._debug_texture != 3)
                 {
                     g_debug_program->bind();
                     g_debug_program->set_uniform(HASH("texture"),
                                                  imgui._debug_texture);
+                    renderer.g_albedo_texture.bind(0);
+                    renderer.g_normal_texture.bind(1);
+                    renderer.depth_texture.bind(2);
+                    glDrawArrays(GL_TRIANGLES, 0, 3);
                 }
                 else
                 {
+                    g_render_program->bind();
                     TypedBuffer<shader::FrameData> buffer(nullptr, 1);
                     {
                         auto mapping = buffer.map(AccessType::WriteOnly);
+                        mapping[0].camera.view_proj = scene->view_proj_matrix();
+                        mapping[0].point_light_count = 0;
                         mapping[0].sun_color = glm::vec3(1.0f);
                         mapping[0].sun_dir = glm::normalize(glm::vec3(0.2f, 1.0f, 0.1f));
                     }
-                    buffer.bind(BufferUsage::Uniform, 3);
-                    g_render_program->bind();
+                    buffer.bind(BufferUsage::Uniform, 0);
+                    renderer.g_albedo_texture.bind(0);
+                    renderer.g_normal_texture.bind(1);
+                    renderer.depth_texture.bind(2);
+                    glDrawArrays(GL_TRIANGLES, 0, 3);
                 }
-                renderer.g_albedo_texture.bind(0);
-                renderer.g_normal_texture.bind(1);
-                renderer.depth_texture.bind(2);
-                glDrawArrays(GL_TRIANGLES, 0, 3);
             }
 
             // Apply a tonemap in compute shader
