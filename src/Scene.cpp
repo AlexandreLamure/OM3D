@@ -21,6 +21,16 @@ namespace OM3D
         _point_lights.emplace_back(std::move(obj));
     }
 
+    const glm::vec3& Scene::get_sun_direction() const
+    {
+        return _sun_direction;
+    }
+
+    const glm::vec3& Scene::get_sun_color() const
+    {
+        return _sun_color;
+    }
+
     Span<const SceneObject> Scene::objects() const
     {
         return _objects;

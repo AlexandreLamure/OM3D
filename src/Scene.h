@@ -30,6 +30,8 @@ namespace OM3D
         const Camera& camera() const;
 
         void set_sun(glm::vec3 direction, glm::vec3 color = glm::vec3(1.0f));
+        const glm::vec3& get_sun_direction() const;
+        const glm::vec3& get_sun_color() const;
 
         const glm::mat4& view_proj_matrix() const;
     private:

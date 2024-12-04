@@ -456,7 +456,9 @@ int main(int argc, char** argv)
 
     auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
     auto g_debug_program = Program::from_files("g_debug.frag", "screen.vert");
-    auto g_render_program = Program::from_files("g_render.frag", "screen.vert");
+    auto g_global_illumination_program = Program::from_files("g_global_illumination.frag", "screen.vert");
+    auto g_local_illumination_program = Program::from_files("g_local_illumination.frag", "screen.vert");
+
     RendererState renderer;
 
     for (;;)
@@ -508,38 +510,75 @@ int main(int argc, char** argv)
                 scene->render();
             }
 
+            if (imgui._debug_texture != 3)
             {
                 PROFILE_GPU("G buffer debug");
 
                 glDisable(GL_CULL_FACE);
 
                 renderer.g_debug_framebuffer.bind(true, true);
-                if (imgui._debug_texture != 3)
+
+                g_debug_program->bind();
+                g_debug_program->set_uniform(HASH("texture"),
+                                             imgui._debug_texture);
+                renderer.g_albedo_texture.bind(0);
+                renderer.g_normal_texture.bind(1);
+                renderer.depth_texture.bind(2);
+                glDrawArrays(GL_TRIANGLES, 0, 3);
+            }
+            else
+            {
                 {
-                    g_debug_program->bind();
-                    g_debug_program->set_uniform(HASH("texture"),
-                                                 imgui._debug_texture);
+                    PROFILE_GPU("Global Illumination");
+
+                    glDisable(GL_CULL_FACE);
+                    renderer.g_debug_framebuffer.bind(true, true);
+
+                    g_global_illumination_program->bind();
+                    TypedBuffer<shader::FrameData> buffer(nullptr, 1);
+                    {
+                        auto mapping = buffer.map(AccessType::WriteOnly);
+                        mapping[0].camera.view_proj = scene->view_proj_matrix();
+                        mapping[0].point_light_count = scene->point_lights().size();
+                        mapping[0].sun_color = scene->get_sun_color();
+                        mapping[0].sun_dir = scene->get_sun_direction();
+                    }
+                    buffer.bind(BufferUsage::Uniform, 0);
+
                     renderer.g_albedo_texture.bind(0);
                     renderer.g_normal_texture.bind(1);
                     renderer.depth_texture.bind(2);
                     glDrawArrays(GL_TRIANGLES, 0, 3);
                 }
-                else
                 {
-                    g_render_program->bind();
+                    PROFILE_GPU("Local Illumination");
+
+                    glDisable(GL_CULL_FACE);
+                    g_local_illumination_program->bind();
+
+                    // Fill and bind lights buffer
                     TypedBuffer<shader::FrameData> buffer(nullptr, 1);
                     {
                         auto mapping = buffer.map(AccessType::WriteOnly);
-                        mapping[0].camera.view_proj = scene->view_proj_matrix();
-                        mapping[0].point_light_count = 0;
-                        mapping[0].sun_color = glm::vec3(1.0f);
-                        mapping[0].sun_dir = glm::normalize(glm::vec3(0.2f, 1.0f, 0.1f));
+                        mapping[0].camera.view_proj = glm::inverse(scene->view_proj_matrix());
+                        mapping[0].point_light_count = scene->point_lights().size();
                     }
                     buffer.bind(BufferUsage::Uniform, 0);
-                    renderer.g_albedo_texture.bind(0);
-                    renderer.g_normal_texture.bind(1);
-                    renderer.depth_texture.bind(2);
-                    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+                    TypedBuffer<shader::PointLight> light_buffer(
+                        nullptr, std::max(scene->point_lights().size(), size_t(1)));
+                    {
+                        auto mapping = light_buffer.map(AccessType::WriteOnly);
+                        for (size_t i = 0; i != scene->point_lights().size(); ++i)
+                        {
+                            const auto& light = scene->point_lights()[i];
+                            mapping[i] = { light.position(), light.radius(),
+                                light.color(), 0.0f };
+                        }
+                    }
+                    light_buffer.bind(BufferUsage::Storage, 1);
+
+                    // lights.set_program
                 }
             }
 
