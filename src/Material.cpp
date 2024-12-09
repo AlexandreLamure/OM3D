@@ -55,6 +55,11 @@ namespace OM3D
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glDisable(GL_CULL_FACE);
             break;
+
+        case BlendMode::Additive:
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE);
+            glDisable(GL_CULL_FACE);
         }
 
         switch (_depth_test_mode)

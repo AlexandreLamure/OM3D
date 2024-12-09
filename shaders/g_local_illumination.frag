@@ -8,6 +8,7 @@ layout(location = 0) in vec2 in_uv;
 layout(binding = 0) uniform sampler2D in_albedo;
 layout(binding = 1) uniform sampler2D in_normal;
 layout(binding = 2) uniform sampler2D in_depth;
+uniform uint light_id;
 
 layout(binding = 0) uniform Data {
     FrameData frame;
@@ -25,27 +26,29 @@ vec3 unproject(vec2 uv, float depth, mat4 inv_viewproj) {
 
 void main() {
     const ivec2 coord = ivec2(gl_FragCoord.xy);
-    const vec3 normal = texelFetch(in_normal, coord, 0).rgb;
     const vec3 albedo = texelFetch(in_albedo, coord, 0).rgb;
+    const vec3 normal = texelFetch(in_normal, coord, 0).rgb;
     const float depth = texelFetch(in_depth, coord, 0).x;
 
     vec3 position = unproject(in_uv, depth, frame.camera.view_proj);
 
     vec3 acc = vec3(0.0);
-    for(uint i = 0; i != frame.point_light_count; ++i) {
-        PointLight light = point_lights[i];
-        const vec3 to_light = (light.position - position);
-        const float dist = length(to_light);
-        const vec3 light_vec = to_light / dist;
 
-        const float NoL = dot(light_vec, normal);
-        const float att = attenuation(dist, light.radius);
-        if(NoL <= 0.0 || att <= 0.0f) {
-            continue;
-        }
-
-        acc += light.color * (NoL * att);
+    PointLight light = point_lights[light_id];
+    const vec3 to_light = (light.position - position);
+    const float dist = length(to_light);
+    if (dist >= light.radius)
+    {
+        out_color = vec4(0.0);
+        return;
     }
 
-    out_color = vec4(albedo * acc, 1.0);
+    const vec3 light_vec = to_light / dist;
+
+    const float NoL = dot(light_vec, normal);
+    const float att = attenuation(dist, light.radius);
+    if(!(NoL <= 0.0 || att <= 0.0f))
+        acc += light.color * (NoL * att);
+
+    out_color = vec4(0.0);
 }

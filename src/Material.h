@@ -13,6 +13,7 @@ namespace OM3D
     {
         None,
         Alpha,
+        Additive,
     };
 
     enum class DepthTestMode

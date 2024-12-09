@@ -47,6 +47,14 @@ void parse_args(int argc, char** argv)
     }
 }
 
+static bool in_plane(const glm::vec3& n, const glm::vec3& p,
+                     const glm::vec3 center, float radius)
+{
+    glm::vec3 v = center + glm::normalize(n) * radius;
+    glm::vec3 x = v - p;
+    return glm::dot(x, n) >= 0;
+}
+
 void glfw_check(bool cond)
 {
     if (!cond)
@@ -390,6 +398,7 @@ struct RendererState
             state.g_albedo_texture = Texture(size, ImageFormat::RGBA8_sRGB);
             state.g_normal_texture = Texture(size, ImageFormat::RGBA8_UNORM);
             state.g_debug_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.g_illum_texture = Texture(size, ImageFormat::RGBA8_UNORM);
             state.main_framebuffer = Framebuffer(
                 &state.depth_texture, std::array{ &state.lit_hdr_texture });
             state.tone_map_framebuffer =
@@ -400,6 +409,8 @@ struct RendererState
                 std::array{ &state.g_albedo_texture, &state.g_normal_texture });
             state.g_debug_framebuffer =
                 Framebuffer(nullptr, std::array{ &state.g_debug_texture });
+            state.g_illumination_framebuffer =
+                Framebuffer(nullptr, std::array{ &state.g_illum_texture });
         }
 
         return state;
@@ -424,6 +435,9 @@ struct RendererState
 
     Framebuffer g_debug_framebuffer;
     Texture g_debug_texture;
+
+    Framebuffer g_illumination_framebuffer;
+    Texture g_illum_texture;
 };
 
 int main(int argc, char** argv)
@@ -459,7 +473,19 @@ int main(int argc, char** argv)
     auto g_global_illumination_program = Program::from_files("g_global_illumination.frag", "screen.vert");
     auto g_local_illumination_program = Program::from_files("g_local_illumination.frag", "screen.vert");
 
+    Material light_material = Material();
+    light_material.set_program(g_local_illumination_program);
+    light_material.set_blend_mode(BlendMode::Additive);
+    light_material.set_depth_test_mode(DepthTestMode::None);
+
     RendererState renderer;
+
+    for (size_t i = 0; i < scene->point_lights().size(); i++)
+    {
+        const auto light = scene->point_lights()[i];
+        const auto position = light.position();
+        std::cout << position.x << ", " << position.y << ", " << position.z << ", " << light.radius() << std::endl;
+    }
 
     for (;;)
     {
@@ -554,7 +580,8 @@ int main(int argc, char** argv)
                     PROFILE_GPU("Local Illumination");
 
                     glDisable(GL_CULL_FACE);
-                    g_local_illumination_program->bind();
+                    renderer.g_debug_framebuffer.bind(false, false);
+                    light_material.bind();
 
                     // Fill and bind lights buffer
                     TypedBuffer<shader::FrameData> buffer(nullptr, 1);
@@ -571,14 +598,38 @@ int main(int argc, char** argv)
                         auto mapping = light_buffer.map(AccessType::WriteOnly);
                         for (size_t i = 0; i != scene->point_lights().size(); ++i)
                         {
-                            const auto& light = scene->point_lights()[i];
+                            const auto light = scene->point_lights()[i];
                             mapping[i] = { light.position(), light.radius(),
                                 light.color(), 0.0f };
                         }
                     }
                     light_buffer.bind(BufferUsage::Storage, 1);
 
-                    // lights.set_program
+                    renderer.g_albedo_texture.bind(0);
+                    renderer.g_normal_texture.bind(1);
+                    renderer.depth_texture.bind(2);
+
+                    const auto& camera = scene->camera();
+                    const auto& frustum = camera.build_frustum();
+                    for (size_t i = 0; i < scene->point_lights().size(); i++)
+                    {
+                        const auto light = scene->point_lights()[i];
+
+                        bool to_draw = in_plane(frustum._left_normal, camera.position(), light.position(), light.radius());
+                        to_draw &= in_plane(frustum._top_normal, camera.position(), light.position(), light.radius());
+                        to_draw &= in_plane(frustum._right_normal, camera.position(), light.position(), light.radius());
+                        to_draw &= in_plane(frustum._bottom_normal, camera.position(), light.position(), light.radius());
+                        to_draw &= in_plane(frustum._near_normal, camera.position(), light.position(), light.radius());
+
+                        if (!to_draw)
+                            continue;
+
+                        light_material.set_uniform(HASH("light_id"), static_cast<OM3D::u32>(i));
+
+                        glDrawArrays(GL_TRIANGLES, 0, 3);
+                        break;
+                    }
+
                 }
             }
 

@@ -2,6 +2,7 @@
 
 #include <TypedBuffer.h>
 #include <shader_structs.h>
+#include <iostream>
 
 #include "Camera.h"
 
@@ -18,6 +19,10 @@ namespace OM3D
 
     void Scene::add_light(PointLight obj)
     {
+        // obj.set_position(glm::vec3(1.0f, 1.0f, 1.0f));
+        // obj.set_radius(0.5f);
+        // std::cout << "Color is " << obj.color().r << ", " << obj.color().g << ", " << obj.color().b << "\n";
+        // obj.set_color(glm::vec3(0.0f, 50.0f, 0.0f));
         _point_lights.emplace_back(std::move(obj));
     }
 
