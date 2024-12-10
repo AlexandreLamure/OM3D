@@ -20,6 +20,7 @@ namespace OM3D
         void render(const Camera& camera, const Frustum& frustum) const;
 
         void set_transform(const glm::mat4& tr);
+        void set_material(const std::shared_ptr<Material> mt);
         const glm::mat4& transform() const;
 
     private:

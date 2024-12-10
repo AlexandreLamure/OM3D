@@ -48,6 +48,7 @@ namespace OM3D
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
             glFrontFace(GL_CCW);
+            // glFrontFace(GL_CW);
             break;
 
         case BlendMode::Alpha:
@@ -71,22 +72,24 @@ namespace OM3D
         case DepthTestMode::Equal:
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_EQUAL);
+            glDepthMask(GL_TRUE);
             break;
 
         case DepthTestMode::Standard:
             glEnable(GL_DEPTH_TEST);
             // We are using reverse-Z
             glDepthFunc(GL_GEQUAL);
+            glDepthMask(GL_TRUE);
             break;
 
         case DepthTestMode::Reversed:
             glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_FALSE);
             // We are using reverse-Z
             glDepthFunc(GL_LEQUAL);
             break;
         }
 
-        glDepthMask(depth_write);
 
         for (const auto& texture : _textures)
         {

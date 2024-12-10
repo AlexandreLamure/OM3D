@@ -31,6 +31,11 @@ namespace OM3D
         _transform = tr;
     }
 
+    void SceneObject::set_material(const std::shared_ptr<Material> mt)
+    {
+        _material = mt;
+    }
+
     const glm::mat4& SceneObject::transform() const
     {
         return _transform;

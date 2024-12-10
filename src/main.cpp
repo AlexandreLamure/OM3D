@@ -363,6 +363,9 @@ std::unique_ptr<Scene> create_default_scene()
     ALWAYS_ASSERT(result.is_ok, "Unable to load default scene");
     scene = std::move(result.value);
 
+    auto sphere = Scene::from_gltf(std::string(data_path) + "sphere.glb");
+    scene->add_object(sphere.value->objects()[0]);
+
     scene->set_sun(glm::vec3(0.2f, 1.0f, 0.1f), glm::vec3(1.0f));
 
     // Add lights
@@ -470,17 +473,21 @@ int main(int argc, char** argv)
 
     scene = create_default_scene();
 
+    std::cout << "Scene has " << scene->objects().size() << " objects\n";
+
     auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
     auto g_debug_program = Program::from_files("g_debug.frag", "screen.vert");
     auto g_global_illumination_program =
         Program::from_files("g_global_illumination.frag", "screen.vert");
     auto g_local_illumination_program =
-        Program::from_files("g_local_illumination.frag", "screen.vert");
+        Program::from_files("g_local_illumination.frag", "basic.vert");
 
-    Material light_material = Material();
-    light_material.set_program(g_local_illumination_program);
-    light_material.set_blend_mode(BlendMode::Additive);
-    light_material.set_depth_test_mode(DepthTestMode::None);
+    auto light_material = Material::empty_material();
+    light_material->set_program(g_local_illumination_program);
+    light_material->set_blend_mode(BlendMode::Additive);
+    light_material->set_depth_test_mode(DepthTestMode::None);
+    auto sphere = scene->objects()[1];
+    sphere.set_material(light_material);
 
     RendererState renderer;
 
@@ -587,7 +594,7 @@ int main(int argc, char** argv)
 
                     glDisable(GL_CULL_FACE);
                     renderer.g_debug_framebuffer.bind(false, false);
-                    light_material.bind(false);
+                    light_material->bind(false);
 
                     // Fill and bind lights buffer
                     TypedBuffer<shader::FrameData> buffer(nullptr, 1);
@@ -646,10 +653,14 @@ int main(int argc, char** argv)
                         if (!to_draw)
                             continue;
 
-                        light_material.set_uniform(HASH("light_id"),
+                        light_material->set_uniform(HASH("light_id"),
                                                    static_cast<OM3D::u32>(i));
 
-                        glDrawArrays(GL_TRIANGLES, 0, 3);
+                        sphere.set_transform(glm::translate(glm::mat4(1.0f), light.position()) *
+                                             glm::scale(glm::mat4(1.0f), glm::vec3(light.radius())));
+
+                        sphere.render(camera, frustum);
+                        // glDrawArrays(GL_TRIANGLES, 0, 3);
                     }
                 }
             }

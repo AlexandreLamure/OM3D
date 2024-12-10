@@ -3,7 +3,7 @@
 #include "utils.glsl"
 
 layout(location = 0) out vec4 out_color;
-layout(location = 0) in vec2 in_uv;
+layout(location = 1) in vec2 in_uv;
 
 layout(binding = 0) uniform sampler2D in_albedo;
 layout(binding = 1) uniform sampler2D in_normal;
@@ -30,14 +30,17 @@ void main() {
     const vec3 normal = texelFetch(in_normal, coord, 0).rgb;
     const float depth = texelFetch(in_depth, coord, 0).x;
 
-    vec3 position = unproject(in_uv, depth, inverse(frame.camera.view_proj));
+    // out_color = vec4(1.0, 0.0, 0.0, 1.0);
+    // return;
+
+    vec3 position = unproject(gl_FragCoord.xy, depth, inverse(frame.camera.view_proj));
 
     vec3 acc = vec3(0.0);
 
     PointLight light = point_lights[light_id];
     const vec3 to_light = (light.position - position);
     const float dist = length(to_light);
-    const float radius = light.radius * 0.05;
+    const float radius = light.radius; // * 0.05;
     if (dist >= radius)
     {
         out_color = vec4(0.0);
