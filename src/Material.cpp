@@ -39,7 +39,7 @@ namespace OM3D
         }
     }
 
-    void Material::bind() const
+    void Material::bind(bool depth_write) const
     {
         switch (_blend_mode)
         {
@@ -85,6 +85,8 @@ namespace OM3D
             glDepthFunc(GL_LEQUAL);
             break;
         }
+
+        glDepthMask(depth_write);
 
         for (const auto& texture : _textures)
         {

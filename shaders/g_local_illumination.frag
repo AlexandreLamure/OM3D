@@ -30,14 +30,15 @@ void main() {
     const vec3 normal = texelFetch(in_normal, coord, 0).rgb;
     const float depth = texelFetch(in_depth, coord, 0).x;
 
-    vec3 position = unproject(in_uv, depth, frame.camera.view_proj);
+    vec3 position = unproject(in_uv, depth, inverse(frame.camera.view_proj));
 
     vec3 acc = vec3(0.0);
 
     PointLight light = point_lights[light_id];
     const vec3 to_light = (light.position - position);
     const float dist = length(to_light);
-    if (dist >= light.radius)
+    const float radius = light.radius * 0.05;
+    if (dist >= radius)
     {
         out_color = vec4(0.0);
         return;
@@ -46,9 +47,17 @@ void main() {
     const vec3 light_vec = to_light / dist;
 
     const float NoL = dot(light_vec, normal);
-    const float att = attenuation(dist, light.radius);
-    if(!(NoL <= 0.0 || att <= 0.0f))
+    const float att = attenuation(dist, radius);
+
+    if (!(NoL <= 0.0 || att <= 0.0f))
         acc += light.color * (NoL * att);
 
-    out_color = vec4(0.0);
+    out_color = vec4(acc, 1.0f);
+    // if (position.x >= 0.9 && position.y >= 0.9 && position.z >= 0.9
+    //         &&
+    // )
+    // {
+    //     out_color = vec4(1.0);
+    //     return;
+    // }
 }

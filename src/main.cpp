@@ -2,6 +2,8 @@
 #include <array>
 #include <glad/gl.h>
 
+#include "glm/ext/matrix_float3x3.hpp"
+#include "glm/ext/matrix_float4x4.hpp"
 #include "imgui/imgui_internal.h"
 
 #define GLFW_INCLUDE_NONE
@@ -15,8 +17,8 @@
 #include <graphics.h>
 #include <imgui/imgui.h>
 #include <iostream>
-#include <vector>
 #include <shader_structs.h>
+#include <vector>
 
 using namespace OM3D;
 
@@ -470,8 +472,10 @@ int main(int argc, char** argv)
 
     auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
     auto g_debug_program = Program::from_files("g_debug.frag", "screen.vert");
-    auto g_global_illumination_program = Program::from_files("g_global_illumination.frag", "screen.vert");
-    auto g_local_illumination_program = Program::from_files("g_local_illumination.frag", "screen.vert");
+    auto g_global_illumination_program =
+        Program::from_files("g_global_illumination.frag", "screen.vert");
+    auto g_local_illumination_program =
+        Program::from_files("g_local_illumination.frag", "screen.vert");
 
     Material light_material = Material();
     light_material.set_program(g_local_illumination_program);
@@ -484,7 +488,8 @@ int main(int argc, char** argv)
     {
         const auto light = scene->point_lights()[i];
         const auto position = light.position();
-        std::cout << position.x << ", " << position.y << ", " << position.z << ", " << light.radius() << std::endl;
+        std::cout << position.x << ", " << position.y << ", " << position.z
+                  << ", " << light.radius() << std::endl;
     }
 
     for (;;)
@@ -565,7 +570,8 @@ int main(int argc, char** argv)
                     {
                         auto mapping = buffer.map(AccessType::WriteOnly);
                         mapping[0].camera.view_proj = scene->view_proj_matrix();
-                        mapping[0].point_light_count = scene->point_lights().size();
+                        mapping[0].point_light_count =
+                            scene->point_lights().size();
                         mapping[0].sun_color = scene->get_sun_color();
                         mapping[0].sun_dir = scene->get_sun_direction();
                     }
@@ -581,26 +587,32 @@ int main(int argc, char** argv)
 
                     glDisable(GL_CULL_FACE);
                     renderer.g_debug_framebuffer.bind(false, false);
-                    light_material.bind();
+                    light_material.bind(false);
 
                     // Fill and bind lights buffer
                     TypedBuffer<shader::FrameData> buffer(nullptr, 1);
                     {
                         auto mapping = buffer.map(AccessType::WriteOnly);
-                        mapping[0].camera.view_proj = glm::inverse(scene->view_proj_matrix());
-                        mapping[0].point_light_count = scene->point_lights().size();
+                        mapping[0].camera.view_proj = scene->view_proj_matrix();
+                        mapping[0].point_light_count =
+                            scene->point_lights().size();
                     }
                     buffer.bind(BufferUsage::Uniform, 0);
 
                     TypedBuffer<shader::PointLight> light_buffer(
-                        nullptr, std::max(scene->point_lights().size(), size_t(1)));
+                        nullptr,
+                        std::max(scene->point_lights().size(), size_t(1)));
                     {
                         auto mapping = light_buffer.map(AccessType::WriteOnly);
-                        for (size_t i = 0; i != scene->point_lights().size(); ++i)
+                        for (size_t i = 0; i != scene->point_lights().size();
+                             ++i)
                         {
                             const auto light = scene->point_lights()[i];
+                            // std::cerr << "r: " << light.color().r
+                            //           << " g: " << light.color().g
+                            //           << " b: " << light.color().b << "\n";
                             mapping[i] = { light.position(), light.radius(),
-                                light.color(), 0.0f };
+                                           light.color(), 0.0f };
                         }
                     }
                     light_buffer.bind(BufferUsage::Storage, 1);
@@ -615,35 +627,44 @@ int main(int argc, char** argv)
                     {
                         const auto light = scene->point_lights()[i];
 
-                        bool to_draw = in_plane(frustum._left_normal, camera.position(), light.position(), light.radius());
-                        to_draw &= in_plane(frustum._top_normal, camera.position(), light.position(), light.radius());
-                        to_draw &= in_plane(frustum._right_normal, camera.position(), light.position(), light.radius());
-                        to_draw &= in_plane(frustum._bottom_normal, camera.position(), light.position(), light.radius());
-                        to_draw &= in_plane(frustum._near_normal, camera.position(), light.position(), light.radius());
+                        bool to_draw =
+                            in_plane(frustum._left_normal, camera.position(),
+                                     light.position(), light.radius());
+                        to_draw &=
+                            in_plane(frustum._top_normal, camera.position(),
+                                     light.position(), light.radius());
+                        to_draw &=
+                            in_plane(frustum._right_normal, camera.position(),
+                                     light.position(), light.radius());
+                        to_draw &=
+                            in_plane(frustum._bottom_normal, camera.position(),
+                                     light.position(), light.radius());
+                        to_draw &=
+                            in_plane(frustum._near_normal, camera.position(),
+                                     light.position(), light.radius());
 
                         if (!to_draw)
                             continue;
 
-                        light_material.set_uniform(HASH("light_id"), static_cast<OM3D::u32>(i));
+                        light_material.set_uniform(HASH("light_id"),
+                                                   static_cast<OM3D::u32>(i));
 
                         glDrawArrays(GL_TRIANGLES, 0, 3);
-                        break;
                     }
-
                 }
             }
 
             // Apply a tonemap in compute shader
-            // {
-            //     PROFILE_GPU("Tonemap");
-            //
-            //     glDisable(GL_CULL_FACE);
-            //     renderer.tone_map_framebuffer.bind(false, true);
-            //     tonemap_program->bind();
-            //     tonemap_program->set_uniform(HASH("exposure"), exposure);
-            //     renderer.lit_hdr_texture.bind(0);
-            //(     glDrawArrays(GL_TRIANGLES, 0, 3);
-            // }
+            {
+                // PROFILE_GPU("Tonemap");
+                //
+                // glDisable(GL_CULL_FACE);
+                // renderer.tone_map_framebuffer.bind(false, true);
+                // tonemap_program->bind();
+                // tonemap_program->set_uniform(HASH("exposure"), exposure);
+                // renderer.g_debug_texture.bind(0);
+                // glDrawArrays(GL_TRIANGLES, 0, 3);
+            }
 
             // Blit tonemap result to screen
             {
