@@ -615,7 +615,7 @@ namespace OM3D
             {
                 const float intensity = glm::dot(color, glm::vec3(1.0f));
                 light.set_radius(std::sqrt(
-                    intensity * 1000.0f)); // Put radius where lum < 0.1%
+                    intensity /* * 1000.0f */)); // Put radius where lum < 0.1%
             }
             scene->add_light(light);
         }

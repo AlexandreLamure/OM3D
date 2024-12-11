@@ -9,6 +9,7 @@ layout(binding = 0) uniform sampler2D in_albedo;
 layout(binding = 1) uniform sampler2D in_normal;
 layout(binding = 2) uniform sampler2D in_depth;
 uniform uint light_id;
+uniform uint wireframe;
 
 layout(binding = 0) uniform Data {
     FrameData frame;
@@ -25,6 +26,12 @@ vec3 unproject(vec2 uv, float depth, mat4 inv_viewproj) {
 }
 
 void main() {
+    if (wireframe != 0)
+    {
+        out_color = vec4(point_lights[light_id].color, 1.0);
+        return;
+    }
+
     ivec2 dims = textureSize(in_albedo, 0);
 
     const ivec2 coord = ivec2(gl_FragCoord.xy);

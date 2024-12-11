@@ -190,6 +190,8 @@ void gui(ImGuiRenderer& imgui)
                 imgui._debug_texture = 1;
             if (ImGui::Selectable("Depth", imgui._debug_texture == 2))
                 imgui._debug_texture = 2;
+            if (ImGui::Selectable("Wireframe Light", imgui._debug_texture == 4))
+                imgui._debug_texture = 4;
             ImGui::PopItemFlag();
             ImGui::EndMenu();
         }
@@ -483,6 +485,7 @@ int main(int argc, char** argv)
     light_material->set_program(g_local_illumination_program);
     light_material->set_blend_mode(BlendMode::Additive);
     light_material->set_depth_test_mode(DepthTestMode::Reversed);
+
     auto sphere = scene->objects()[1];
     sphere.set_material(light_material);
 
@@ -545,7 +548,7 @@ int main(int argc, char** argv)
                 scene->render();
             }
 
-            if (imgui._debug_texture != 3)
+            if (imgui._debug_texture < 3)
             {
                 PROFILE_GPU("G buffer debug");
 
@@ -624,6 +627,9 @@ int main(int argc, char** argv)
 
                     const auto& camera = scene->camera();
                     const auto& frustum = camera.build_frustum();
+                    g_local_illumination_program->set_uniform(
+                        HASH("wireframe"),
+                        static_cast<u32>(imgui._debug_texture == 4));
                     for (size_t i = 0; i < scene->point_lights().size(); i++)
                     {
                         const auto light = scene->point_lights()[i];
@@ -655,10 +661,13 @@ int main(int argc, char** argv)
                             * glm::scale(glm::mat4(1.0f),
                                          glm::vec3(light.radius())));
 
-                        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                        if (imgui._debug_texture == 4)
+                            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
                         sphere.render(camera, frustum);
-                        // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                        // glDrawArrays(GL_TRIANGLES, 0, 3);
+
+                        if (imgui._debug_texture == 4)
+                            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                     }
                 }
                 // Apply a tonemap in compute shader
