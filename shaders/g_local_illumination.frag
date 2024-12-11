@@ -30,7 +30,7 @@ void main() {
     const ivec2 coord = ivec2(gl_FragCoord.xy);
     const vec3 albedo = texelFetch(in_albedo, coord, 0).rgb;
     vec3 normal = texelFetch(in_normal, coord, 0).rgb;
-    normal = 2.0 * normal -1.0;
+    normal = 2.0 * normal - 1.0;
 
     const float depth = texelFetch(in_depth, coord, 0).x;
 
@@ -43,9 +43,6 @@ void main() {
     const float dist = length(to_light);
     const float radius = light.radius;
 
-    // out_color = vec4(light.color, 1.0);
-    // return;
-
     if (dist >= radius)
     {
         out_color = vec4(0.0);
@@ -53,17 +50,11 @@ void main() {
     }
 
     const vec3 light_vec = to_light / dist;
-    // out_color = vec4(position, 1.0);
-    // return;
-
-
     const float NoL = dot(light_vec, normal);
     const float att = attenuation(dist, radius);
 
     if (!(NoL <= 0.0 || att <= 0.0f))
         acc += light.color * (NoL * att);
-    // else
-    //     acc += vec3(1.0);
 
     out_color = vec4(acc, 0.2f);
 }

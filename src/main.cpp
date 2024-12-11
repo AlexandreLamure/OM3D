@@ -405,8 +405,7 @@ struct RendererState
             state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM);
             state.g_albedo_texture = Texture(size, ImageFormat::RGBA8_sRGB);
             state.g_normal_texture = Texture(size, ImageFormat::RGBA8_UNORM);
-            state.g_debug_texture = Texture(size, ImageFormat::RGBA8_UNORM);
-            state.g_illum_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.g_debug_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
             state.main_framebuffer = Framebuffer(
                 &state.depth_texture, std::array{ &state.lit_hdr_texture });
             state.tone_map_framebuffer =
@@ -417,8 +416,6 @@ struct RendererState
                 std::array{ &state.g_albedo_texture, &state.g_normal_texture });
             state.g_debug_framebuffer =
                 Framebuffer(nullptr, std::array{ &state.g_debug_texture });
-            state.g_illumination_framebuffer =
-                Framebuffer(nullptr, std::array{ &state.g_illum_texture });
         }
 
         return state;
@@ -443,9 +440,6 @@ struct RendererState
 
     Framebuffer g_debug_framebuffer;
     Texture g_debug_texture;
-
-    Framebuffer g_illumination_framebuffer;
-    Texture g_illum_texture;
 };
 
 int main(int argc, char** argv)
@@ -597,7 +591,7 @@ int main(int argc, char** argv)
 
                     glDisable(GL_CULL_FACE);
                     renderer.g_debug_framebuffer.bind(false, false);
-                    light_material->bind(false);
+                    light_material->bind();
 
                     // Fill and bind lights buffer
                     TypedBuffer<shader::FrameData> buffer(nullptr, 1);
@@ -654,10 +648,12 @@ int main(int argc, char** argv)
                             continue;
 
                         light_material->set_uniform(HASH("light_id"),
-                                                   static_cast<OM3D::u32>(i));
+                                                    static_cast<OM3D::u32>(i));
 
-                        sphere.set_transform(glm::translate(glm::mat4(1.0f), light.position()) *
-                                             glm::scale(glm::mat4(1.0f), glm::vec3(light.radius())));
+                        sphere.set_transform(
+                            glm::translate(glm::mat4(1.0f), light.position())
+                            * glm::scale(glm::mat4(1.0f),
+                                         glm::vec3(light.radius())));
 
                         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                         sphere.render(camera, frustum);
@@ -665,18 +661,18 @@ int main(int argc, char** argv)
                         // glDrawArrays(GL_TRIANGLES, 0, 3);
                     }
                 }
-            }
+                // Apply a tonemap in compute shader
+                {
+                    PROFILE_GPU("Tonemap");
 
-            // Apply a tonemap in compute shader
-            {
-                // PROFILE_GPU("Tonemap");
-                //
-                // glDisable(GL_CULL_FACE);
-                // renderer.tone_map_framebuffer.bind(false, true);
-                // tonemap_program->bind();
-                // tonemap_program->set_uniform(HASH("exposure"), exposure);
-                // renderer.g_debug_texture.bind(0);
-                // glDrawArrays(GL_TRIANGLES, 0, 3);
+                    glDisable(GL_CULL_FACE);
+                    glDisable(GL_BLEND);
+                    renderer.tone_map_framebuffer.bind(false, true);
+                    tonemap_program->bind();
+                    tonemap_program->set_uniform(HASH("exposure"), exposure);
+                    renderer.g_debug_texture.bind(0);
+                    glDrawArrays(GL_TRIANGLES, 0, 3);
+                }
             }
 
             // Blit tonemap result to screen
@@ -684,7 +680,10 @@ int main(int argc, char** argv)
                 PROFILE_GPU("Blit");
 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                renderer.g_debug_framebuffer.blit();
+                if (imgui._debug_texture == 3)
+                    renderer.tone_map_framebuffer.blit();
+                else
+                    renderer.g_debug_framebuffer.blit();
             }
 
             // Draw GUI on top

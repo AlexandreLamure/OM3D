@@ -23,6 +23,5 @@ void main() {
 
     const vec3 hdr = texelFetch(in_hdr, coord, 0).rgb * exposure;
     const vec3 tone_mapped = reinhard(hdr);
-
-    out_color = vec4(hdr, 1.0);
+    out_color = vec4(tone_mapped, 1.0);
 }
