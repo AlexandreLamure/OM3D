@@ -25,22 +25,27 @@ vec3 unproject(vec2 uv, float depth, mat4 inv_viewproj) {
 }
 
 void main() {
+    ivec2 dims = textureSize(in_albedo, 0);
+
     const ivec2 coord = ivec2(gl_FragCoord.xy);
     const vec3 albedo = texelFetch(in_albedo, coord, 0).rgb;
-    const vec3 normal = texelFetch(in_normal, coord, 0).rgb;
+    vec3 normal = texelFetch(in_normal, coord, 0).rgb;
+    normal = 2.0 * normal -1.0;
+
     const float depth = texelFetch(in_depth, coord, 0).x;
 
-    // out_color = vec4(1.0, 0.0, 0.0, 1.0);
-    // return;
-
-    vec3 position = unproject(gl_FragCoord.xy, depth, inverse(frame.camera.view_proj));
+    vec3 position = unproject(gl_FragCoord.xy / dims, depth, inverse(frame.camera.view_proj));
 
     vec3 acc = vec3(0.0);
 
     PointLight light = point_lights[light_id];
     const vec3 to_light = (light.position - position);
     const float dist = length(to_light);
-    const float radius = light.radius; // * 0.05;
+    const float radius = light.radius;
+
+    // out_color = vec4(light.color, 1.0);
+    // return;
+
     if (dist >= radius)
     {
         out_color = vec4(0.0);
@@ -48,19 +53,17 @@ void main() {
     }
 
     const vec3 light_vec = to_light / dist;
+    // out_color = vec4(position, 1.0);
+    // return;
+
 
     const float NoL = dot(light_vec, normal);
     const float att = attenuation(dist, radius);
 
     if (!(NoL <= 0.0 || att <= 0.0f))
         acc += light.color * (NoL * att);
+    // else
+    //     acc += vec3(1.0);
 
-    out_color = vec4(acc, 1.0f);
-    // if (position.x >= 0.9 && position.y >= 0.9 && position.z >= 0.9
-    //         &&
-    // )
-    // {
-    //     out_color = vec4(1.0);
-    //     return;
-    // }
+    out_color = vec4(acc, 0.2f);
 }
