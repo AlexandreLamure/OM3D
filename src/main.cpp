@@ -374,17 +374,14 @@ std::unique_ptr<Scene> create_default_scene()
     {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, 4.0f));
-        // light.set_color(glm::vec3(0.0f, 0.0f, 50.0f));
         light.set_color(glm::vec3(0.0f, 50.0f, 0.0f));
         light.set_radius(100.0f);
-        // light.set_radius(2.0f);
         scene->add_light(std::move(light));
     }
     {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, -4.0f));
         light.set_color(glm::vec3(50.0f, 0.0f, 0.0f));
-        // light.set_radius(4.0f);
         light.set_radius(50.0f);
         scene->add_light(std::move(light));
     }
@@ -651,7 +648,9 @@ int main(int argc, char** argv)
                                      light.position(), light.radius());
 
                         if (!to_draw)
+                        {
                             continue;
+                        }
 
                         light_material->set_uniform(HASH("light_id"),
                                                     static_cast<OM3D::u32>(i));

@@ -60,8 +60,8 @@ void main() {
     const float NoL = dot(light_vec, normal);
     const float att = attenuation(dist, radius);
 
-    if (!(NoL <= 0.0 || att <= 0.0f))
+    if (!(NoL <= 0.0 || att <= 0.0))
         acc += light.color * (NoL * att);
 
-    out_color = vec4(acc, 0.2f);
+    out_color = vec4(acc, 1.0);
 }
