@@ -40,7 +40,7 @@ namespace OM3D
             _program->set_uniform(FWD(args)...);
         }
 
-        void bind(bool depth_write = true) const;
+        void bind() const;
 
         static std::shared_ptr<Material> empty_material();
         static Material textured_material();
