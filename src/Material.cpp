@@ -60,7 +60,8 @@ namespace OM3D
         case BlendMode::Additive:
             glEnable(GL_BLEND);
             glBlendFunc(GL_ONE, GL_ONE);
-            glDisable(GL_CULL_FACE);
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
         }
 
         switch (_depth_test_mode)

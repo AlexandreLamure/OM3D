@@ -146,6 +146,7 @@ void gui(ImGuiRenderer& imgui)
 {
     const ImVec4 error_text_color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
     const ImVec4 warning_text_color = ImVec4(1.0f, 0.8f, 0.4f, 1.0f);
+    (void)warning_text_color;
 
     static bool open_gpu_profiler = false;
 
@@ -376,12 +377,14 @@ std::unique_ptr<Scene> create_default_scene()
         light.set_position(glm::vec3(1.0f, 2.0f, 4.0f));
         light.set_color(glm::vec3(0.0f, 50.0f, 0.0f));
         light.set_radius(100.0f);
+        // light.set_radius(4.0f);
         scene->add_light(std::move(light));
     }
     {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, -4.0f));
         light.set_color(glm::vec3(50.0f, 0.0f, 0.0f));
+        // light.set_radius(4.0f);
         light.set_radius(50.0f);
         scene->add_light(std::move(light));
     }
@@ -589,7 +592,7 @@ int main(int argc, char** argv)
                 {
                     PROFILE_GPU("Local Illumination");
 
-                    glDisable(GL_CULL_FACE);
+                    // Culling is handled in the material binding
                     renderer.g_debug_framebuffer.bind(false, false);
                     light_material->bind();
 

@@ -56,6 +56,9 @@ void main() {
         return;
     }
 
+    // out_color = vec4(light.position, 1.0);
+    // return;
+
     const vec3 light_vec = to_light / dist;
     const float NoL = dot(light_vec, normal);
     const float att = attenuation(dist, radius);
