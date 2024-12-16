@@ -491,13 +491,13 @@ int main(int argc, char** argv)
 
     RendererState renderer;
 
-    for (size_t i = 0; i < scene->point_lights().size(); i++)
-    {
-        const auto light = scene->point_lights()[i];
-        const auto position = light.position();
-        std::cout << position.x << ", " << position.y << ", " << position.z
-                  << ", " << light.radius() << std::endl;
-    }
+    // for (size_t i = 0; i < scene->point_lights().size(); i++)
+    // {
+    //     const auto light = scene->point_lights()[i];
+    //     const auto position = light.position();
+    //     std::cout << position.x << ", " << position.y << ", " << position.z
+    //               << ", " << light.radius() << std::endl;
+    // }
 
     for (;;)
     {

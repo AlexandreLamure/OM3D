@@ -66,5 +66,5 @@ void main() {
     if (!(NoL <= 0.0 || att <= 0.0))
         acc += light.color * (NoL * att);
 
-    out_color = vec4(acc, 1.0);
+    out_color = vec4(albedo * acc, 1.0);
 }
