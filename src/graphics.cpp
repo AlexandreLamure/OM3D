@@ -98,6 +98,7 @@ void init_graphics() {
 
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_FRAMEBUFFER_SRGB);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     GLuint global_vao = 0;
     glGenVertexArrays(1, &global_vao);
