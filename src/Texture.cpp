@@ -32,34 +32,86 @@ Result<TextureData> TextureData::from_file(const std::string& file) {
 }
 
 
+Result<CubeMapData> CubeMapData::from_files(const std::string& prefix, const std::string& suffix) {
+    CubeMapData data;
 
-static GLuint create_texture_handle() {
+    const std::string_view face_names[] = {
+        "_px", "_nx",
+        "_py", "_ny",
+        "_pz", "_nz"
+    };
+    for(size_t i = 0; i != 6; ++i) {
+        auto face = TextureData::from_file(prefix + std::string(face_names[i]) + suffix);
+        if(!face.is_ok) {
+            return {false, {}};
+        }
+        data.faces[i] = std::move(face.value);
+    }
+
+    return {true, std::move(data)};
+}
+
+
+static GLuint create_texture_handle(GLenum type) {
     GLuint handle = 0;
-    glCreateTextures(GL_TEXTURE_2D, 1, &handle);
+    glCreateTextures(type, 1, &handle);
     return handle;
 }
 
 Texture::Texture(const TextureData& data) :
-    _handle(create_texture_handle()),
+    _handle(create_texture_handle(GL_TEXTURE_2D)),
     _size(data.size),
-    _format(data.format) {
+    _format(data.format),
+    _texture_type(GL_TEXTURE_2D) {
 
     const ImageFormatGL gl_format = image_format_to_gl(_format);
     glTextureStorage2D(_handle.get(), mip_levels(_size), gl_format.internal_format, _size.x, _size.y);
     glTextureSubImage2D(_handle.get(), 0, 0, 0, _size.x, _size.y, gl_format.format, gl_format.component_type, data.data.get());
 
+    // glGenerateTextureMipmap(_handle.get());
+
     if(bindless_enabled()) {
         _bindless = glGetTextureHandleARB(_handle.get());
         glMakeTextureHandleResidentARB(_bindless);
     }
-
-    //glGenerateTextureMipmap(_handle.get());
 }
 
+Texture::Texture(const CubeMapData& data) :
+    _handle(create_texture_handle(GL_TEXTURE_CUBE_MAP)),
+    _size(data.faces[0].size),
+    _format(data.faces[0].format),
+    _texture_type(GL_TEXTURE_CUBE_MAP) {
+
+    for(const TextureData& face : data.faces) {
+        ALWAYS_ASSERT(face.format == _format, "Invalid cube map face format");
+        ALWAYS_ASSERT(face.size == _size, "Invalid cube map face size");
+    }
+
+    const ImageFormatGL gl_format = image_format_to_gl(_format);
+    glTextureStorage2D(_handle.get(), mip_levels(_size), gl_format.internal_format, _size.x, _size.y);
+
+    for(u32 i = 0; i != 6; ++i) {
+        glTextureSubImage3D(
+            _handle.get(), 0,
+            0, 0, i,
+            _size.x, _size.y, 1,
+            gl_format.format, gl_format.component_type, data.faces[i].data.get());
+    }
+
+    glGenerateTextureMipmap(_handle.get());
+
+    if(bindless_enabled()) {
+        _bindless = glGetTextureHandleARB(_handle.get());
+        glMakeTextureHandleResidentARB(_bindless);
+    }
+}
+
+
 Texture::Texture(const glm::uvec2 &size, ImageFormat format) :
-    _handle(create_texture_handle()),
+    _handle(create_texture_handle(GL_TEXTURE_2D)),
     _size(size),
-    _format(format) {
+    _format(format),
+    _texture_type(GL_TEXTURE_2D) {
 
     const ImageFormatGL gl_format = image_format_to_gl(_format);
     glTextureStorage2D(_handle.get(), 1, gl_format.internal_format, _size.x, _size.y);
@@ -86,6 +138,10 @@ void Texture::bind_as_image(u32 index, AccessType access) {
 
 u64 Texture::bindless_handle() const {
     return _bindless;
+}
+
+u32 Texture::texture_type() const {
+    return _texture_type;
 }
 
 glm::uvec2 Texture::size() const {

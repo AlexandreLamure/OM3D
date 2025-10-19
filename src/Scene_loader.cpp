@@ -391,7 +391,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                 compute_tangents(mesh.value);
             }
 
-            std::shared_ptr<Material> material;
+            std::shared_ptr<Material> material = Material::empty_material();
             if(prim.material >= 0) {
                 auto& mat = materials[prim.material];
 
@@ -427,7 +427,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                     auto normal = load_texture(normal_info, false);
 
                     if(!albedo) {
-                        mat = Material::empty_material();
+                        // Material::empty_material()
                     } else if(!normal) {
                         mat = std::make_shared<Material>(Material::textured_material());
                         mat->set_texture(0u, albedo);

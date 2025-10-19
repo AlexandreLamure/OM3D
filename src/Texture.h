@@ -20,16 +20,25 @@ struct TextureData {
     static Result<TextureData> from_file(const std::string& file_name);
 };
 
+struct CubeMapData {
+    std::array<TextureData, 6> faces;
+
+        static Result<CubeMapData> from_files(const std::string &prefix, const std::string &suffix);
+};
+
 class Texture {
 
     public:
         Texture() = default;
+
         Texture(Texture&&) = default;
         Texture& operator=(Texture&&) = default;
 
         ~Texture();
 
         Texture(const TextureData& data);
+        Texture(const CubeMapData& data);
+
         Texture(const glm::uvec2 &size, ImageFormat format);
 
         void bind(u32 index) const;
@@ -37,18 +46,22 @@ class Texture {
 
         u64 bindless_handle() const;
 
-        glm::uvec2 size() const;
+        u32 texture_type() const;
 
+        glm::uvec2 size() const;
 
         static u32 mip_levels(glm::uvec2 size);
 
     private:
         friend class Framebuffer;
+        friend class Program;
 
         GLHandle _handle;
         glm::uvec2 _size = {};
         u64 _bindless = {};
         ImageFormat _format;
+
+        u32 _texture_type = {};
 };
 
 }

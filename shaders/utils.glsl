@@ -60,3 +60,8 @@ vec3 unpack_normal_map(vec2 normal) {
     return vec3(normal, 1.0 - sqrt(dot(normal, normal)));
 }
 
+vec2 to_equirec(vec3 v) {
+    return -vec2(atan(-v.y, v.x), asin(v.z)) * vec2(0.1591, 0.3183) + 0.5;
+}
+
+
