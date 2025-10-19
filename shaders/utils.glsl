@@ -1,5 +1,9 @@
 #include "structs.glsl"
 
+#ifndef PI
+#define PI 3.14159265359
+#endif
+
 float sqr(float x) {
     return x * x;
 }

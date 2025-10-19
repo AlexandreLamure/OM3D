@@ -7,6 +7,8 @@
 
 namespace OM3D {
 
+class Texture;
+
 static constexpr std::string_view shader_path = "../../shaders/";
 static constexpr std::string_view data_path = "../../data/";
 
@@ -65,6 +67,8 @@ void init_graphics();
 bool bindless_enabled();
 
 void audit_bindings();
+
+const Texture& brdf_lut();
 
 }
 

@@ -1,5 +1,9 @@
 #include "graphics.h"
 
+#include "ImageFormat.h"
+#include "Texture.h"
+#include "Program.h"
+
 #include <glad/gl.h>
 
 #define GLFW_INCLUDE_NONE
@@ -9,6 +13,7 @@
 
 namespace OM3D {
 
+Texture brdf_lut_texture;
 bool audit_bindings_before_draw = false;
 
 void debug_out(GLenum, GLenum type, GLuint, GLenum sev, GLsizei, const char* msg, const void*) {
@@ -103,9 +108,22 @@ void init_graphics() {
     GLuint global_vao = 0;
     glGenVertexArrays(1, &global_vao);
     glBindVertexArray(global_vao);
+
+    {
+        brdf_lut_texture = Texture(glm::uvec2(128), ImageFormat::RG16_UNORM);
+
+        std::shared_ptr<Program> brdf_program = Program::from_file("brdf.comp");
+        DEBUG_ASSERT(brdf_program && brdf_program->is_compute());
+
+        brdf_program->bind();
+        brdf_lut_texture.bind_as_image(0, AccessType::WriteOnly);
+        glDispatchCompute(128 / 8, 128 / 8, 1);
+    }
 }
 
-
+const Texture& brdf_lut() {
+    return brdf_lut_texture;
+}
 
 
 
