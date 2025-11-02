@@ -33,6 +33,10 @@ const Camera& Scene::camera() const {
     return _camera;
 }
 
+void Scene::set_envmap(Texture env) {
+    _envmap = std::move(env);
+}
+
 void Scene::set_sun(glm::vec3 direction, glm::vec3 color) {
     _sun_direction = direction;
     _sun_color = color;
@@ -47,6 +51,7 @@ void Scene::render() const {
         mapping[0].point_light_count = u32(_point_lights.size());
         mapping[0].sun_color = _sun_color;
         mapping[0].sun_dir = glm::normalize(_sun_direction);
+        mapping[0].has_envmap = _envmap.is_null() ? 0 : 1;
     }
     buffer.bind(BufferUsage::Uniform, 0);
 
@@ -65,6 +70,8 @@ void Scene::render() const {
         }
     }
     light_buffer.bind(BufferUsage::Storage, 1);
+
+    _envmap.bind(3);
 
     // Render every object
     for(const SceneObject& obj : _objects) {

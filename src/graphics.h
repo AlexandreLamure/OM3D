@@ -4,6 +4,7 @@
 #include <utils.h>
 
 #include <string_view>
+#include <memory>
 
 namespace OM3D {
 
@@ -69,6 +70,11 @@ bool bindless_enabled();
 void audit_bindings();
 
 const Texture& brdf_lut();
+
+std::shared_ptr<Texture> default_black_texture();
+std::shared_ptr<Texture> default_albedo_texture();
+std::shared_ptr<Texture> default_normal_texture();
+std::shared_ptr<Texture> default_metal_rough_texture();
 
 }
 

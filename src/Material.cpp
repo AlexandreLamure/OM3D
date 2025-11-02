@@ -70,26 +70,15 @@ void Material::bind() const {
     _program->bind();
 }
 
-std::shared_ptr<Material> Material::empty_material() {
-    static std::weak_ptr<Material> weak_material;
-    auto material = weak_material.lock();
-    if(!material) {
-        material = std::make_shared<Material>();
-        material->_program = Program::from_files("lit.frag", "basic.vert");
-        weak_material = material;
-    }
-    return material;
-}
-
-Material Material::textured_material() {
+Material Material::textured_pbr_material() {
     Material material;
-    material._program = Program::from_files("lit.frag", "basic.vert", {"TEXTURED"});
-    return material;
-}
+    material._program = Program::from_files("lit.frag", "basic.vert");
 
-Material Material::textured_normal_mapped_material() {
-    Material material;
-    material._program = Program::from_files("lit.frag", "basic.vert", std::array<std::string, 2>{"TEXTURED", "NORMAL_MAPPED"});
+    material.set_texture(0u, default_albedo_texture());
+    material.set_texture(1u, default_normal_texture());
+    material.set_texture(2u, default_metal_rough_texture());
+    material.set_texture(3u, default_black_texture());
+
     return material;
 }
 

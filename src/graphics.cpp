@@ -14,6 +14,14 @@
 namespace OM3D {
 
 Texture brdf_lut_texture;
+
+struct {
+    std::shared_ptr<Texture> black;
+    std::shared_ptr<Texture> albedo;
+    std::shared_ptr<Texture> normal;
+    std::shared_ptr<Texture> metal_rough;
+} default_textures;
+
 bool audit_bindings_before_draw = false;
 
 void debug_out(GLenum, GLenum type, GLuint, GLenum sev, GLsizei, const char* msg, const void*) {
@@ -110,14 +118,53 @@ void init_graphics() {
     glBindVertexArray(global_vao);
 
     {
-        brdf_lut_texture = Texture(glm::uvec2(128), ImageFormat::RG16_UNORM);
+        brdf_lut_texture = Texture(glm::uvec2(512), ImageFormat::RG16_UNORM);
 
         std::shared_ptr<Program> brdf_program = Program::from_file("brdf.comp");
         DEBUG_ASSERT(brdf_program && brdf_program->is_compute());
 
         brdf_program->bind();
         brdf_lut_texture.bind_as_image(0, AccessType::WriteOnly);
-        glDispatchCompute(128 / 8, 128 / 8, 1);
+        glDispatchCompute(512 / 8, 512 / 8, 1);
+    }
+
+    {
+        TextureData data;
+        data.format = ImageFormat::RGBA8_UNORM;
+        data.size = glm::uvec2(2, 2);
+        data.data = std::make_unique<u8[]>(16);
+
+        {
+            std::memset(data.data.get(), 0, 16);
+            default_textures.black = std::make_shared<Texture>(data);
+        }
+        {
+            std::memset(data.data.get(), 0, 16);
+            for(size_t i = 0; i != 4; ++i) {
+                data.data[i * 4 + 0] = 128;
+                data.data[i * 4 + 1] = 128;
+                data.data[i * 4 + 2] = 128;
+                data.data[i * 4 + 3] = 255;
+            }
+            default_textures.albedo = std::make_shared<Texture>(data);
+        }
+        {
+            std::memset(data.data.get(), 0, 16);
+            for(size_t i = 0; i != 4; ++i) {
+                data.data[i * 4 + 0] = 127;
+                data.data[i * 4 + 1] = 127;
+                data.data[i * 4 + 2] = 255;
+            }
+            default_textures.normal = std::make_shared<Texture>(data);
+        }
+        {
+            std::memset(data.data.get(), 0, 16);
+            for(size_t i = 0; i != 4; ++i) {
+                data.data[i * 4 + 1] = 0;
+                data.data[i * 4 + 2] = u8(255.0f * 0.6f);
+            }
+            default_textures.metal_rough = std::make_shared<Texture>(data);
+        }
     }
 }
 
@@ -125,6 +172,21 @@ const Texture& brdf_lut() {
     return brdf_lut_texture;
 }
 
+std::shared_ptr<Texture> default_black_texture() {
+    return default_textures.black;
+}
+
+std::shared_ptr<Texture> default_albedo_texture() {
+    return default_textures.albedo;
+}
+
+std::shared_ptr<Texture> default_normal_texture() {
+    return default_textures.normal;
+}
+
+std::shared_ptr<Texture> default_metal_rough_texture() {
+    return default_textures.metal_rough;
+}
 
 
 

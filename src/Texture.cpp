@@ -52,6 +52,8 @@ Result<CubeMapData> CubeMapData::from_files(const std::string& prefix, const std
 }
 
 
+
+
 static GLuint create_texture_handle(GLenum type) {
     GLuint handle = 0;
     glCreateTextures(type, 1, &handle);
@@ -126,6 +128,10 @@ Texture::~Texture() {
     if(auto handle = _handle.get()) {
         glDeleteTextures(1, &handle);
     }
+}
+
+bool Texture::is_null() const {
+    return !_handle.is_valid();
 }
 
 void Texture::bind(u32 index) const {

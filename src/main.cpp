@@ -24,6 +24,7 @@ static float delta_time = 0.0f;
 static std::unique_ptr<Scene> scene;
 static float exposure = 1.0;
 static std::vector<std::string> scene_files;
+static Texture envmap;
 
 namespace OM3D {
 extern bool audit_bindings_before_draw;
@@ -274,7 +275,7 @@ std::unique_ptr<Scene> create_default_scene() {
     auto scene = std::make_unique<Scene>();
 
     // Load default cube model
-    auto result = Scene::from_gltf(std::string(data_path) + "cube.glb");
+    auto result = Scene::from_gltf(std::string(data_path) + "DamagedHelmet.glb");
     ALWAYS_ASSERT(result.is_ok, "Unable to load default scene");
     scene = std::move(result.value);
 
@@ -294,6 +295,12 @@ std::unique_ptr<Scene> create_default_scene() {
         light.set_color(glm::vec3(50.0f, 0.0f, 0.0f));
         light.set_radius(50.0f);
         scene->add_light(std::move(light));
+    }
+
+    if(auto cubemap = CubeMapData::from_files("../../data/cubemaps/sky", ".tga"); cubemap.is_ok) {
+        scene->set_envmap(Texture(std::move(cubemap.value)));
+    } else {
+        std::cerr << "Unable to load envmap" << std::endl;
     }
 
     return scene;

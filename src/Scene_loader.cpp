@@ -391,13 +391,15 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                 compute_tangents(mesh.value);
             }
 
-            std::shared_ptr<Material> material = Material::empty_material();
+            std::shared_ptr<Material> material = std::make_shared<Material>(Material::textured_pbr_material());
             if(prim.material >= 0) {
                 auto& mat = materials[prim.material];
 
                 if(!mat) {
                     const auto& albedo_info = gltf.materials[prim.material].pbrMetallicRoughness.baseColorTexture;
                     const auto& normal_info = gltf.materials[prim.material].normalTexture;
+                    const auto& metal_rough_info = gltf.materials[prim.material].pbrMetallicRoughness.metallicRoughnessTexture;
+                    const auto& emissive_info = gltf.materials[prim.material].emissiveTexture;
 
                     auto load_texture = [&](auto texture_info, bool as_sRGB) -> std::shared_ptr<Texture> {
                         if(texture_info.texCoord != 0) {
@@ -425,16 +427,27 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
 
                     auto albedo = load_texture(albedo_info, true);
                     auto normal = load_texture(normal_info, false);
+                    auto metal_rough = load_texture(metal_rough_info, false);
+                    auto emissive = load_texture(emissive_info, false);
 
-                    if(!albedo) {
-                        // Material::empty_material()
-                    } else if(!normal) {
-                        mat = std::make_shared<Material>(Material::textured_material());
+                    if(!mat) {
+                        mat = std::make_shared<Material>(Material::textured_pbr_material());
+                    }
+
+                    if(albedo) {
                         mat->set_texture(0u, albedo);
-                    } else {
-                        mat = std::make_shared<Material>(Material::textured_normal_mapped_material());
-                        mat->set_texture(0u, albedo);
+                    }
+
+                    if(normal) {
                         mat->set_texture(1u, normal);
+                    }
+
+                    if(metal_rough) {
+                        mat->set_texture(2u, metal_rough);
+                    }
+
+                    if(emissive) {
+                        mat->set_texture(3u, emissive);
                     }
                 }
 
