@@ -282,7 +282,7 @@ std::unique_ptr<Scene> create_default_scene() {
     scene->set_sun(glm::vec3(0.2f, 1.0f, 0.1f), glm::vec3(3.0f));
 
     // Add lights
-    /*{
+    {
         PointLight light;
         light.set_position(glm::vec3(1.0f, 2.0f, 4.0f));
         light.set_color(glm::vec3(0.0f, 50.0f, 0.0f));
@@ -295,7 +295,7 @@ std::unique_ptr<Scene> create_default_scene() {
         light.set_color(glm::vec3(50.0f, 0.0f, 0.0f));
         light.set_radius(50.0f);
         scene->add_light(std::move(light));
-    }*/
+    }
 
     if(auto cubemap = CubeMapData::from_files("../../data/cubemaps/sky", ".tga"); cubemap.is_ok) {
         scene->set_envmap(Texture(std::move(cubemap.value)));

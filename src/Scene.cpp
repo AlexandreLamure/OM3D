@@ -72,7 +72,8 @@ void Scene::render() const {
     }
     light_buffer.bind(BufferUsage::Storage, 1);
 
-    _envmap.bind(3);
+    _envmap.bind(4);
+    brdf_lut().bind(5);
 
     // Render every object
     for(const SceneObject& obj : _objects) {

@@ -27,6 +27,10 @@ vec3 f_schlick(float cos_theta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
 }
 
+vec3 f_schlick_roughness(float cos_theta, vec3 F0, float roughness) {
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
+}
+
 
 vec3 eval_brdf(vec3 N, vec3 V, vec3 L, vec3 albedo, float metallic, float roughness) {
     const float NdotL = dot(N, L);
@@ -50,4 +54,29 @@ vec3 eval_brdf(vec3 N, vec3 V, vec3 L, vec3 albedo, float metallic, float roughn
     vec3 kD = vec3(1.0) - kS;
 
     return (diffuse * kD + specular * kS) * NdotL;
+}
+
+float roughness_to_mip(float r, uint mips) {
+    return (pow(2.0, r) - 1.0) * (mips - 1);
+}
+
+vec3 eval_ibl(samplerCube envmap, sampler2D brdf_lut, vec3 N, vec3 V, vec3 albedo, float metallic, float roughness) {
+    const float NdotV = max(dot(N, V), 0.0);
+
+    const vec3 irradiance = textureLod(envmap, N, 9999).rgb;
+    const vec3 diffuse = irradiance * albedo;
+
+    const vec3 F0 = mix(vec3(0.04), albedo, metallic);
+    const vec3 F = f_schlick_roughness(NdotV, F0, roughness);
+
+    const uint texture_max_level = textureQueryLevels(envmap) - 1;
+    const vec3 prefiltered = textureLod(envmap, reflect(-V, N), roughness_to_mip(roughness, texture_max_level)).rgb;
+
+    const vec2 brdf = texture(brdf_lut, vec2(NdotV, roughness)).rg;
+    const vec3 specular = prefiltered * (F * brdf.x + brdf.y);
+
+    const vec3 kS = F;
+    const vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
+
+    return kD * diffuse + specular;
 }

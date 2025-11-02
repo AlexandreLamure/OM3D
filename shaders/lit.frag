@@ -8,6 +8,7 @@
 // #define DEBUG_NORMAL
 // #define DEBUG_METAL
 // #define DEBUG_ROUGH
+// #define DEBUG_ENV
 
 layout(location = 0) out vec4 out_color;
 
@@ -28,6 +29,7 @@ uniform vec2 metal_rough_factor;
 uniform vec3 emissive_factor;
 
 layout(binding = 4) uniform samplerCube in_envmap;
+layout(binding = 5) uniform sampler2D brdf_lut;
 
 layout(binding = 0) uniform Data {
     FrameData frame;
@@ -48,13 +50,12 @@ void main() {
     const float alpha = albedo_tex.a;
 
     const vec4 metal_rough_tex = texture(in_metal_rough, in_uv);
-    const float metallic = 0 * metal_rough_tex.g * metal_rough_factor.x; // as per glTF spec
-    const float roughness = metal_rough_tex.b * metal_rough_factor.y; // as per glTF spec
+    const float metallic = metal_rough_tex.b * metal_rough_factor.x; // as per glTF spec
+    const float roughness = metal_rough_tex.g * metal_rough_factor.y; // as per glTF spec
 
 
     const vec3 to_view = (frame.camera.position - in_position);
     const vec3 view_dir = normalize(to_view);
-
 
     vec3 acc = texture(in_emissive, in_uv).rgb * emissive_factor;
     {
@@ -75,7 +76,11 @@ void main() {
         }
     }
 
-    out_color = vec4(base_color * acc, alpha);
+    if(frame.has_envmap != 0) {
+        acc += eval_ibl(in_envmap, brdf_lut, normal, view_dir, base_color, metallic, roughness);
+    }
+
+    out_color = vec4(acc, alpha);
 
 
 #ifdef DEBUG_NORMAL
@@ -88,6 +93,10 @@ void main() {
 
 #ifdef DEBUG_ROUGH
     out_color = vec4(vec3(roughness), 1.0);
+#endif
+
+#ifdef DEBUG_ENV
+    out_color = vec4(texture(in_envmap, normal).rgb, 1.0);
 #endif
 }
 
