@@ -17,7 +17,7 @@ Texture brdf_lut_texture;
 
 struct {
     std::shared_ptr<Texture> black;
-    std::shared_ptr<Texture> albedo;
+    std::shared_ptr<Texture> white;
     std::shared_ptr<Texture> normal;
     std::shared_ptr<Texture> metal_rough;
 } default_textures;
@@ -139,14 +139,8 @@ void init_graphics() {
             default_textures.black = std::make_shared<Texture>(data);
         }
         {
-            std::memset(data.data.get(), 0, 16);
-            for(size_t i = 0; i != 4; ++i) {
-                data.data[i * 4 + 0] = 128;
-                data.data[i * 4 + 1] = 128;
-                data.data[i * 4 + 2] = 128;
-                data.data[i * 4 + 3] = 255;
-            }
-            default_textures.albedo = std::make_shared<Texture>(data);
+            std::memset(data.data.get(), 255, 16);
+            default_textures.white = std::make_shared<Texture>(data);
         }
         {
             std::memset(data.data.get(), 0, 16);
@@ -176,8 +170,8 @@ std::shared_ptr<Texture> default_black_texture() {
     return default_textures.black;
 }
 
-std::shared_ptr<Texture> default_albedo_texture() {
-    return default_textures.albedo;
+std::shared_ptr<Texture> default_white_texture() {
+    return default_textures.white;
 }
 
 std::shared_ptr<Texture> default_normal_texture() {

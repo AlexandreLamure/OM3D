@@ -396,10 +396,11 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                 auto& mat = materials[prim.material];
 
                 if(!mat) {
-                    const auto& albedo_info = gltf.materials[prim.material].pbrMetallicRoughness.baseColorTexture;
-                    const auto& normal_info = gltf.materials[prim.material].normalTexture;
-                    const auto& metal_rough_info = gltf.materials[prim.material].pbrMetallicRoughness.metallicRoughnessTexture;
-                    const auto& emissive_info = gltf.materials[prim.material].emissiveTexture;
+                    const auto& gltf_mat = gltf.materials[prim.material];
+                    const auto& albedo_info = gltf_mat.pbrMetallicRoughness.baseColorTexture;
+                    const auto& normal_info = gltf_mat.normalTexture;
+                    const auto& metal_rough_info = gltf_mat.pbrMetallicRoughness.metallicRoughnessTexture;
+                    const auto& emissive_info = gltf_mat.emissiveTexture;
 
                     auto load_texture = [&](auto texture_info, bool as_sRGB) -> std::shared_ptr<Texture> {
                         if(texture_info.texCoord != 0) {
@@ -449,6 +450,21 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                     if(emissive) {
                         mat->set_texture(3u, emissive);
                     }
+
+                    mat->set_uniform("base_color_factor", glm::vec3(
+                        gltf_mat.pbrMetallicRoughness.baseColorFactor[0],
+                        gltf_mat.pbrMetallicRoughness.baseColorFactor[1],
+                        gltf_mat.pbrMetallicRoughness.baseColorFactor[2]
+                    ));
+                    mat->set_uniform("metal_rough_factor", glm::vec2(
+                        gltf_mat.pbrMetallicRoughness.metallicFactor,
+                        gltf_mat.pbrMetallicRoughness.roughnessFactor
+                    ));
+                    mat->set_uniform("emissive_factor", glm::vec3(
+                        gltf_mat.emissiveFactor[0],
+                        gltf_mat.emissiveFactor[1],
+                        gltf_mat.emissiveFactor[2]
+                    ));
                 }
 
                 material = mat;

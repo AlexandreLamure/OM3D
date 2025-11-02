@@ -22,6 +22,10 @@ layout(binding = 1) uniform sampler2D in_normal_texture;
 layout(binding = 2) uniform sampler2D in_metal_rough;
 layout(binding = 3) uniform sampler2D in_emissive;
 
+uniform vec3 base_color_factor;
+uniform vec2 metal_rough_factor;
+uniform vec3 emissive_factor;
+
 layout(binding = 4) uniform samplerCube in_envmap;
 
 layout(binding = 0) uniform Data {
@@ -39,16 +43,16 @@ void main() {
                         normal_map.z * in_normal;
 
     const vec4 albedo_tex = texture(in_texture, in_uv);
-    const vec3 base_color = in_color.rgb * albedo_tex.rgb;
+    const vec3 base_color = in_color.rgb * albedo_tex.rgb * base_color_factor;
     const float alpha = albedo_tex.a;
 
     const vec4 metal_rough_tex = texture(in_metal_rough, in_uv);
-    const float metalness = metal_rough_tex.g; // as per glTF spec
-    const float roughness = metal_rough_tex.b; // as per glTF spec
+    const float metalness = metal_rough_tex.g * metal_rough_factor.x; // as per glTF spec
+    const float roughness = metal_rough_tex.b * metal_rough_factor.y; // as per glTF spec
 
 
     vec3 acc = frame.sun_color * max(0.0, dot(frame.sun_dir, normal));
-    acc += texture(in_emissive, in_uv).rgb;
+    acc += texture(in_emissive, in_uv).rgb * emissive_factor;
 
     for(uint i = 0; i != frame.point_light_count; ++i) {
         PointLight light = point_lights[i];

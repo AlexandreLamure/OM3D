@@ -74,7 +74,7 @@ Material Material::textured_pbr_material() {
     Material material;
     material._program = Program::from_files("lit.frag", "basic.vert");
 
-    material.set_texture(0u, default_albedo_texture());
+    material.set_texture(0u, default_white_texture());
     material.set_texture(1u, default_normal_texture());
     material.set_texture(2u, default_metal_rough_texture());
     material.set_texture(3u, default_black_texture());
