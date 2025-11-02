@@ -4,6 +4,8 @@
 #define PI 3.14159265359
 #endif
 
+#define INV_PI 0.31830988618
+
 float sqr(float x) {
     return x * x;
 }
@@ -104,3 +106,12 @@ float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
 
     return ggx1 * ggx2;
 }
+
+
+
+
+
+
+
+
+

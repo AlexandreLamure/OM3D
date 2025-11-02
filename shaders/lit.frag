@@ -1,6 +1,7 @@
 #version 450
 
 #include "utils.glsl"
+#include "lighting.glsl"
 
 // fragment shader of the main lighting pass
 
@@ -47,26 +48,31 @@ void main() {
     const float alpha = albedo_tex.a;
 
     const vec4 metal_rough_tex = texture(in_metal_rough, in_uv);
-    const float metalness = metal_rough_tex.g * metal_rough_factor.x; // as per glTF spec
+    const float metallic = 0 * metal_rough_tex.g * metal_rough_factor.x; // as per glTF spec
     const float roughness = metal_rough_tex.b * metal_rough_factor.y; // as per glTF spec
 
 
-    vec3 acc = frame.sun_color * max(0.0, dot(frame.sun_dir, normal));
-    acc += texture(in_emissive, in_uv).rgb * emissive_factor;
+    const vec3 to_view = (frame.camera.position - in_position);
+    const vec3 view_dir = normalize(to_view);
 
-    for(uint i = 0; i != frame.point_light_count; ++i) {
-        PointLight light = point_lights[i];
-        const vec3 to_light = (light.position - in_position);
-        const float dist = length(to_light);
-        const vec3 light_vec = to_light / dist;
 
-        const float NoL = dot(light_vec, normal);
-        const float att = attenuation(dist, light.radius);
-        if(NoL <= 0.0 || att <= 0.0f) {
-            continue;
+    vec3 acc = texture(in_emissive, in_uv).rgb * emissive_factor;
+    {
+        acc += frame.sun_color * eval_brdf(normal, view_dir, frame.sun_dir, base_color, metallic, roughness);
+
+        for(uint i = 0; i != frame.point_light_count; ++i) {
+            PointLight light = point_lights[i];
+            const vec3 to_light = (light.position - in_position);
+            const float dist = length(to_light);
+            const vec3 light_vec = to_light / dist;
+
+            const float att = attenuation(dist, light.radius);
+            if(att <= 0.0f) {
+                continue;
+            }
+
+            acc += eval_brdf(normal, view_dir, light_vec, base_color, metallic, roughness) * att * light.color;
         }
-
-        acc += light.color * (NoL * att);
     }
 
     out_color = vec4(base_color * acc, alpha);
@@ -77,7 +83,7 @@ void main() {
 #endif
 
 #ifdef DEBUG_METAL
-    out_color = vec4(vec3(metalness), 1.0);
+    out_color = vec4(vec3(metallic), 1.0);
 #endif
 
 #ifdef DEBUG_ROUGH
