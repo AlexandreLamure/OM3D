@@ -10,6 +10,7 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <cstring>
 
 namespace OM3D {
 
