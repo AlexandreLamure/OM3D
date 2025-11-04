@@ -70,7 +70,7 @@ Texture::Texture(const TextureData& data) :
     glTextureStorage2D(_handle.get(), mip_levels(_size), gl_format.internal_format, _size.x, _size.y);
     glTextureSubImage2D(_handle.get(), 0, 0, 0, _size.x, _size.y, gl_format.format, gl_format.component_type, data.data.get());
 
-    // glGenerateTextureMipmap(_handle.get());
+    glGenerateTextureMipmap(_handle.get());
 
     if(bindless_enabled()) {
         _bindless = glGetTextureHandleARB(_handle.get());
