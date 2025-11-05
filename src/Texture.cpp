@@ -109,7 +109,7 @@ Texture::Texture(const CubeMapData& data) :
 }
 
 
-Texture::Texture(const glm::uvec2 &size, ImageFormat format) :
+Texture::Texture(const glm::uvec2 &size, ImageFormat format, WrapMode wrap) :
     _handle(create_texture_handle(GL_TEXTURE_2D)),
     _size(size),
     _format(format),
@@ -117,6 +117,11 @@ Texture::Texture(const glm::uvec2 &size, ImageFormat format) :
 
     const ImageFormatGL gl_format = image_format_to_gl(_format);
     glTextureStorage2D(_handle.get(), 1, gl_format.internal_format, _size.x, _size.y);
+
+    const GLenum gl_wrap = (wrap == WrapMode::Repeat) ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+    glTextureParameteri(_handle.get(), GL_TEXTURE_WRAP_R, gl_wrap);
+    glTextureParameteri(_handle.get(), GL_TEXTURE_WRAP_S, gl_wrap);
+    glTextureParameteri(_handle.get(), GL_TEXTURE_WRAP_T, gl_wrap);
 
     if(bindless_enabled()) {
         _bindless = glGetTextureHandleARB(_handle.get());

@@ -119,7 +119,7 @@ void init_graphics() {
     glBindVertexArray(global_vao);
 
     {
-        brdf_lut_texture = Texture(glm::uvec2(512), ImageFormat::RG16_UNORM);
+        brdf_lut_texture = Texture(glm::uvec2(256), ImageFormat::RG16_UNORM, WrapMode::Clamp);
 
         std::shared_ptr<Program> brdf_program = Program::from_file("brdf.comp");
         DEBUG_ASSERT(brdf_program && brdf_program->is_compute());

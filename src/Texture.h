@@ -23,7 +23,13 @@ struct TextureData {
 struct CubeMapData {
     std::array<TextureData, 6> faces;
 
-        static Result<CubeMapData> from_files(const std::string &prefix, const std::string &suffix);
+    static Result<CubeMapData> from_files(const std::string &prefix, const std::string &suffix);
+};
+
+
+enum class WrapMode {
+    Repeat,
+    Clamp,
 };
 
 class Texture {
@@ -39,7 +45,7 @@ class Texture {
         Texture(const TextureData& data);
         Texture(const CubeMapData& data);
 
-        Texture(const glm::uvec2 &size, ImageFormat format);
+        Texture(const glm::uvec2 &size, ImageFormat format, WrapMode wrap = WrapMode::Repeat);
 
         bool is_null() const;
 
