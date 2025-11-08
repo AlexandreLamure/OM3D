@@ -20,11 +20,6 @@ struct TextureData {
     static Result<TextureData> from_file(const std::string& file_name);
 };
 
-struct CubeMapData {
-    std::array<TextureData, 6> faces;
-
-    static Result<CubeMapData> from_files(const std::string &prefix, const std::string &suffix);
-};
 
 
 enum class WrapMode {
@@ -43,9 +38,11 @@ class Texture {
         ~Texture();
 
         Texture(const TextureData& data);
-        Texture(const CubeMapData& data);
 
         Texture(const glm::uvec2 &size, ImageFormat format, WrapMode wrap = WrapMode::Repeat);
+
+        static Texture empty_cubemap(u32 size, ImageFormat format, u32 mipmaps = 1);
+        static Texture cubemap_from_equirec(const Texture& equirec);
 
         bool is_null() const;
 

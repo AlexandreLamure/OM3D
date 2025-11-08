@@ -28,7 +28,7 @@ class Scene : NonMovable {
         Camera& camera();
         const Camera& camera() const;
 
-        void set_envmap(Texture env);
+        void set_envmap(std::shared_ptr<Texture> env);
         void set_sun(glm::vec3 direction, glm::vec3 color = glm::vec3(1.0f));
 
     private:
@@ -39,7 +39,7 @@ class Scene : NonMovable {
         glm::vec3 _sun_color = glm::vec3(1.0f);
 
 
-        Texture _envmap;
+        std::shared_ptr<Texture> _envmap;
         Camera _camera;
 };
 

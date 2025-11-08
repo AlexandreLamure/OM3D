@@ -1,0 +1,37 @@
+#version 450
+
+#include "utils.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(binding = 0) uniform sampler2D in_equirec;
+layout(rgba16f, binding = 1) uniform imageCube out_cube;
+
+
+vec3 cube_dir(vec2 tex_coord, uint side) {
+    const vec2 tex = tex_coord * 2.0 - 1.0;
+
+    switch(side) {
+        case 0: return vec3(1.0, -tex.x, -tex.y);     // left
+        case 1: return vec3(-1.0, tex.x , -tex.y);    // right
+        case 2: return vec3(tex.x, tex.y , 1.0);      // up
+        case 3: return vec3(tex.x, -tex.y, -1.0);     // down
+        case 4: return vec3(tex.x, 1.0, -tex.y);      // front
+        case 5: return vec3(-tex.x, -1.0, -tex.y);    // back
+    }
+
+    return vec3(0.0);
+}
+
+
+
+void main() {
+    const vec2 face_size = imageSize(out_cube).xy;
+    const vec2 uv = (gl_GlobalInvocationID.xy + 0.5) / face_size;
+    const vec3 direction = normalize(cube_dir(uv, gl_GlobalInvocationID.z));
+    const vec4 color = texture(in_equirec, to_equirec(direction));
+
+    imageStore(out_cube, ivec3(gl_GlobalInvocationID), color);
+}
+
+

@@ -21,10 +21,10 @@ using namespace OM3D;
 
 
 static float delta_time = 0.0f;
-static std::unique_ptr<Scene> scene;
 static float exposure = 1.0;
-static std::vector<std::string> scene_files;
-static Texture envmap;
+
+static std::unique_ptr<Scene> scene;
+static std::shared_ptr<Texture> envmap;
 
 namespace OM3D {
 extern bool audit_bindings_before_draw;
@@ -109,6 +109,64 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
     mouse_pos = new_mouse_pos;
 }
 
+void load_envmap(const std::string& filename) {
+    if(auto res = TextureData::from_file(filename); res.is_ok) {
+        envmap = std::make_shared<Texture>(Texture::cubemap_from_equirec(res.value));
+        scene->set_envmap(envmap);
+    } else {
+        std::cerr << "Unable to load envmap (" << filename << ")" << std::endl;
+    }
+}
+
+void load_scene(const std::string& filename) {
+    if(auto res = Scene::from_gltf(filename); res.is_ok) {
+        scene = std::move(res.value);
+        scene->set_envmap(envmap);
+    } else {
+        std::cerr << "Unable to load scene (" << filename << ")" << std::endl;
+    }
+}
+
+std::vector<std::string> list_data_files(Span<const std::string> extensions = {}) {
+    std::vector<std::string> files;
+    for(auto&& entry : std::filesystem::directory_iterator(data_path)) {
+        if(entry.status().type() == std::filesystem::file_type::regular) {
+            const auto ext = entry.path().extension();
+
+            bool ext_match = extensions.is_empty();
+            for(const std::string& e : extensions) {
+                ext_match |= (ext == e);
+            }
+
+            if(ext_match) {
+                files.emplace_back(entry.path().string());
+            }
+        }
+    }
+    return files;
+}
+
+template<typename F>
+bool load_file_window(Span<std::string> files, F&& load_func) {
+    char buffer[1024] = {};
+    if(ImGui::InputText("Load file", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
+        load_func(buffer);
+        return true;
+    }
+
+    if(!files.is_empty()) {
+        for(const std::string& p : files) {
+            const auto abs = std::filesystem::absolute(p).string();
+            if(ImGui::MenuItem(abs.c_str())) {
+                load_func(p);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 void gui(ImGuiRenderer& imgui) {
     const ImVec4 error_text_color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
     const ImVec4 warning_text_color = ImVec4(1.0f, 0.8f, 0.4f, 1.0f);
@@ -120,13 +178,20 @@ void gui(ImGuiRenderer& imgui) {
     imgui.start();
     DEFER(imgui.finish());
 
+
+    static std::vector<std::string> load_files;
+
     // ImGui::ShowDemoWindow();
 
     bool open_scene_popup = false;
+    bool load_envmap_popup = false;
     if(ImGui::BeginMainMenuBar()) {
         if(ImGui::BeginMenu("File")) {
             if(ImGui::MenuItem("Open Scene")) {
                 open_scene_popup = true;
+            }
+            if(ImGui::MenuItem("Open Envmap")) {
+                load_envmap_popup = true;
             }
             ImGui::EndMenu();
         }
@@ -170,41 +235,28 @@ void gui(ImGuiRenderer& imgui) {
     if(open_scene_popup) {
         ImGui::OpenPopup("###openscenepopup");
 
-        scene_files.clear();
-        for(auto&& entry : std::filesystem::directory_iterator(data_path)) {
-            if(entry.status().type() == std::filesystem::file_type::regular) {
-                const auto ext = entry.path().extension();
-                if(ext == ".gltf" || ext == ".glb") {
-                    scene_files.emplace_back(entry.path().string());
-                }
-            }
-        }
+        const std::array<std::string, 2> extensions = {".gltf", ".glb"};
+        load_files = list_data_files(extensions);
     }
 
     if(ImGui::BeginPopup("###openscenepopup", ImGuiWindowFlags_AlwaysAutoResize)) {
-        auto load_scene = [](const std::string path) {
-            auto result = Scene::from_gltf(path);
-            if(!result.is_ok) {
-                std::cerr << "Unable to load scene (" << path << ")" << std::endl;
-            } else {
-                scene = std::move(result.value);
-            }
+        if(load_file_window(load_files, load_scene)) {
             ImGui::CloseCurrentPopup();
-        };
-
-        char buffer[1024] = {};
-        if(ImGui::InputText("Load scene", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
-            load_scene(buffer);
         }
 
-        if(!scene_files.empty()) {
-            for(const std::string& p : scene_files) {
-                const auto abs = std::filesystem::absolute(p).string();
-                if(ImGui::MenuItem(abs.c_str())) {
-                    load_scene(p);
-                    break;
-                }
-            }
+        ImGui::EndPopup();
+    }
+
+    if(load_envmap_popup) {
+        ImGui::OpenPopup("###openenvmappopup");
+
+        const std::array<std::string, 3> extensions = {".png", ".jpg", ".tga"};
+        load_files = list_data_files(extensions);
+    }
+
+    if(ImGui::BeginPopup("###openenvmappopup", ImGuiWindowFlags_AlwaysAutoResize)) {
+        if(load_file_window(load_files, load_envmap)) {
+            ImGui::CloseCurrentPopup();
         }
 
         ImGui::EndPopup();
@@ -271,13 +323,9 @@ void gui(ImGuiRenderer& imgui) {
 
 
 
-std::unique_ptr<Scene> create_default_scene() {
-    auto scene = std::make_unique<Scene>();
-
-    // Load default cube model
-    auto result = Scene::from_gltf(std::string(data_path) + "DamagedHelmet.glb");
-    ALWAYS_ASSERT(result.is_ok, "Unable to load default scene");
-    scene = std::move(result.value);
+void load_default_scene() {
+    load_scene(std::string(data_path) + "DamagedHelmet.glb");
+    load_envmap(std::string(data_path) + "pretoria_gardens.jpg");
 
     scene->set_sun(glm::vec3(0.2f, 1.0f, 0.1f), glm::vec3(3.0f));
 
@@ -296,14 +344,6 @@ std::unique_ptr<Scene> create_default_scene() {
         light.set_radius(50.0f);
         scene->add_light(std::move(light));
     }
-
-    if(auto cubemap = CubeMapData::from_files("../../data/cubemaps/sky", ".tga"); cubemap.is_ok) {
-        scene->set_envmap(Texture(std::move(cubemap.value)));
-    } else {
-        std::cerr << "Unable to load envmap" << std::endl;
-    }
-
-    return scene;
 }
 
 struct RendererState {
@@ -360,7 +400,7 @@ int main(int argc, char** argv) {
 
     ImGuiRenderer imgui(window);
 
-    scene = create_default_scene();
+    load_default_scene();
 
     auto tonemap_program = Program::from_files("tonemap.frag", "screen.vert");
     RendererState renderer;

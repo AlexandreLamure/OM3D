@@ -125,6 +125,9 @@ class Span {
         template<size_t N>
         inline constexpr Span(std::array<T, N>& arr) : _data(arr.data()), _size(N) {}
 
+        template<size_t N>
+        inline constexpr Span(const std::array<std::remove_const_t<T>, N>& arr) : _data(arr.data()), _size(N) {}
+
         template<typename C, typename = std::enable_if_t<is_compat<data_type<C>>>>
         inline constexpr Span(C&& vec) : _data(vec.data()), _size(std::distance(vec.begin(), vec.end())) {}
 
