@@ -40,6 +40,8 @@ class Scene : NonMovable {
 
 
         std::shared_ptr<Texture> _envmap;
+        Material _sky_material;
+
         Camera _camera;
 };
 

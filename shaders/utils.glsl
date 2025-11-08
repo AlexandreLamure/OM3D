@@ -70,6 +70,16 @@ vec2 to_equirec(vec3 v) {
     return -vec2(atan(-v.y, v.x), asin(v.z)) * vec2(0.1591, 0.3183) + 0.5;
 }
 
+vec3 unproject_ndc(vec3 ndc, mat4 inv_matrix) {
+    const vec4 p = (inv_matrix * vec4(ndc, 1.0));
+    return p.xyz / p.w;
+}
+
+vec3 unproject(vec2 uv, float depth, mat4 inv_matrix) {
+    const vec3 ndc = vec3(uv * 2.0 - 1.0, depth);
+    return unproject_ndc(ndc, inv_matrix);
+}
+
 vec2 hammersley(uint i, uint N) {
     uint bits = (i << 16u) | (i >> 16u);
     bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);

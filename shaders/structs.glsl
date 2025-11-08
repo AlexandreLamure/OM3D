@@ -1,5 +1,6 @@
 struct CameraData {
     mat4 view_proj;
+    mat4 inv_view_proj;
     vec3 position;
     float padding;
 };

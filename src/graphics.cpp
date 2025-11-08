@@ -167,6 +167,14 @@ const Texture& brdf_lut() {
     return brdf_lut_texture;
 }
 
+
+void draw_full_screen_triangle() {
+    if(audit_bindings_before_draw) {
+        audit_bindings();
+    }
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 std::shared_ptr<Texture> default_black_texture() {
     return default_textures.black;
 }

@@ -441,7 +441,7 @@ int main(int argc, char** argv) {
                 scene->render();
             }
 
-            // Apply a tonemap in compute shader
+            // Apply a tonemap as a full screen pass
             {
                 PROFILE_GPU("Tonemap");
 
@@ -449,7 +449,7 @@ int main(int argc, char** argv) {
                 tonemap_program->bind();
                 tonemap_program->set_uniform(HASH("exposure"), exposure);
                 renderer.lit_hdr_texture.bind(0);
-                glDrawArrays(GL_TRIANGLES, 0, 3);
+                draw_full_screen_triangle();
             }
 
             // Blit tonemap result to screen

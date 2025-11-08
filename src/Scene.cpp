@@ -7,6 +7,7 @@
 namespace OM3D {
 
 Scene::Scene() {
+    _sky_material.set_program(Program::from_files("sky.frag", "screen.vert"));
 }
 
 void Scene::add_object(SceneObject obj) {
@@ -48,6 +49,7 @@ void Scene::render() const {
     {
         auto mapping = buffer.map(AccessType::WriteOnly);
         mapping[0].camera.view_proj = _camera.view_proj_matrix();
+        mapping[0].camera.inv_view_proj = glm::inverse(_camera.view_proj_matrix());
         mapping[0].camera.position = _camera.position();
         mapping[0].point_light_count = u32(_point_lights.size());
         mapping[0].sun_color = _sun_color;
@@ -72,9 +74,16 @@ void Scene::render() const {
     }
     light_buffer.bind(BufferUsage::Storage, 1);
 
+    // Bind envmap
     if(_envmap) {
         _envmap->bind(4);
+
+        // Render the sky
+        _sky_material.bind();
+        draw_full_screen_triangle();
     }
+
+    // Päss brdf lut needed for lighting to scene rendering shaders
     brdf_lut().bind(5);
 
     // Render every object

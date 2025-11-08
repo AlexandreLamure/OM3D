@@ -57,7 +57,7 @@ vec3 eval_brdf(vec3 N, vec3 V, vec3 L, vec3 albedo, float metallic, float roughn
 }
 
 float roughness_to_mip(float r, uint mips) {
-    return (pow(2.0, r) - 1.0) * (mips - 1);
+    return pow(r, 0.25) * (mips - 1);
 }
 
 vec3 eval_ibl(samplerCube envmap, sampler2D brdf_lut, vec3 N, vec3 V, vec3 albedo, float metallic, float roughness) {
