@@ -12,7 +12,7 @@ struct FrameData {
     uint point_light_count;
 
     vec3 sun_color;
-    uint has_envmap;
+    uint padding;
 };
 
 struct PointLight {

@@ -172,6 +172,13 @@ void draw_full_screen_triangle() {
     if(audit_bindings_before_draw) {
         audit_bindings();
     }
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(4);
+
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
@@ -281,6 +288,19 @@ static bool is_image_type(GLenum type) {
     }
 }
 
+
+[[maybe_unused]]
+static bool is_cube_type(GLenum type) {
+    switch(type) {
+        case GL_IMAGE_CUBE:
+        case GL_SAMPLER_CUBE:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 void audit_bindings() {
     auto get = [](GLenum e) {
         int v = 0;
@@ -320,7 +340,7 @@ void audit_bindings() {
 
                 unsigned index = 0;
                 glGetUniformuiv(current_program, location, &index);
-                ALWAYS_ASSERT(glIsTexture(get_at(GL_TEXTURE_BINDING_2D, index)), "Bound texture is destroyed or invalid");
+                ALWAYS_ASSERT(glIsTexture(get_at(is_cube_type(type) ? GL_TEXTURE_BINDING_CUBE_MAP : GL_TEXTURE_BINDING_2D, index)), "Bound texture is destroyed or invalid");
             }
         }
     }

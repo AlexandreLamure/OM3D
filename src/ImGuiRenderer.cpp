@@ -304,9 +304,12 @@ void ImGuiRenderer::render(const ImDrawData* draw_data) {
             glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(ImDrawVert), vertex_offset);
             glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeof(ImDrawVert), vertex_offset + (2 * sizeof(float)));
             glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, false, sizeof(ImDrawVert), vertex_offset + (4 * sizeof(float)));
+
             glEnableVertexAttribArray(0);
             glEnableVertexAttribArray(1);
             glEnableVertexAttribArray(2);
+            glDisableVertexAttribArray(3);
+            glDisableVertexAttribArray(4);
 
             glDrawElements(GL_TRIANGLES, cmd.ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, reinterpret_cast<void*>(drawn_index_offset));
             drawn_index_offset += cmd.ElemCount * sizeof(ImDrawIdx);
