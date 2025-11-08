@@ -254,6 +254,8 @@ void ImGuiRenderer::render(const ImDrawData* draw_data) {
     _material.set_uniform(HASH("viewport_size"), glm::vec2(draw_data->DisplaySize.x, draw_data->DisplaySize.y));
     _material.bind();
 
+    glDisable(GL_CULL_FACE);
+
     glEnable(GL_SCISSOR_TEST);
     DEFER(glDisable(GL_SCISSOR_TEST));
 
