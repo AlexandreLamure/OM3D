@@ -59,6 +59,8 @@ void process_profile_markers();
 namespace profile {
     u32 begin_profile_zone(const char* name);
     void end_profile_zone(u32 zone_id);
+
+    void destroy_profile();
 }
 
 }

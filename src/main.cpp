@@ -472,6 +472,7 @@ int main(int argc, char** argv) {
     scene = nullptr;
     envmap = nullptr;
     imgui = nullptr;
+    tonemap_program = nullptr;
     renderer = {};
     destroy_graphics();
 }

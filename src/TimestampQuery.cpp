@@ -17,9 +17,14 @@ namespace profile {
     };
 
     static std::vector<Marker> current_frame;
-
     static std::deque<std::vector<Marker>> queued_frames;
     static std::vector<ProfileZone> ready;
+
+    void destroy_profile() {
+        current_frame.clear();
+        queued_frames.clear();
+        ready.clear();
+    }
 
     u32 begin_profile_zone(const char* name) {
         const u32 index = u32(current_frame.size());

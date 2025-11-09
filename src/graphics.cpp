@@ -3,6 +3,7 @@
 #include "ImageFormat.h"
 #include "Texture.h"
 #include "Program.h"
+#include "TimestampQuery.h"
 
 #include <glad/gl.h>
 
@@ -166,6 +167,7 @@ void init_graphics() {
 void destroy_graphics() {
     brdf_lut_texture = {};
     default_textures = {};
+    profile::destroy_profile();
 }
 
 const Texture& brdf_lut() {
