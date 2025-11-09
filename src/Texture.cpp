@@ -138,7 +138,7 @@ void Texture::bind(u32 index) const {
 }
 
 void Texture::bind_as_image(u32 index, AccessType access) {
-    glBindImageTexture(index, _handle.get(), 0, false, 0, access_type_to_gl(access), image_format_to_gl(_format).internal_format);
+    glBindImageTexture(index, _handle.get(), 0, texture_type() != GL_TEXTURE_2D, 0, access_type_to_gl(access), image_format_to_gl(_format).internal_format);
 }
 
 u64 Texture::bindless_handle() const {
