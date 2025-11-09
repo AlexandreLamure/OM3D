@@ -156,8 +156,8 @@ void init_graphics() {
         {
             std::memset(data.data.get(), 0, 16);
             for(size_t i = 0; i != 4; ++i) {
-                data.data[i * 4 + 1] = 0;
-                data.data[i * 4 + 2] = u8(255.0f * 0.6f);
+                data.data[i * 4 + 1] = u8(255.0f * 0.6f);
+                data.data[i * 4 + 2] = 0;
             }
             default_textures.metal_rough = std::make_shared<Texture>(data);
         }

@@ -50,8 +50,8 @@ void main() {
     const float alpha = albedo_tex.a;
 
     const vec4 metal_rough_tex = texture(in_metal_rough, in_uv);
-    const float metallic = metal_rough_tex.b * metal_rough_factor.x; // as per glTF spec
     const float roughness = metal_rough_tex.g * metal_rough_factor.y; // as per glTF spec
+    const float metallic = metal_rough_tex.b * metal_rough_factor.x; // as per glTF spec
 
 
     const vec3 to_view = (frame.camera.position - in_position);
