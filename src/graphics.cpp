@@ -163,6 +163,11 @@ void init_graphics() {
     }
 }
 
+void destroy_graphics() {
+    brdf_lut_texture = {};
+    default_textures = {};
+}
+
 const Texture& brdf_lut() {
     return brdf_lut_texture;
 }

@@ -398,7 +398,7 @@ int main(int argc, char** argv) {
     glfwSwapInterval(1); // Enable vsync
     init_graphics();
 
-    ImGuiRenderer imgui(window);
+    std::unique_ptr<ImGuiRenderer> imgui = std::make_unique<ImGuiRenderer>(window);
 
     load_default_scene();
 
@@ -461,11 +461,17 @@ int main(int argc, char** argv) {
             }
 
             // Draw GUI on top
-            gui(imgui);
+            gui(*imgui);
         }
 
         glfwSwapBuffers(window);
     }
 
-    scene = nullptr; // destroy scene and child OpenGL objects
+
+    // destroy scene and child OpenGL objects
+    scene = nullptr;
+    envmap = nullptr;
+    imgui = nullptr;
+    renderer = {};
+    destroy_graphics();
 }
