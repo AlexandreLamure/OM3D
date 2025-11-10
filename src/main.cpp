@@ -78,6 +78,12 @@ void process_inputs(GLFWwindow* window, Camera& camera) {
         if(glfwGetKey(window, 'A') == GLFW_PRESS) {
             movement -= camera.right();
         }
+        if(glfwGetKey(window, 'Q') == GLFW_PRESS) {
+            movement += camera.up();
+        }
+        if(glfwGetKey(window, 'E') == GLFW_PRESS) {
+            movement -= camera.up();
+        }
 
         float speed = 10.0f;
         if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
