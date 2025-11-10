@@ -80,7 +80,7 @@ void Scene::render() const {
     DEBUG_ASSERT(_envmap && !_envmap->is_null());
     _envmap->bind(4);
 
-    // Päss brdf lut needed for lighting to scene rendering shaders
+    // Bind brdf lut needed for lighting to scene rendering shaders
     brdf_lut().bind(5);
 
     // Render the sky
