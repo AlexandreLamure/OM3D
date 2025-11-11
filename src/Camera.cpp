@@ -54,8 +54,7 @@ glm::mat4 Camera::perspective(float fov_y, float ratio, float z_near) {
                   0.0f, 0.0f, z_near,  0.0f);
 }
 
-glm::mat4 Camera::orthographic(float left, float right, float bottom, float top, float z_near, float z_far)
-{
+glm::mat4 Camera::orthographic(float left, float right, float bottom, float top, float z_near, float z_far) {
     glm::mat4 reverse_z = glm::mat4(1.0f);
     reverse_z[2][2] = -1.0f;
     reverse_z[3][2] = 1.0f;
