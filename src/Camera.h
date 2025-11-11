@@ -20,6 +20,7 @@ struct Frustum {
 class Camera {
     public:
         static glm::mat4 perspective(float fov_y, float ratio, float z_near);
+        static glm::mat4 orthographic(float left, float right, float bottom, float top, float z_near, float z_far);
 
         Camera();
 

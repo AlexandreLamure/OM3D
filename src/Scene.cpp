@@ -41,8 +41,12 @@ void Scene::set_envmap(std::shared_ptr<Texture> env) {
     _envmap = std::move(env);
 }
 
-void Scene::set_sun(glm::vec3 direction, glm::vec3 color) {
-    _sun_direction = direction;
+void Scene::set_sun(float altitude, float azimuth, glm::vec3 color) {
+    // Convert from degrees to radians
+    const float alt = glm::radians(altitude); 
+    const float azi = glm::radians(azimuth); 
+    // Convert from polar to cartesian
+    _sun_direction = glm::vec3(sin(azi) * cos(alt), sin(alt), cos(azi) * cos(alt));
     _sun_color = color;
 }
 
