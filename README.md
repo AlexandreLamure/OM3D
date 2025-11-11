@@ -10,7 +10,7 @@ Requirements: cmake 3.20 minimum, C++17, and OpenGL 4.5.
 # At the project root
 mkdir -p build/debug
 cd build/debug
-cmake ../..
+cmake -DCMAKE_BUILD_TYPE=Debug ../.. # use -DCMAKE_BUILD_TYPE=Release alternatively
 make
 ```
 
