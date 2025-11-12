@@ -365,9 +365,9 @@ struct RendererState {
         state.size = size;
 
         if(state.size.x > 0 && state.size.y > 0) {
-            state.depth_texture = Texture(size, ImageFormat::Depth32_FLOAT);
-            state.lit_hdr_texture = Texture(size, ImageFormat::RGBA16_FLOAT);
-            state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM);
+            state.depth_texture = Texture(size, ImageFormat::Depth32_FLOAT, WrapMode::Clamp);
+            state.lit_hdr_texture = Texture(size, ImageFormat::RGBA16_FLOAT, WrapMode::Clamp);
+            state.tone_mapped_texture = Texture(size, ImageFormat::RGBA8_UNORM, WrapMode::Clamp);
             state.main_framebuffer = Framebuffer(&state.depth_texture, std::array{&state.lit_hdr_texture});
             state.tone_map_framebuffer = Framebuffer(nullptr, std::array{&state.tone_mapped_texture});
         }
