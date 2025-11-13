@@ -1,21 +1,22 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include <SceneObject.h>
-#include <PointLight.h>
 #include <Camera.h>
-
-#include <vector>
+#include <PointLight.h>
+#include <SceneObject.h>
 #include <memory>
+#include <vector>
 
-namespace OM3D {
+namespace OM3D
+{
 
-class Scene : NonMovable {
-
+    class Scene : NonMovable
+    {
     public:
         Scene();
 
-        static Result<std::unique_ptr<Scene>> from_gltf(const std::string& file_name);
+        static Result<std::unique_ptr<Scene>>
+        from_gltf(const std::string &file_name);
 
         void render() const;
 
@@ -25,11 +26,12 @@ class Scene : NonMovable {
         Span<const SceneObject> objects() const;
         Span<const PointLight> point_lights() const;
 
-        Camera& camera();
-        const Camera& camera() const;
+        Camera &camera();
+        const Camera &camera() const;
 
         void set_envmap(std::shared_ptr<Texture> env);
-        void set_sun(float altitude, float azimuth, glm::vec3 color = glm::vec3(1.0f));
+        void set_sun(float altitude, float azimuth,
+                     glm::vec3 color = glm::vec3(1.0f));
 
     private:
         std::vector<SceneObject> _objects;
@@ -42,8 +44,8 @@ class Scene : NonMovable {
         Material _sky_material;
 
         Camera _camera;
-};
+    };
 
-}
+} // namespace OM3D
 
 #endif // SCENE_H

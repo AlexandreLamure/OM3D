@@ -2,30 +2,32 @@
 #define CAMERA_H
 
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <utils.h>
 
-namespace OM3D {
+namespace OM3D
+{
 
-struct Frustum {
-    glm::vec3 _near_normal;
-    // No far plane (zFar is +inf)
-    glm::vec3 _top_normal;
-    glm::vec3 _bottom_normal;
-    glm::vec3 _right_normal;
-    glm::vec3 _left_normal;
-};
+    struct Frustum
+    {
+        glm::vec3 _near_normal;
+        // No far plane (zFar is +inf)
+        glm::vec3 _top_normal;
+        glm::vec3 _bottom_normal;
+        glm::vec3 _right_normal;
+        glm::vec3 _left_normal;
+    };
 
-
-class Camera {
+    class Camera
+    {
     public:
         static glm::mat4 perspective(float fov_y, float ratio, float z_near);
-        static glm::mat4 orthographic(float left, float right, float bottom, float top, float z_near, float z_far);
+        static glm::mat4 orthographic(float left, float right, float bottom,
+                                      float top, float z_near, float z_far);
 
         Camera();
 
-        void set_view(const glm::mat4& matrix);
-        void set_proj(const glm::mat4& matrix);
+        void set_view(const glm::mat4 &matrix);
+        void set_proj(const glm::mat4 &matrix);
 
         void set_fov(float fov);
         void set_ratio(float ratio);
@@ -35,9 +37,9 @@ class Camera {
         glm::vec3 right() const;
         glm::vec3 up() const;
 
-        const glm::mat4& projection_matrix() const;
-        const glm::mat4& view_matrix() const;
-        const glm::mat4& view_proj_matrix() const;
+        const glm::mat4 &projection_matrix() const;
+        const glm::mat4 &view_matrix() const;
+        const glm::mat4 &view_proj_matrix() const;
 
         bool is_orthographic() const;
 
@@ -52,8 +54,8 @@ class Camera {
         glm::mat4 _projection;
         glm::mat4 _view;
         glm::mat4 _view_proj;
-};
+    };
 
-}
+} // namespace OM3D
 
 #endif // CAMERA_H
