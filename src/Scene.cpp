@@ -3,6 +3,8 @@
 #include <TypedBuffer.h>
 #include <shader_structs.h>
 
+#include "Scene.h"
+
 namespace OM3D
 {
 
@@ -103,10 +105,12 @@ namespace OM3D
         _sky_material.bind();
         draw_full_screen_triangle();
 
+        const Frustum frustum = camera().build_frustum();
+
         // Render every object
         for (const SceneObject &obj : _objects)
         {
-            obj.render();
+            obj.render(camera(), frustum);
         }
     }
 

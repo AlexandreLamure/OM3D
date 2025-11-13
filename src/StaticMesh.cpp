@@ -1,7 +1,7 @@
+#include "StaticMesh.h"
+
 #include <glad/gl.h>
 #include <glm/geometric.hpp>
-
-#include "StaticMesh.h"
 
 namespace OM3D
 {
@@ -29,12 +29,19 @@ namespace OM3D
             max_squared_distance =
                 std::max(max_squared_distance, glm::dot(direction, direction));
         }
-        // use bounding sphere with barycenter barycenter and radius
+        // use bounding sphere with barycenter and radius
         // sqrt(max_squared_distance)
+        _bounding_sphere =
+            BoundingSphere(barycenter, std::sqrt(max_squared_distance));
     }
 
-    void StaticMesh::draw() const
+    void StaticMesh::draw(const Camera &camera, const Frustum &frustum) const
     {
+        if (!_bounding_sphere.collideFrustum(camera, frustum))
+        {
+            return;
+        }
+
         _vertex_buffer.bind(BufferUsage::Attribute);
         _index_buffer.bind(BufferUsage::Index);
 

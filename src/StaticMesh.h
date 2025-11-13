@@ -6,6 +6,8 @@
 #include <graphics.h>
 #include <vector>
 
+#include "BoundingSphere.h"
+
 namespace OM3D
 {
 
@@ -21,14 +23,14 @@ namespace OM3D
         StaticMesh() = default;
         StaticMesh(StaticMesh &&) = default;
         StaticMesh &operator=(StaticMesh &&) = default;
+        void draw(const Camera &camera, const Frustum &frustum) const;
 
         StaticMesh(const MeshData &data);
-
-        void draw() const;
 
     private:
         TypedBuffer<Vertex> _vertex_buffer;
         TypedBuffer<u32> _index_buffer;
+        BoundingSphere _bounding_sphere;
     };
 
 } // namespace OM3D

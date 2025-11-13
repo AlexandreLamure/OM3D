@@ -11,7 +11,7 @@ namespace OM3D
         , _material(std::move(material))
     {}
 
-    void SceneObject::render() const
+    void SceneObject::render(const Camera &camera, const Frustum &frustum) const
     {
         if (!_material || !_mesh)
         {
@@ -20,7 +20,7 @@ namespace OM3D
 
         _material->set_uniform(HASH("model"), transform());
         _material->bind();
-        _mesh->draw();
+        _mesh->draw(camera, frustum);
     }
 
     void SceneObject::set_transform(const glm::mat4 &tr)
