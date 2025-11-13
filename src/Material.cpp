@@ -42,6 +42,8 @@ void Material::bind() const {
         case BlendMode::Alpha:
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            // Disable back_face culling when the object is transparent
+            glDisable(GL_CULL_FACE);
         break;
     }
 
