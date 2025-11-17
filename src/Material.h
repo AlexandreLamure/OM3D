@@ -33,24 +33,20 @@ class Material {
 
         bool is_opaque() const;
 
-        template<typename T>
-        void set_uniform(u32 name_hash, T&& args) {
-            set_uniform_inner(name_hash, FWD(args));
-        }
+        // Uniform will be stored inside the material and reset every time its bound
+        void set_stored_uniform(u32 name_hash, UniformValue value);
 
-        template<typename T>
-        void set_uniform(std::string_view name, T&& args) {
-            set_uniform_inner(str_hash(name), FWD(args));
+        // Uniform is set immediately and might get overriden by 'set_uniform' called on OTHER materials
+        template<typename... Args>
+        void set_uniform(Args&&... args) {
+            _program->set_uniform(FWD(args)...);
         }
-
 
         void bind() const;
 
         static Material textured_pbr_material(bool alpha_test = false);
 
     private:
-        void set_uniform_inner(u32 name_hash, UniformValue value);
-
         std::shared_ptr<Program> _program;
         std::vector<std::pair<u32, std::shared_ptr<Texture>>> _textures;
         std::vector<std::pair<u32, UniformValue>> _uniforms;

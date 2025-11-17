@@ -460,21 +460,21 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                     }
 
                     if(alpha_test) {
-                        mat->set_uniform("alpha_cutoff", float(gltf_mat.alphaCutoff));
+                        mat->set_stored_uniform(HASH("alpha_cutoff"), float(gltf_mat.alphaCutoff));
                     }
 
-                    mat->set_uniform("base_color_factor", glm::vec3(
+                    mat->set_stored_uniform(HASH("base_color_factor"), glm::vec3(
                         gltf_mat.pbrMetallicRoughness.baseColorFactor[0],
                         gltf_mat.pbrMetallicRoughness.baseColorFactor[1],
                         gltf_mat.pbrMetallicRoughness.baseColorFactor[2]
                     ));
 
-                    mat->set_uniform("metal_rough_factor", glm::vec2(
+                    mat->set_stored_uniform(HASH("metal_rough_factor"), glm::vec2(
                         gltf_mat.pbrMetallicRoughness.metallicFactor,
                         gltf_mat.pbrMetallicRoughness.roughnessFactor
                     ));
 
-                    mat->set_uniform("emissive_factor", glm::vec3(
+                    mat->set_stored_uniform(HASH("emissive_factor"), glm::vec3(
                         gltf_mat.emissiveFactor[0],
                         gltf_mat.emissiveFactor[1],
                         gltf_mat.emissiveFactor[2]

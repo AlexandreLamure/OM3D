@@ -33,7 +33,7 @@ bool Material::is_opaque() const {
     return _blend_mode == BlendMode::None;
 }
 
-void Material::set_uniform_inner(u32 name_hash, UniformValue value) {
+void Material::set_stored_uniform(u32 name_hash, UniformValue value) {
     for(auto& [h, v] : _uniforms) {
         if(h == name_hash) {
             v = value;
@@ -83,9 +83,7 @@ void Material::bind() const {
     }
 
     for(const auto& [h, v] : _uniforms) {
-        std::visit([h, this](const auto& v) {
-            _program->set_uniform(h, v);
-        }, v);
+        _program->set_uniform(h, v);
     }
 
     _program->bind();
@@ -98,7 +96,7 @@ Material Material::textured_pbr_material(bool alpha_test) {
     if(alpha_test) {
         defines.emplace_back("ALPHA_TEST");
     }
-    
+
     material._program = Program::from_files("lit.frag", "basic.vert", defines);
 
     material.set_texture(0u, default_white_texture());

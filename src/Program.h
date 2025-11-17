@@ -70,6 +70,8 @@ class Program : NonCopyable {
         void set_uniform(u32 name_hash, const glm::mat4& value);
         void set_uniform(u32 name_hash, u64 value);
 
+        void set_uniform(u32 name_hash, const UniformValue& value);
+
         template<typename T>
         void set_uniform(std::string_view name, const T& value) {
             set_uniform(str_hash(name), value);
