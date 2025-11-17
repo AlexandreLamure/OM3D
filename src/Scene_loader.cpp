@@ -375,6 +375,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
 
         const tinygltf::Mesh& mesh = gltf.meshes[node.mesh];
 
+        const std::shared_ptr<Material> default_material = std::make_shared<Material>(Material::textured_pbr_material());
         for(size_t j = 0; j != mesh.primitives.size(); ++j) {
             const tinygltf::Primitive& prim = mesh.primitives[j];
 
@@ -391,7 +392,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                 compute_tangents(mesh.value);
             }
 
-            std::shared_ptr<Material> material = std::make_shared<Material>(Material::textured_pbr_material());
+            std::shared_ptr<Material> material = default_material;
             if(prim.material >= 0) {
                 auto& mat = materials[prim.material];
 
@@ -426,13 +427,19 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                         return texture;
                     };
 
+                    const bool opaque = (gltf_mat.alphaMode == "OPAQUE") || (gltf_mat.alphaMode == "NONE");
+                    const bool mask = (gltf_mat.alphaMode == "MASK");
+                    const bool alpha_test = !opaque || mask;
+
                     auto albedo = load_texture(albedo_info, true);
                     auto normal = load_texture(normal_info, false);
                     auto metal_rough = load_texture(metal_rough_info, false);
                     auto emissive = load_texture(emissive_info, false);
 
-                    if(!mat) {
-                        mat = std::make_shared<Material>(Material::textured_pbr_material());
+                    mat = std::make_shared<Material>(Material::textured_pbr_material(alpha_test));
+
+                    if(!opaque && !mask) {
+                        mat->set_blend_mode(BlendMode::Alpha);
                     }
 
                     if(albedo) {
@@ -451,15 +458,19 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                         mat->set_texture(3u, emissive);
                     }
 
+                    mat->set_uniform("alpha_cutoff", float(gltf_mat.alphaCutoff));
+
                     mat->set_uniform("base_color_factor", glm::vec3(
                         gltf_mat.pbrMetallicRoughness.baseColorFactor[0],
                         gltf_mat.pbrMetallicRoughness.baseColorFactor[1],
                         gltf_mat.pbrMetallicRoughness.baseColorFactor[2]
                     ));
+
                     mat->set_uniform("metal_rough_factor", glm::vec2(
                         gltf_mat.pbrMetallicRoughness.metallicFactor,
                         gltf_mat.pbrMetallicRoughness.roughnessFactor
                     ));
+
                     mat->set_uniform("emissive_factor", glm::vec3(
                         gltf_mat.emissiveFactor[0],
                         gltf_mat.emissiveFactor[1],

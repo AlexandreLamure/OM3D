@@ -39,7 +39,7 @@ class Material {
 
         void bind() const;
 
-        static Material textured_pbr_material();
+        static Material textured_pbr_material(bool alpha_test = false);
 
 
     private:

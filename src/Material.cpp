@@ -70,9 +70,15 @@ void Material::bind() const {
     _program->bind();
 }
 
-Material Material::textured_pbr_material() {
+Material Material::textured_pbr_material(bool alpha_test) {
     Material material;
-    material._program = Program::from_files("lit.frag", "basic.vert");
+
+    std::vector<std::string> defines;
+    if(alpha_test) {
+        defines.emplace_back("ALPHA_TEST");
+    }
+    
+    material._program = Program::from_files("lit.frag", "basic.vert", defines);
 
     material.set_texture(0u, default_white_texture());
     material.set_texture(1u, default_normal_texture());
