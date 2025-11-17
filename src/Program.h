@@ -12,8 +12,22 @@
 
 #include <memory>
 #include <vector>
+#include <variant>
 
 namespace OM3D {
+
+// all possible uniform types
+using UniformValue = std::variant<
+    u32,
+    float,
+    glm::vec2,
+    glm::vec3,
+    glm::vec4,
+    glm::mat2,
+    glm::mat3,
+    glm::mat4,
+    u64
+>;
 
 class Program : NonCopyable {
 

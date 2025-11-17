@@ -459,7 +459,9 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                         mat->set_texture(3u, emissive);
                     }
 
-                    mat->set_uniform("alpha_cutoff", float(gltf_mat.alphaCutoff));
+                    if(alpha_test) {
+                        mat->set_uniform("alpha_cutoff", float(gltf_mat.alphaCutoff));
+                    }
 
                     mat->set_uniform("base_color_factor", glm::vec3(
                         gltf_mat.pbrMetallicRoughness.baseColorFactor[0],

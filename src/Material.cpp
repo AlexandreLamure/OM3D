@@ -33,6 +33,16 @@ bool Material::is_opaque() const {
     return _blend_mode == BlendMode::None;
 }
 
+void Material::set_uniform_inner(u32 name_hash, UniformValue value) {
+    for(auto& [h, v] : _uniforms) {
+        if(h == name_hash) {
+            v = value;
+            return;
+        }
+    }
+    _uniforms.emplace_back(name_hash, std::move(value));
+}
+
 void Material::bind() const {
     switch(_blend_mode) {
         case BlendMode::None:
@@ -71,6 +81,13 @@ void Material::bind() const {
     for(const auto& texture : _textures) {
         texture.second->bind(texture.first);
     }
+
+    for(const auto& [h, v] : _uniforms) {
+        std::visit([h, this](const auto& v) {
+            _program->set_uniform(h, v);
+        }, v);
+    }
+
     _program->bind();
 }
 
