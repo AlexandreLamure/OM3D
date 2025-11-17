@@ -31,6 +31,8 @@ class Material {
         void set_depth_test_mode(DepthTestMode depth);
         void set_texture(u32 slot, std::shared_ptr<Texture> tex);
 
+        bool is_opaque() const;
+
         template<typename... Args>
         void set_uniform(Args&&... args) {
             _program->set_uniform(FWD(args)...);

@@ -92,9 +92,22 @@ void Scene::render() const {
     draw_full_screen_triangle();
 
     // Render every object
-    for(const SceneObject& obj : _objects) {
-        obj.render();
+    {
+        // Opaque first
+        for(const SceneObject& obj : _objects) {
+            if(obj.material().is_opaque()) {
+                obj.render();
+            }
+        }
+
+        // Transparent after
+        for(const SceneObject& obj : _objects) {
+            if(!obj.material().is_opaque()) {
+                obj.render();
+            }
+        }
     }
+
 }
 
 }

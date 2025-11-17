@@ -19,6 +19,11 @@ void SceneObject::render() const {
     _mesh->draw();
 }
 
+const Material& SceneObject::material() const {
+    DEBUG_ASSERT(_material);
+    return *_material;
+}
+
 void SceneObject::set_transform(const glm::mat4& tr) {
     _transform = tr;
 }

@@ -440,6 +440,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
 
                     if(!opaque && !mask) {
                         mat->set_blend_mode(BlendMode::Alpha);
+                        mat->set_depth_test_mode(DepthTestMode::None);
                     }
 
                     if(albedo) {

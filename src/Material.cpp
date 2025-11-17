@@ -29,6 +29,10 @@ void Material::set_texture(u32 slot, std::shared_ptr<Texture> tex) {
     }
 }
 
+bool Material::is_opaque() const {
+    return _blend_mode == BlendMode::None;
+}
+
 void Material::bind() const {
     switch(_blend_mode) {
         case BlendMode::None:
