@@ -623,6 +623,8 @@ namespace OM3D
                     SceneObject(std::make_shared<StaticMesh>(mesh.value),
                                 std::move(material));
                 scene_object.set_transform(node_transform);
+                scene_object.set_scale(get_scale(node_transform));
+                scene_object.set_translation(get_translation(node_transform));
                 scene->add_object(std::move(scene_object));
             }
         }

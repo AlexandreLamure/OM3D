@@ -1,7 +1,8 @@
-#include "StaticMesh.h"
-
 #include <glad/gl.h>
 #include <glm/geometric.hpp>
+#include <iostream>
+
+#include "StaticMesh.h"
 
 namespace OM3D
 {
@@ -35,9 +36,12 @@ namespace OM3D
             BoundingSphere(barycenter, std::sqrt(max_squared_distance));
     }
 
-    void StaticMesh::draw(const Camera &camera, const Frustum &frustum) const
+    void StaticMesh::draw(const Camera &camera, const Frustum &frustum,
+                          const glm::vec3 &scale,
+                          const glm::vec3 &translation) const
     {
-        if (!_bounding_sphere.collideFrustum(camera, frustum))
+        if (!_bounding_sphere.collideFrustum(camera, frustum, scale,
+                                             translation))
         {
             return;
         }

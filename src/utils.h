@@ -4,6 +4,8 @@
 #include <array>
 #include <cstdint>
 #include <defines.h>
+#include <glm/matrix.hpp>
+#include <glm/vec3.hpp>
 #include <string>
 #include <utility>
 
@@ -325,6 +327,9 @@ namespace OM3D
     Result<std::string> read_text_file(const std::string &file_name);
 
     bool ends_with(std::string_view str, std::string_view suffix);
+
+    glm::vec3 get_scale(const glm::mat4 &transform);
+    glm::vec3 get_translation(const glm::mat4 &transform);
 
 } // namespace OM3D
 

@@ -1,5 +1,3 @@
-#include "Scene.h"
-
 #include <TypedBuffer.h>
 #include <shader_structs.h>
 

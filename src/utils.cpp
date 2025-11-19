@@ -104,4 +104,16 @@ namespace OM3D
         return str.substr(str.size() - suffix.size()) == suffix;
     }
 
+    glm::vec3 get_scale(const glm::mat4 &transform)
+    {
+        return { glm::length(glm::vec3(transform[0])),
+                 glm::length(glm::vec3(transform[1])),
+                 glm::length(glm::vec3(transform[2])) };
+    }
+
+    glm::vec3 get_translation(const glm::mat4 &transform)
+    {
+        return glm::vec3(transform[3]);
+    }
+
 } // namespace OM3D
