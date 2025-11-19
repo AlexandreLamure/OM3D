@@ -44,23 +44,31 @@ namespace OM3D
         }
     }
 
-    void Material::bind() const
+    void Material::bind(const bool backface_culling) const
     {
         switch (_blend_mode)
         {
         case BlendMode::None:
             glDisable(GL_BLEND);
-            // Enable back_face culling when the object is not transparent
-            glEnable(GL_CULL_FACE);
-            glCullFace(GL_BACK);
-            glFrontFace(GL_CCW);
+
+            if (backface_culling)
+            {
+                // Enable back_face culling when the object is not transparent
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_BACK);
+                glFrontFace(GL_CCW);
+            }
             break;
 
         case BlendMode::Alpha:
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            // Disable back_face culling when the object is transparent
-            glDisable(GL_CULL_FACE);
+
+            if (backface_culling)
+            {
+                // Disable back_face culling when the object is transparent
+                glDisable(GL_CULL_FACE);
+            }
             break;
         }
 

@@ -1,7 +1,7 @@
+#include "Scene.h"
+
 #include <TypedBuffer.h>
 #include <shader_structs.h>
-
-#include "Scene.h"
 
 namespace OM3D
 {
@@ -62,6 +62,20 @@ namespace OM3D
         _sun_color = color;
     }
 
+    void Scene::set_backface_culling(const bool backface_culling)
+    {
+        _backface_culling = backface_culling;
+    }
+
+    void
+    Scene::set_frustum_culling(const bool frustum_culling,
+                               const float frustum_bounding_sphere_radius_coeff)
+    {
+        _frustum_culling = frustum_culling;
+        _frustum_bounding_sphere_radius_coeff =
+            frustum_bounding_sphere_radius_coeff;
+    }
+
     void Scene::render(const bool after_z_prepass) const
     {
         // Fill and bind frame data buffer
@@ -100,15 +114,18 @@ namespace OM3D
         brdf_lut().bind(5);
 
         // Render the sky
-        _sky_material.bind();
+        _sky_material.bind(false);
         draw_full_screen_triangle();
 
-        const Frustum frustum = camera().build_frustum();
+        Frustum frustum = camera().build_frustum();
+        frustum._culling_enabled = _frustum_culling;
+        frustum._culling_bounding_sphere_coeff =
+            _frustum_bounding_sphere_radius_coeff;
 
         // Render every object
         for (const SceneObject &obj : _objects)
         {
-            obj.render(camera(), frustum, after_z_prepass);
+            obj.render(camera(), frustum, after_z_prepass, _backface_culling);
         }
     }
 

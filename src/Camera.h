@@ -15,6 +15,8 @@ namespace OM3D
         glm::vec3 _bottom_normal;
         glm::vec3 _right_normal;
         glm::vec3 _left_normal;
+        bool _culling_enabled = true;
+        float _culling_bounding_sphere_coeff = 1.0f;
     };
 
     class Camera

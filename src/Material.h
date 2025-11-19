@@ -40,7 +40,7 @@ namespace OM3D
             _program->set_uniform(FWD(args)...);
         }
 
-        void bind() const;
+        void bind(bool backface_culling) const;
 
         static Material textured_pbr_material();
 

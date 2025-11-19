@@ -21,6 +21,10 @@ static float sun_altitude = 45.0;
 static float sun_azimuth = 45.0;
 static float sun_intensity = 7.0;
 static float exposure = 1.0;
+static bool backface_culling = true;
+static bool frustum_culling = true;
+static float frustum_bounding_sphere_radius_coeff = 1.0;
+static bool z_prepass = true;
 
 static std::unique_ptr<Scene> scene;
 static std::shared_ptr<Texture> envmap;
@@ -161,6 +165,9 @@ void load_scene(const std::string &filename)
         scene = std::move(res.value);
         scene->set_envmap(envmap);
         scene->set_sun(sun_altitude, sun_azimuth, glm::vec3(sun_intensity));
+        scene->set_backface_culling(backface_culling);
+        scene->set_frustum_culling(frustum_culling,
+                                   frustum_bounding_sphere_radius_coeff);
     }
     else
     {
@@ -268,6 +275,27 @@ void gui(ImGuiRenderer &imgui)
             }
             ImGui::DragFloat("Exposure", &exposure, 0.1f, 0.01f, 100.0f, "%.1f",
                              ImGuiSliderFlags_Logarithmic);
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Optimizations"))
+        {
+            ImGui::Checkbox("Backface culling", &backface_culling);
+            scene->set_backface_culling(backface_culling);
+
+            ImGui::Checkbox("Frustum culling", &frustum_culling);
+
+            if (frustum_culling)
+            {
+                ImGui::DragFloat("Bounding Sphere Radius Factor",
+                                 &frustum_bounding_sphere_radius_coeff, 0.1f,
+                                 -2.0f, 2.0f, "%.1f");
+            }
+            scene->set_frustum_culling(frustum_culling,
+                                       frustum_bounding_sphere_radius_coeff);
+
+            ImGui::Checkbox("Z-prepass", &z_prepass);
+
             ImGui::EndMenu();
         }
 
@@ -538,20 +566,23 @@ int main(int argc, char **argv)
         {
             PROFILE_GPU("Frame");
 
-            // Render only the depth-buffer -> Z-Prepass
+            if (z_prepass)
             {
-                PROFILE_GPU("Z-Prepass");
+                // Render only the depth-buffer -> Z-Prepass
+                {
+                    PROFILE_GPU("Z-Prepass");
 
-                renderer.depth_framebuffer.bind(true, false);
-                scene->render(false);
+                    renderer.depth_framebuffer.bind(true, false);
+                    scene->render(false);
+                }
             }
 
             // Render the scene
             {
                 PROFILE_GPU("Main pass");
 
-                renderer.main_framebuffer.bind(false, true);
-                scene->render(true);
+                renderer.main_framebuffer.bind(!z_prepass, true);
+                scene->render(z_prepass);
             }
 
             // Apply a tonemap as a full screen pass

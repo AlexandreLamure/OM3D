@@ -24,7 +24,7 @@ namespace OM3D
         StaticMesh(StaticMesh &&) = default;
         StaticMesh &operator=(StaticMesh &&) = default;
         void draw(const Camera &camera, const Frustum &frustum,
-                  const glm::vec3 &scale, const glm::vec3 &translate) const;
+                  const glm::vec3 &scale, const glm::vec3 &translation) const;
 
         StaticMesh(const MeshData &data);
 

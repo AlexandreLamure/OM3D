@@ -1,5 +1,3 @@
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "SceneObject.h"
 
 namespace OM3D
@@ -12,7 +10,8 @@ namespace OM3D
     {}
 
     void SceneObject::render(const Camera &camera, const Frustum &frustum,
-                             const bool after_z_prepass) const
+                             const bool after_z_prepass,
+                             const bool backface_culling) const
     {
         if (!_material || !_mesh)
         {
@@ -26,7 +25,7 @@ namespace OM3D
         {
             _material->set_depth_test_mode(DepthTestMode::Equal);
         }
-        _material->bind();
+        _material->bind(backface_culling);
         _material->set_depth_test_mode(original_depth_test_mode);
 
         _mesh->draw(camera, frustum, scale(), translation());

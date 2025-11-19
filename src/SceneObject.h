@@ -16,7 +16,7 @@ namespace OM3D
                     std::shared_ptr<Material> material = nullptr);
 
         void render(const Camera &camera, const Frustum &frustum,
-                    bool after_z_prepass) const;
+                    bool after_z_prepass, bool backface_culling) const;
 
         void set_transform(const glm::mat4 &tr);
         void set_scale(const glm::vec3 &scale);

@@ -379,7 +379,7 @@ namespace OM3D
         _material.set_uniform(
             HASH("viewport_size"),
             glm::vec2(draw_data->DisplaySize.x, draw_data->DisplaySize.y));
-        _material.bind();
+        _material.bind(false);
 
         glDisable(GL_CULL_FACE);
 
