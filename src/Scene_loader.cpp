@@ -463,6 +463,8 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                         mat->set_stored_uniform(HASH("alpha_cutoff"), float(gltf_mat.alphaCutoff));
                     }
 
+                    mat->set_double_sided(gltf_mat.doubleSided);
+
                     mat->set_stored_uniform(HASH("base_color_factor"), glm::vec3(
                         gltf_mat.pbrMetallicRoughness.baseColorFactor[0],
                         gltf_mat.pbrMetallicRoughness.baseColorFactor[1],

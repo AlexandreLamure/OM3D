@@ -21,6 +21,11 @@ void Material::set_depth_test_mode(DepthTestMode depth) {
     _depth_test_mode = depth;
 }
 
+void Material::set_double_sided(bool doubleSided)
+{
+    _doubleSided = doubleSided;
+}
+
 void Material::set_texture(u32 slot, std::shared_ptr<Texture> tex) {
     if(const auto it = std::find_if(_textures.begin(), _textures.end(), [&](const auto& t) { return t.second == tex; }); it != _textures.end()) {
         it->second = std::move(tex);
