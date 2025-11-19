@@ -450,6 +450,8 @@ struct RendererState
                 Texture(size, ImageFormat::RGBA16_FLOAT, WrapMode::Clamp);
             state.tone_mapped_texture =
                 Texture(size, ImageFormat::RGBA8_UNORM, WrapMode::Clamp);
+            state.depth_framebuffer =
+                Framebuffer(&state.depth_texture, std::array<Texture *, 0>{});
             state.main_framebuffer = Framebuffer(
                 &state.depth_texture, std::array{ &state.lit_hdr_texture });
             state.tone_map_framebuffer =
@@ -465,6 +467,7 @@ struct RendererState
     Texture lit_hdr_texture;
     Texture tone_mapped_texture;
 
+    Framebuffer depth_framebuffer;
     Framebuffer main_framebuffer;
     Framebuffer tone_map_framebuffer;
 };
@@ -535,12 +538,20 @@ int main(int argc, char **argv)
         {
             PROFILE_GPU("Frame");
 
+            // Render only the depth-buffer -> Z-Prepass
+            {
+                PROFILE_GPU("Z-Prepass");
+
+                renderer.depth_framebuffer.bind(true, false);
+                scene->render(false);
+            }
+
             // Render the scene
             {
                 PROFILE_GPU("Main pass");
 
-                renderer.main_framebuffer.bind(true, true);
-                scene->render();
+                renderer.main_framebuffer.bind(false, true);
+                scene->render(true);
             }
 
             // Apply a tonemap as a full screen pass

@@ -15,7 +15,8 @@ namespace OM3D
         SceneObject(std::shared_ptr<StaticMesh> mesh = nullptr,
                     std::shared_ptr<Material> material = nullptr);
 
-        void render(const Camera &camera, const Frustum &frustum) const;
+        void render(const Camera &camera, const Frustum &frustum,
+                    bool after_z_prepass) const;
 
         void set_transform(const glm::mat4 &tr);
         const glm::mat4 &transform() const;

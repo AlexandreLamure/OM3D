@@ -11,7 +11,8 @@ namespace OM3D
         , _material(std::move(material))
     {}
 
-    void SceneObject::render(const Camera &camera, const Frustum &frustum) const
+    void SceneObject::render(const Camera &camera, const Frustum &frustum,
+                             const bool after_z_prepass) const
     {
         if (!_material || !_mesh)
         {
@@ -19,7 +20,14 @@ namespace OM3D
         }
 
         _material->set_uniform(HASH("model"), transform());
+        DepthTestMode original_depth_test_mode = _material->get_depth_test_mode();
+        if (after_z_prepass)
+        {
+            _material->set_depth_test_mode(DepthTestMode::Equal);
+        }
         _material->bind();
+        _material->set_depth_test_mode(original_depth_test_mode);
+
         _mesh->draw(camera, frustum);
     }
 

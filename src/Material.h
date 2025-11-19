@@ -30,6 +30,7 @@ namespace OM3D
 
         void set_program(std::shared_ptr<Program> prog);
         void set_blend_mode(BlendMode blend);
+        DepthTestMode get_depth_test_mode() const;
         void set_depth_test_mode(DepthTestMode depth);
         void set_texture(u32 slot, std::shared_ptr<Texture> tex);
 

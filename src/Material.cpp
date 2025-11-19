@@ -19,6 +19,11 @@ namespace OM3D
         _blend_mode = blend;
     }
 
+    DepthTestMode Material::get_depth_test_mode() const
+    {
+        return _depth_test_mode;
+    }
+
     void Material::set_depth_test_mode(DepthTestMode depth)
     {
         _depth_test_mode = depth;
@@ -45,8 +50,7 @@ namespace OM3D
         {
         case BlendMode::None:
             glDisable(GL_BLEND);
-            // Enable back_face culling when the object is not transparent (no
-            // blend)
+            // Enable back_face culling when the object is not transparent
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
             glFrontFace(GL_CCW);
@@ -73,7 +77,7 @@ namespace OM3D
 
         case DepthTestMode::Standard:
             glEnable(GL_DEPTH_TEST);
-            // We are using reverse-Z
+            // We are using standard-Z
             glDepthFunc(GL_GEQUAL);
             break;
 
