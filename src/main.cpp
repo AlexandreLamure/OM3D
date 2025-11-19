@@ -289,7 +289,7 @@ void gui(ImGuiRenderer &imgui)
             {
                 ImGui::DragFloat("Bounding Sphere Radius Factor",
                                  &frustum_bounding_sphere_radius_coeff, 0.1f,
-                                 -2.0f, 2.0f, "%.1f");
+                                 -4.0f, 2.0f, "%.1f");
             }
             scene->set_frustum_culling(frustum_culling,
                                        frustum_bounding_sphere_radius_coeff);
@@ -478,8 +478,7 @@ struct RendererState
                 Texture(size, ImageFormat::RGBA16_FLOAT, WrapMode::Clamp);
             state.tone_mapped_texture =
                 Texture(size, ImageFormat::RGBA8_UNORM, WrapMode::Clamp);
-            state.depth_framebuffer =
-                Framebuffer(&state.depth_texture, std::array<Texture *, 0>{});
+            state.depth_framebuffer = Framebuffer(&state.depth_texture);
             state.main_framebuffer = Framebuffer(
                 &state.depth_texture, std::array{ &state.lit_hdr_texture });
             state.tone_map_framebuffer =
