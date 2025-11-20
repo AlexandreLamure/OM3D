@@ -359,4 +359,10 @@ namespace OM3D
         }
     }
 
-} // namespace OM3D
+void Program::set_uniform(u32 name_hash, const UniformValue& value) {
+    std::visit([name_hash, this](const auto& v) {
+        set_uniform(name_hash, v);
+    }, value);
+}
+
+}

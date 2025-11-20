@@ -27,6 +27,7 @@ layout(binding = 3) uniform sampler2D in_emissive;
 uniform vec3 base_color_factor;
 uniform vec2 metal_rough_factor;
 uniform vec3 emissive_factor;
+uniform float alpha_cutoff;
 
 layout(binding = 4) uniform samplerCube in_envmap;
 layout(binding = 5) uniform sampler2D brdf_lut;
@@ -48,6 +49,12 @@ void main() {
     const vec4 albedo_tex = texture(in_texture, in_uv);
     const vec3 base_color = in_color.rgb * albedo_tex.rgb * base_color_factor;
     const float alpha = albedo_tex.a;
+
+#ifdef ALPHA_TEST
+    if(alpha <= alpha_cutoff) {
+        discard;
+    }
+#endif
 
     const vec4 metal_rough_tex = texture(in_metal_rough, in_uv);
     const float roughness = metal_rough_tex.g * metal_rough_factor.y; // as per glTF spec

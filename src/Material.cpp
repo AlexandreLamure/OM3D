@@ -29,25 +29,34 @@ namespace OM3D
         _depth_test_mode = depth;
     }
 
-    void Material::set_texture(u32 slot, std::shared_ptr<Texture> tex)
-    {
-        if (const auto it =
-                std::find_if(_textures.begin(), _textures.end(),
-                             [&](const auto &t) { return t.second == tex; });
-            it != _textures.end())
-        {
-            it->second = std::move(tex);
-        }
-        else
-        {
-            _textures.emplace_back(slot, std::move(tex));
-        }
+void Material::set_double_sided(bool doubleSided)
+{
+    _doubleSided = doubleSided;
+}
+
+void Material::set_texture(u32 slot, std::shared_ptr<Texture> tex) {
+    if(const auto it = std::find_if(_textures.begin(), _textures.end(), [&](const auto& t) { return t.second == tex; }); it != _textures.end()) {
+        it->second = std::move(tex);
+    } else {
+        _textures.emplace_back(slot, std::move(tex));
     }
 
-    void Material::bind(const bool backface_culling) const
-    {
-        switch (_blend_mode)
-        {
+bool Material::is_opaque() const {
+    return _blend_mode == BlendMode::None;
+}
+
+void Material::set_stored_uniform(u32 name_hash, UniformValue value) {
+    for(auto& [h, v] : _uniforms) {
+        if(h == name_hash) {
+            v = value;
+            return;
+        }
+    }
+    _uniforms.emplace_back(name_hash, std::move(value));
+}
+
+void Material::bind() const {
+    switch(_blend_mode) {
         case BlendMode::None:
             glDisable(GL_BLEND);
 
@@ -103,15 +112,34 @@ namespace OM3D
         _program->bind();
     }
 
-    Material Material::textured_pbr_material()
-    {
-        Material material;
-        material._program = Program::from_files("lit.frag", "basic.vert");
+    for(const auto& texture : _textures) {
+        texture.second->bind(texture.first);
+    }
 
-        material.set_texture(0u, default_white_texture());
-        material.set_texture(1u, default_normal_texture());
-        material.set_texture(2u, default_metal_rough_texture());
-        material.set_texture(3u, default_black_texture());
+    for(const auto& [h, v] : _uniforms) {
+        _program->set_uniform(h, v);
+    }
+
+    _program->bind();
+}
+
+Material Material::textured_pbr_material(bool alpha_test) {
+    Material material;
+
+    std::vector<std::string> defines;
+    if(alpha_test) {
+        defines.emplace_back("ALPHA_TEST");
+    }
+
+    material._program = Program::from_files("lit.frag", "basic.vert", defines);
+
+    material.set_texture(0u, default_white_texture());
+    material.set_texture(1u, default_normal_texture());
+    material.set_texture(2u, default_metal_rough_texture());
+    material.set_texture(3u, default_black_texture());
+
+    return material;
+}
 
         return material;
     }

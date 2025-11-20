@@ -122,11 +122,23 @@ namespace OM3D
         frustum._culling_bounding_sphere_coeff =
             _frustum_bounding_sphere_radius_coeff;
 
-        // Render every object
-        for (const SceneObject &obj : _objects)
-        {
-            obj.render(camera(), frustum, after_z_prepass, _backface_culling);
+    // Render every object
+    {
+        // Opaque first
+        for(const SceneObject& obj : _objects) {
+            if(obj.material().is_opaque()) {
+                obj.render();
+            }
+        }
+
+        // Transparent after
+        for(const SceneObject& obj : _objects) {
+            if(!obj.material().is_opaque()) {
+                obj.render();
+            }
         }
     }
+
+}
 
 } // namespace OM3D
