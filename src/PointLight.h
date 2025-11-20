@@ -1,39 +1,44 @@
 #ifndef POINTLIGHT_H
 #define POINTLIGHT_H
 
+#include <glm/vec3.hpp>
 #include <utils.h>
 
-#include <glm/vec3.hpp>
+namespace OM3D
+{
 
-namespace OM3D {
-
-class PointLight {
-
+    class PointLight
+    {
     public:
         PointLight() = default;
 
-        void set_position(const glm::vec3& pos) {
+        void set_position(const glm::vec3 &pos)
+        {
             _position = pos;
         }
 
-        void set_color(const glm::vec3& color) {
+        void set_color(const glm::vec3 &color)
+        {
             _color = color;
         }
 
-        void set_radius(float radius) {
+        void set_radius(float radius)
+        {
             _radius = radius;
         }
 
-
-        const glm::vec3& position() const {
+        const glm::vec3 &position() const
+        {
             return _position;
         }
 
-        const glm::vec3& color() const {
+        const glm::vec3 &color() const
+        {
             return _color;
         }
 
-        float radius() const {
+        float radius() const
+        {
             return _radius;
         }
 
@@ -41,8 +46,8 @@ class PointLight {
         glm::vec3 _position = {};
         glm::vec3 _color = glm::vec3(1.0f);
         float _radius = 10.0f;
-};
+    };
 
-}
+} // namespace OM3D
 
 #endif // POINTLIGHT_H

@@ -1,48 +1,47 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <graphics.h>
 #include <ImageFormat.h>
-
 #include <glm/vec2.hpp>
-
-#include <vector>
+#include <graphics.h>
 #include <memory>
+#include <vector>
 
+namespace OM3D
+{
 
-namespace OM3D {
+    struct TextureData
+    {
+        std::unique_ptr<u8[]> data;
+        glm::uvec2 size = {};
+        ImageFormat format;
 
-struct TextureData {
-    std::unique_ptr<u8[]> data;
-    glm::uvec2 size = {};
-    ImageFormat format;
+        static Result<TextureData> from_file(const std::string &file_name);
+    };
 
-    static Result<TextureData> from_file(const std::string& file_name);
-};
+    enum class WrapMode
+    {
+        Repeat,
+        Clamp,
+    };
 
-
-
-enum class WrapMode {
-    Repeat,
-    Clamp,
-};
-
-class Texture {
-
+    class Texture
+    {
     public:
         Texture() = default;
 
-        Texture(Texture&&) = default;
-        Texture& operator=(Texture&&) = default;
+        Texture(Texture &&) = default;
+        Texture &operator=(Texture &&) = default;
 
         ~Texture();
 
-        Texture(const TextureData& data);
+        Texture(const TextureData &data);
 
         Texture(const glm::uvec2 &size, ImageFormat format, WrapMode wrap);
 
-        static Texture empty_cubemap(u32 size, ImageFormat format, u32 mipmaps = 1);
-        static Texture cubemap_from_equirec(const Texture& equirec);
+        static Texture empty_cubemap(u32 size, ImageFormat format,
+                                     u32 mipmaps = 1);
+        static Texture cubemap_from_equirec(const Texture &equirec);
 
         bool is_null() const;
 
@@ -67,8 +66,8 @@ class Texture {
         ImageFormat _format;
 
         u32 _texture_type = {};
-};
+    };
 
-}
+} // namespace OM3D
 
 #endif // TEXTURE_H

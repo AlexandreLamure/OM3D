@@ -1,113 +1,149 @@
-#include "Scene.h"
-
 #include <TypedBuffer.h>
-
 #include <shader_structs.h>
 
-namespace OM3D {
+#include "Scene.h"
 
-Scene::Scene() {
-    _sky_material.set_program(Program::from_files("sky.frag", "screen.vert"));
-    _sky_material.set_depth_test_mode(DepthTestMode::None);
+namespace OM3D
+{
 
-    _envmap = std::make_shared<Texture>(Texture::empty_cubemap(4, ImageFormat::RGBA8_UNORM));
-}
-
-void Scene::add_object(SceneObject obj) {
-    _objects.emplace_back(std::move(obj));
-}
-
-void Scene::add_light(PointLight obj) {
-    _point_lights.emplace_back(std::move(obj));
-}
-
-Span<const SceneObject> Scene::objects() const {
-    return _objects;
-}
-
-Span<const PointLight> Scene::point_lights() const {
-    return _point_lights;
-}
-
-Camera& Scene::camera() {
-    return _camera;
-}
-
-const Camera& Scene::camera() const {
-    return _camera;
-}
-
-void Scene::set_envmap(std::shared_ptr<Texture> env) {
-    _envmap = std::move(env);
-}
-
-void Scene::set_sun(float altitude, float azimuth, glm::vec3 color) {
-    // Convert from degrees to radians
-    const float alt = glm::radians(altitude); 
-    const float azi = glm::radians(azimuth); 
-    // Convert from polar to cartesian
-    _sun_direction = glm::vec3(sin(azi) * cos(alt), sin(alt), cos(azi) * cos(alt));
-    _sun_color = color;
-}
-
-void Scene::render() const {
-    // Fill and bind frame data buffer
-    TypedBuffer<shader::FrameData> buffer(nullptr, 1);
+    Scene::Scene()
     {
-        auto mapping = buffer.map(AccessType::WriteOnly);
-        mapping[0].camera.view_proj = _camera.view_proj_matrix();
-        mapping[0].camera.inv_view_proj = glm::inverse(_camera.view_proj_matrix());
-        mapping[0].camera.position = _camera.position();
-        mapping[0].point_light_count = u32(_point_lights.size());
-        mapping[0].sun_color = _sun_color;
-        mapping[0].sun_dir = glm::normalize(_sun_direction);
+        _sky_material.set_program(
+            Program::from_files("sky.frag", "screen.vert"));
+        _sky_material.set_depth_test_mode(DepthTestMode::None);
+
+        _envmap = std::make_shared<Texture>(
+            Texture::empty_cubemap(4, ImageFormat::RGBA8_UNORM));
     }
-    buffer.bind(BufferUsage::Uniform, 0);
 
-    // Fill and bind lights buffer
-    TypedBuffer<shader::PointLight> light_buffer(nullptr, std::max(_point_lights.size(), size_t(1)));
+    void Scene::add_object(SceneObject obj)
     {
-        auto mapping = light_buffer.map(AccessType::WriteOnly);
-        for(size_t i = 0; i != _point_lights.size(); ++i) {
-            const auto& light = _point_lights[i];
-            mapping[i] = {
-                light.position(),
-                light.radius(),
-                light.color(),
-                0.0f
-            };
+        _objects.emplace_back(std::move(obj));
+    }
+
+    void Scene::add_light(PointLight obj)
+    {
+        _point_lights.emplace_back(std::move(obj));
+    }
+
+    Span<const SceneObject> Scene::objects() const
+    {
+        return _objects;
+    }
+
+    Span<const PointLight> Scene::point_lights() const
+    {
+        return _point_lights;
+    }
+
+    Camera &Scene::camera()
+    {
+        return _camera;
+    }
+
+    const Camera &Scene::camera() const
+    {
+        return _camera;
+    }
+
+    void Scene::set_envmap(std::shared_ptr<Texture> env)
+    {
+        _envmap = std::move(env);
+    }
+
+    void Scene::set_sun(float altitude, float azimuth, glm::vec3 color)
+    {
+        // Convert from degrees to radians
+        const float alt = glm::radians(altitude);
+        const float azi = glm::radians(azimuth);
+        // Convert from polar to cartesian
+        _sun_direction =
+            glm::vec3(sin(azi) * cos(alt), sin(alt), cos(azi) * cos(alt));
+        _sun_color = color;
+    }
+
+    void Scene::set_backface_culling(const bool backface_culling)
+    {
+        _backface_culling = backface_culling;
+    }
+
+    void
+    Scene::set_frustum_culling(const bool frustum_culling,
+                               const float frustum_bounding_sphere_radius_coeff)
+    {
+        _frustum_culling = frustum_culling;
+        _frustum_bounding_sphere_radius_coeff =
+            frustum_bounding_sphere_radius_coeff;
+    }
+
+    void Scene::render(const bool after_z_prepass) const
+    {
+        // Fill and bind frame data buffer
+        TypedBuffer<shader::FrameData> buffer(nullptr, 1);
+        {
+            auto mapping = buffer.map(AccessType::WriteOnly);
+            mapping[0].camera.view_proj = _camera.view_proj_matrix();
+            mapping[0].camera.inv_view_proj =
+                glm::inverse(_camera.view_proj_matrix());
+            mapping[0].camera.position = _camera.position();
+            mapping[0].point_light_count = u32(_point_lights.size());
+            mapping[0].sun_color = _sun_color;
+            mapping[0].sun_dir = glm::normalize(_sun_direction);
         }
-    }
-    light_buffer.bind(BufferUsage::Storage, 1);
+        buffer.bind(BufferUsage::Uniform, 0);
 
-    // Bind envmap
-    DEBUG_ASSERT(_envmap && !_envmap->is_null());
-    _envmap->bind(4);
-
-    // Bind brdf lut needed for lighting to scene rendering shaders
-    brdf_lut().bind(5);
-
-    // Render the sky
-    _sky_material.bind();
-    draw_full_screen_triangle();
-
-    // Render every object
-    {
-        // Opaque first
-        for(const SceneObject& obj : _objects) {
-            if(obj.material().is_opaque()) {
-                obj.render();
+        // Fill and bind lights buffer
+        TypedBuffer<shader::PointLight> light_buffer(
+            nullptr, std::max(_point_lights.size(), size_t(1)));
+        {
+            auto mapping = light_buffer.map(AccessType::WriteOnly);
+            for (size_t i = 0; i != _point_lights.size(); ++i)
+            {
+                const auto &light = _point_lights[i];
+                mapping[i] = { light.position(), light.radius(), light.color(),
+                               0.0f };
             }
         }
+        light_buffer.bind(BufferUsage::Storage, 1);
 
-        // Transparent after
-        for(const SceneObject& obj : _objects) {
-            if(!obj.material().is_opaque()) {
-                obj.render();
+        // Bind envmap
+        DEBUG_ASSERT(_envmap && !_envmap->is_null());
+        _envmap->bind(4);
+
+        // Bind brdf lut needed for lighting to scene rendering shaders
+        brdf_lut().bind(5);
+
+        // Render the sky
+        _sky_material.bind(false);
+        draw_full_screen_triangle();
+
+        Frustum frustum = camera().build_frustum();
+        frustum._culling_enabled = _frustum_culling;
+        frustum._culling_bounding_sphere_coeff =
+            _frustum_bounding_sphere_radius_coeff;
+
+        // Render every object
+        {
+            // Opaque first
+            for (const SceneObject &obj : _objects)
+            {
+                if (obj.material().is_opaque())
+                {
+                    obj.render(camera(), frustum, after_z_prepass,
+                               _backface_culling);
+                }
+            }
+
+            // Transparent after
+            for (const SceneObject &obj : _objects)
+            {
+                if (!obj.material().is_opaque())
+                {
+                    obj.render(camera(), frustum, after_z_prepass,
+                               _backface_culling);
+                }
             }
         }
     }
 
-}
-
-}
+} // namespace OM3D
