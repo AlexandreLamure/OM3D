@@ -1,4 +1,5 @@
 #include <TypedBuffer.h>
+#include <iostream>
 #include <shader_structs.h>
 
 #include "Scene.h"
@@ -76,8 +77,9 @@ namespace OM3D
             frustum_bounding_sphere_radius_coeff;
     }
 
-    void Scene::render(const bool after_z_prepass) const
+    void Scene::render(const enum PassType pass_type) const
     {
+        std::cout << "Rendering scene with pass type: " << pass_type << '\n';
         // Fill and bind frame data buffer
         TypedBuffer<shader::FrameData> buffer(nullptr, 1);
         {
@@ -121,6 +123,9 @@ namespace OM3D
         frustum._culling_enabled = _frustum_culling;
         frustum._culling_bounding_sphere_coeff =
             _frustum_bounding_sphere_radius_coeff;
+
+        bool after_z_prepass = pass_type == PassType::MAIN;
+        std::cout << "after z prepass: " << after_z_prepass << '\n';
 
         // Render every object
 

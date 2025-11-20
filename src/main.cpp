@@ -559,24 +559,26 @@ int main(int argc, char **argv)
         // Draw everything
         {
             PROFILE_GPU("Frame");
-
             if (z_prepass)
             {
-                // Render only the depth-buffer -> Z-Prepass
                 {
                     PROFILE_GPU("Z-Prepass");
-
                     renderer.depth_framebuffer.bind(true, false);
-                    scene->render(false);
+                    scene->render(PassType::DEPTH);
+                }
+                {
+                    PROFILE_GPU("Main Pass");
+                    renderer.main_framebuffer.bind(false, false);
+                    scene->render(PassType::MAIN);
                 }
             }
-
-            // Render the scene
+            else
             {
-                PROFILE_GPU("Main pass");
-
-                renderer.main_framebuffer.bind(!z_prepass, true);
-                scene->render(z_prepass);
+                {
+                    PROFILE_GPU("Main Pass (No Depth Prepass)");
+                    renderer.main_framebuffer.bind(true, false);
+                    scene->render(PassType::MAIN_NO_DEPTH);
+                }
             }
 
             // Apply a tonemap as a full screen pass

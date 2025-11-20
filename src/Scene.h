@@ -7,6 +7,8 @@
 #include <memory>
 #include <vector>
 
+#include "PassTypeEnum.h"
+
 namespace OM3D
 {
 
@@ -18,7 +20,7 @@ namespace OM3D
         static Result<std::unique_ptr<Scene>>
         from_gltf(const std::string &file_name);
 
-        void render(bool after_z_prepass) const;
+        void render(const enum PassType pass_type) const;
 
         void add_object(SceneObject obj);
         void add_light(PointLight obj);
@@ -35,7 +37,6 @@ namespace OM3D
         void set_backface_culling(bool backface_culling);
         void set_frustum_culling(bool frustum_culling,
                                  float frustum_bounding_sphere_radius_coeff);
-
 
     private:
         std::vector<SceneObject> _objects;
