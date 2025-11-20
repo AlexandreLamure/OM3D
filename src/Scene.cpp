@@ -1,7 +1,7 @@
-#include "Scene.h"
-
 #include <TypedBuffer.h>
 #include <shader_structs.h>
+
+#include "Scene.h"
 
 namespace OM3D
 {
@@ -122,23 +122,28 @@ namespace OM3D
         frustum._culling_bounding_sphere_coeff =
             _frustum_bounding_sphere_radius_coeff;
 
-    // Render every object
-    {
-        // Opaque first
-        for(const SceneObject& obj : _objects) {
-            if(obj.material().is_opaque()) {
-                obj.render();
+        // Render every object
+        {
+            // Opaque first
+            for (const SceneObject &obj : _objects)
+            {
+                if (obj.material().is_opaque())
+                {
+                    obj.render(camera(), frustum, after_z_prepass,
+                               _backface_culling);
+                }
             }
-        }
 
-        // Transparent after
-        for(const SceneObject& obj : _objects) {
-            if(!obj.material().is_opaque()) {
-                obj.render();
+            // Transparent after
+            for (const SceneObject &obj : _objects)
+            {
+                if (!obj.material().is_opaque())
+                {
+                    obj.render(camera(), frustum, after_z_prepass,
+                               _backface_culling);
+                }
             }
         }
     }
-
-}
 
 } // namespace OM3D

@@ -9,26 +9,23 @@
 #include <glm/vec4.hpp>
 #include <graphics.h>
 #include <memory>
-#include <vector>
 #include <variant>
+#include <vector>
 
 namespace OM3D
 {
 
-// all possible uniform types
-using UniformValue = std::variant<
-    u32,
-    float,
-    glm::vec2,
-    glm::vec3,
-    glm::vec4,
-    glm::mat2,
-    glm::mat3,
-    glm::mat4,
-    u64
->;
+    // all possible uniform types
+    using UniformValue =
+        std::variant<u32, float, glm::vec2, glm::vec3, glm::vec4, glm::mat2,
+                     glm::mat3, glm::mat4, u64>;
 
-class Program : NonCopyable {
+    class Program : NonCopyable
+    {
+        struct UniformLocationInfo
+        {
+            u32 name_hash;
+            int location;
 
             bool operator<(const UniformLocationInfo &other) const
             {
@@ -71,10 +68,11 @@ class Program : NonCopyable {
         void set_uniform(u32 name_hash, const glm::mat4 &value);
         void set_uniform(u32 name_hash, u64 value);
 
-        void set_uniform(u32 name_hash, const UniformValue& value);
+        void set_uniform(u32 name_hash, const UniformValue &value);
 
-        template<typename T>
-        void set_uniform(std::string_view name, const T& value) {
+        template <typename T>
+        void set_uniform(std::string_view name, const T &value)
+        {
             set_uniform(str_hash(name), value);
         }
 

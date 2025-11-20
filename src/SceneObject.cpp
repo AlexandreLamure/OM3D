@@ -60,14 +60,11 @@ namespace OM3D
     {
         return _translation;
     }
-const Material& SceneObject::material() const {
-    DEBUG_ASSERT(_material);
-    return *_material;
-}
-
-void SceneObject::set_transform(const glm::mat4& tr) {
-    _transform = tr;
-}
+    const Material &SceneObject::material() const
+    {
+        DEBUG_ASSERT(_material);
+        return *_material;
+    }
 
     void SceneObject::set_rotation(const glm::mat3 &rotation)
     {

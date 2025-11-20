@@ -490,9 +490,11 @@ namespace OM3D
 
             const tinygltf::Mesh &mesh = gltf.meshes[node.mesh];
 
-        const std::shared_ptr<Material> default_material = std::make_shared<Material>(Material::textured_pbr_material());
-        for(size_t j = 0; j != mesh.primitives.size(); ++j) {
-            const tinygltf::Primitive& prim = mesh.primitives[j];
+            const std::shared_ptr<Material> default_material =
+                std::make_shared<Material>(Material::textured_pbr_material());
+            for (size_t j = 0; j != mesh.primitives.size(); ++j)
+            {
+                const tinygltf::Primitive &prim = mesh.primitives[j];
 
                 if (prim.mode != TINYGLTF_MODE_TRIANGLES)
                 {
@@ -511,22 +513,33 @@ namespace OM3D
                     compute_tangents(mesh.value);
                 }
 
-            std::shared_ptr<Material> material = default_material;
-            if(prim.material >= 0) {
-                auto& mat = materials[prim.material];
+                std::shared_ptr<Material> material = default_material;
+                if (prim.material >= 0)
+                {
+                    auto &mat = materials[prim.material];
 
-                if(!mat) {
-                    const auto& gltf_mat = gltf.materials[prim.material];
-                    const auto& albedo_info = gltf_mat.pbrMetallicRoughness.baseColorTexture;
-                    const auto& normal_info = gltf_mat.normalTexture;
-                    const auto& metal_rough_info = gltf_mat.pbrMetallicRoughness.metallicRoughnessTexture;
-                    const auto& emissive_info = gltf_mat.emissiveTexture;
+                    if (!mat)
+                    {
+                        const auto &gltf_mat = gltf.materials[prim.material];
+                        const auto &albedo_info =
+                            gltf_mat.pbrMetallicRoughness.baseColorTexture;
+                        const auto &normal_info = gltf_mat.normalTexture;
+                        const auto &metal_rough_info =
+                            gltf_mat.pbrMetallicRoughness
+                                .metallicRoughnessTexture;
+                        const auto &emissive_info = gltf_mat.emissiveTexture;
 
-                    auto load_texture = [&](auto texture_info, bool as_sRGB) -> std::shared_ptr<Texture> {
-                        if(texture_info.texCoord != 0) {
-                            std::cerr << "Unsupported texture coordinate channel (" << texture_info.texCoord << ")" << std::endl;
-                            return nullptr;
-                        }
+                        auto load_texture =
+                            [&](auto texture_info,
+                                bool as_sRGB) -> std::shared_ptr<Texture> {
+                            if (texture_info.texCoord != 0)
+                            {
+                                std::cerr << "Unsupported texture coordinate "
+                                             "channel ("
+                                          << texture_info.texCoord << ")"
+                                          << std::endl;
+                                return nullptr;
+                            }
 
                             if (texture_info.index < 0)
                             {
@@ -554,33 +567,30 @@ namespace OM3D
                             return texture;
                         };
 
+                        const bool opaque = (gltf_mat.alphaMode == "OPAQUE")
+                            || (gltf_mat.alphaMode == "NONE");
+                        const bool mask = (gltf_mat.alphaMode == "MASK");
+                        const bool alpha_test = !opaque || mask;
+
                         auto albedo = load_texture(albedo_info, true);
                         auto normal = load_texture(normal_info, false);
                         auto metal_rough =
                             load_texture(metal_rough_info, false);
                         auto emissive = load_texture(emissive_info, false);
 
-                        if (!mat)
+                        mat = std::make_shared<Material>(
+                            Material::textured_pbr_material(alpha_test));
+
+                        if (!opaque && !mask)
                         {
-                            mat = std::make_shared<Material>(
-                                Material::textured_pbr_material());
+                            mat->set_blend_mode(BlendMode::Alpha);
+                            mat->set_depth_test_mode(DepthTestMode::None);
                         }
 
-                    const bool opaque = (gltf_mat.alphaMode == "OPAQUE") || (gltf_mat.alphaMode == "NONE");
-                    const bool mask = (gltf_mat.alphaMode == "MASK");
-                    const bool alpha_test = !opaque || mask;
-
-                    auto albedo = load_texture(albedo_info, true);
-                    auto normal = load_texture(normal_info, false);
-                    auto metal_rough = load_texture(metal_rough_info, false);
-                    auto emissive = load_texture(emissive_info, false);
-
-                    mat = std::make_shared<Material>(Material::textured_pbr_material(alpha_test));
-
-                    if(!opaque && !mask) {
-                        mat->set_blend_mode(BlendMode::Alpha);
-                        mat->set_depth_test_mode(DepthTestMode::None);
-                    }
+                        if (albedo)
+                        {
+                            mat->set_texture(0u, albedo);
+                        }
 
                         if (normal)
                         {
@@ -597,46 +607,38 @@ namespace OM3D
                             mat->set_texture(3u, emissive);
                         }
 
-                        mat->set_uniform("base_color_factor",
-                                         glm::vec3(gltf_mat.pbrMetallicRoughness
-                                                       .baseColorFactor[0],
-                                                   gltf_mat.pbrMetallicRoughness
-                                                       .baseColorFactor[1],
-                                                   gltf_mat.pbrMetallicRoughness
-                                                       .baseColorFactor[2]));
-                        mat->set_uniform(
-                            "metal_rough_factor",
+                        if (alpha_test)
+                        {
+                            mat->set_stored_uniform(
+                                HASH("alpha_cutoff"),
+                                float(gltf_mat.alphaCutoff));
+                        }
+
+                        mat->set_double_sided(gltf_mat.doubleSided);
+
+                        mat->set_stored_uniform(
+                            HASH("base_color_factor"),
+                            glm::vec3(gltf_mat.pbrMetallicRoughness
+                                          .baseColorFactor[0],
+                                      gltf_mat.pbrMetallicRoughness
+                                          .baseColorFactor[1],
+                                      gltf_mat.pbrMetallicRoughness
+                                          .baseColorFactor[2]));
+
+                        mat->set_stored_uniform(
+                            HASH("metal_rough_factor"),
                             glm::vec2(
                                 gltf_mat.pbrMetallicRoughness.metallicFactor,
                                 gltf_mat.pbrMetallicRoughness.roughnessFactor));
-                        mat->set_uniform("emissive_factor",
-                                         glm::vec3(gltf_mat.emissiveFactor[0],
-                                                   gltf_mat.emissiveFactor[1],
-                                                   gltf_mat.emissiveFactor[2]));
+
+                        mat->set_stored_uniform(
+                            HASH("emissive_factor"),
+                            glm::vec3(gltf_mat.emissiveFactor[0],
+                                      gltf_mat.emissiveFactor[1],
+                                      gltf_mat.emissiveFactor[2]));
                     }
 
-                    if(alpha_test) {
-                        mat->set_stored_uniform(HASH("alpha_cutoff"), float(gltf_mat.alphaCutoff));
-                    }
-
-                    mat->set_double_sided(gltf_mat.doubleSided);
-
-                    mat->set_stored_uniform(HASH("base_color_factor"), glm::vec3(
-                        gltf_mat.pbrMetallicRoughness.baseColorFactor[0],
-                        gltf_mat.pbrMetallicRoughness.baseColorFactor[1],
-                        gltf_mat.pbrMetallicRoughness.baseColorFactor[2]
-                    ));
-
-                    mat->set_stored_uniform(HASH("metal_rough_factor"), glm::vec2(
-                        gltf_mat.pbrMetallicRoughness.metallicFactor,
-                        gltf_mat.pbrMetallicRoughness.roughnessFactor
-                    ));
-
-                    mat->set_stored_uniform(HASH("emissive_factor"), glm::vec3(
-                        gltf_mat.emissiveFactor[0],
-                        gltf_mat.emissiveFactor[1],
-                        gltf_mat.emissiveFactor[2]
-                    ));
+                    material = mat;
                 }
 
                 auto scene_object =
