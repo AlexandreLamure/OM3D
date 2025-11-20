@@ -31,6 +31,12 @@ namespace OM3D
         _mesh->draw(camera, frustum, scale(), translation());
     }
 
+    const Material &SceneObject::material() const
+    {
+        DEBUG_ASSERT(_material);
+        return *_material;
+    }
+
     void SceneObject::set_transform(const glm::mat4 &tr)
     {
         _transform = tr;

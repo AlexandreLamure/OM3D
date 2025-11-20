@@ -1,9 +1,9 @@
-#include "Program.h"
-
 #include <algorithm>
 #include <glad/gl.h>
 #include <unordered_map>
 #include <unordered_set>
+
+#include "Program.h"
 
 namespace OM3D
 {
@@ -357,6 +357,13 @@ namespace OM3D
         {
             glProgramUniformHandleui64ARB(_handle.get(), loc, value);
         }
+    }
+
+    void Program::set_uniform(u32 name_hash, const UniformValue &value)
+    {
+        std::visit(
+            [name_hash, this](const auto &v) { set_uniform(name_hash, v); },
+            value);
     }
 
 } // namespace OM3D
