@@ -19,11 +19,14 @@ static float delta_time = 0.0f;
 static float sun_altitude = 45.0;
 static float sun_azimuth = 45.0;
 static float sun_intensity = 7.0;
+static float sun_bias = 0.20f;
 static float exposure = 1.0;
+
 static bool backface_culling = true;
 static bool frustum_culling = true;
 static float frustum_bounding_sphere_radius_coeff = 1.0;
 static bool z_prepass = true;
+static bool shadow_pass = true;
 
 static std::unique_ptr<Scene> scene;
 static std::shared_ptr<Texture> envmap;
@@ -272,6 +275,9 @@ void gui(ImGuiRenderer &imgui)
                 scene->set_sun(sun_altitude, sun_azimuth,
                                glm::vec3(sun_intensity));
             }
+
+            ImGui::DragFloat("Sun Bias", &sun_bias, 0.05f, 0.0f, 1.0f, "%.1f");
+
             ImGui::DragFloat("Exposure", &exposure, 0.1f, 0.01f, 100.0f, "%.1f",
                              ImGuiSliderFlags_Logarithmic);
             ImGui::EndMenu();
@@ -294,6 +300,8 @@ void gui(ImGuiRenderer &imgui)
                                        frustum_bounding_sphere_radius_coeff);
 
             ImGui::Checkbox("Z-prepass", &z_prepass);
+
+            ImGui::Checkbox("Shadow Pass", &shadow_pass);
 
             ImGui::EndMenu();
         }
@@ -473,10 +481,13 @@ struct RendererState
         {
             state.depth_texture =
                 Texture(size, ImageFormat::Depth32_FLOAT, WrapMode::Clamp);
+            state.shadow_texture =
+                Texture(size, ImageFormat::Depth32_FLOAT, WrapMode::Clamp);
             state.lit_hdr_texture =
                 Texture(size, ImageFormat::RGBA16_FLOAT, WrapMode::Clamp);
             state.depth_framebuffer =
-                Framebuffer(&state.depth_texture, std::array<Texture *, 0>{});
+                Framebuffer(&state.depth_texture);
+            state.shadow_framebuffer = Framebuffer(&state.shadow_texture);
             state.main_framebuffer = Framebuffer(
                 &state.depth_texture, std::array{ &state.lit_hdr_texture });
         }
@@ -487,9 +498,11 @@ struct RendererState
     glm::uvec2 size = {};
 
     Texture depth_texture;
+    Texture shadow_texture;
     Texture lit_hdr_texture;
 
     Framebuffer depth_framebuffer;
+    Framebuffer shadow_framebuffer;
     Framebuffer main_framebuffer;
     Framebuffer tone_map_framebuffer;
 };
@@ -567,6 +580,17 @@ int main(int argc, char **argv)
                     PROFILE_GPU("Z-Prepass");
 
                     renderer.depth_framebuffer.bind(true, false);
+                    scene->render(false);
+                }
+            }
+
+            if (shadow_pass)
+            {
+                // Render only the shadow depth-buffer -> Shadow
+                {
+                    PROFILE_GPU("Shadow Pass");
+
+                    renderer.shadow_framebuffer.bind(true, false);
                     scene->render(false);
                 }
             }
