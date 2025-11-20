@@ -1,7 +1,7 @@
-#include "Material.h"
-
 #include <algorithm>
 #include <glad/gl.h>
+
+#include "Material.h"
 
 namespace OM3D
 {
@@ -29,6 +29,11 @@ namespace OM3D
         _depth_test_mode = depth;
     }
 
+    void Material::set_double_sided(bool doubleSided)
+    {
+        _doubleSided = doubleSided;
+    }
+
     void Material::set_texture(u32 slot, std::shared_ptr<Texture> tex)
     {
         if (const auto it =
@@ -42,6 +47,24 @@ namespace OM3D
         {
             _textures.emplace_back(slot, std::move(tex));
         }
+    }
+
+    bool Material::is_opaque() const
+    {
+        return _blend_mode == BlendMode::None;
+    }
+
+    void Material::set_stored_uniform(u32 name_hash, UniformValue value)
+    {
+        for (auto &[h, v] : _uniforms)
+        {
+            if (h == name_hash)
+            {
+                v = value;
+                return;
+            }
+        }
+        _uniforms.emplace_back(name_hash, std::move(value));
     }
 
     void Material::bind(const bool backface_culling) const
@@ -100,13 +123,25 @@ namespace OM3D
         {
             texture.second->bind(texture.first);
         }
+
+        for (const auto &[h, v] : _uniforms)
+        {
+            _program->set_uniform(h, v);
+        }
         _program->bind();
     }
 
-    Material Material::textured_pbr_material()
+    Material Material::textured_pbr_material(bool alpha_test)
     {
         Material material;
-        material._program = Program::from_files("lit.frag", "basic.vert");
+        std::vector<std::string> defines;
+        if (alpha_test)
+        {
+            defines.emplace_back("ALPHA_TEST");
+        }
+
+        material._program =
+            Program::from_files("lit.frag", "basic.vert", defines);
 
         material.set_texture(0u, default_white_texture());
         material.set_texture(1u, default_normal_texture());

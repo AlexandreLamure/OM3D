@@ -18,6 +18,8 @@ namespace OM3D
         void render(const Camera &camera, const Frustum &frustum,
                     bool after_z_prepass, bool backface_culling) const;
 
+        const Material &material() const;
+
         void set_transform(const glm::mat4 &tr);
         void set_scale(const glm::vec3 &scale);
         void set_translation(const glm::vec3 &translation);

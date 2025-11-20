@@ -1,7 +1,7 @@
-#include "Scene.h"
-
 #include <TypedBuffer.h>
 #include <shader_structs.h>
+
+#include "Scene.h"
 
 namespace OM3D
 {
@@ -123,9 +123,33 @@ namespace OM3D
             _frustum_bounding_sphere_radius_coeff;
 
         // Render every object
-        for (const SceneObject &obj : _objects)
+
         {
-            obj.render(camera(), frustum, after_z_prepass, _backface_culling);
+            // Opaque first
+            for (const SceneObject &obj : _objects)
+            {
+                if (obj.material().is_opaque())
+                {
+                    obj.render(camera(), frustum, after_z_prepass,
+                               _backface_culling);
+                }
+            }
+
+            // Transparent after
+            for (const SceneObject &obj : _objects)
+            {
+                if (!obj.material().is_opaque())
+                {
+                    obj.render(camera(), frustum, after_z_prepass,
+                               _backface_culling);
+                }
+            }
+
+            for (const SceneObject &obj : _objects)
+            {
+                obj.render(camera(), frustum, after_z_prepass,
+                           _backface_culling);
+            }
         }
     }
 
