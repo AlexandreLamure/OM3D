@@ -29,7 +29,7 @@ class Material {
         void set_program(std::shared_ptr<Program> prog);
         void set_blend_mode(BlendMode blend);
         void set_depth_test_mode(DepthTestMode depth);
-        void set_double_sided(bool doubleSided);
+        void set_double_sided(bool double_sided);
         void set_texture(u32 slot, std::shared_ptr<Texture> tex);
 
         bool is_opaque() const;
@@ -54,7 +54,7 @@ class Material {
 
         BlendMode _blend_mode = BlendMode::None;
         DepthTestMode _depth_test_mode = DepthTestMode::Standard;
-        bool _doubleSided = false;
+        bool _double_sided = false;
 };
 
 }

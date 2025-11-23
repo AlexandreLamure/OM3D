@@ -21,10 +21,10 @@ using namespace OM3D;
 
 
 static float delta_time = 0.0f;
-static float sun_altitude = 45.0;
-static float sun_azimuth = 45.0;
-static float sun_intensity = 7.0;
-static float exposure = 1.0;
+static float sun_altitude = 45.0f;
+static float sun_azimuth = 45.0f;
+static float sun_intensity = 7.0f;
+static float exposure = 0.33f;
 
 static std::unique_ptr<Scene> scene;
 static std::shared_ptr<Texture> envmap;
@@ -207,14 +207,15 @@ void gui(ImGuiRenderer& imgui) {
         }
 
         if(ImGui::BeginMenu("Lighting")) {
-            bool update_sun = ImGui::DragFloat("Sun Altitude", &sun_altitude, 0.1f, 0.0f, 90.0f, "%.0f");
-            update_sun |= ImGui::DragFloat("Sun Azimuth", &sun_azimuth, 0.1f, 0.0f, 360.0f, "%.0f");
-            update_sun |= ImGui::DragFloat("Sun Intensity", &sun_intensity, 0.05f, 0.0f, 100.0f, "%.1f");
-            if (update_sun)
-            {
-                scene->set_sun(sun_altitude, sun_azimuth, glm::vec3(sun_intensity));
-            }
-            ImGui::DragFloat("Exposure", &exposure, 0.1f, 0.01f, 100.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+            ImGui::DragFloat("Exposure", &exposure, 0.01f, 0.01f, 10.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+
+            ImGui::Separator();
+
+            ImGui::DragFloat("Sun Altitude", &sun_altitude, 0.1f, 0.0f, 90.0f, "%.0f");
+            ImGui::DragFloat("Sun Azimuth", &sun_azimuth, 0.1f, 0.0f, 360.0f, "%.0f");
+            ImGui::DragFloat("Sun Intensity", &sun_intensity, 0.05f, 0.0f, 100.0f, "%.1f");
+            scene->set_sun(sun_altitude, sun_azimuth, glm::vec3(sun_intensity));
+
             ImGui::EndMenu();
         }
 

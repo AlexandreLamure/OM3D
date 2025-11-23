@@ -21,9 +21,8 @@ void Material::set_depth_test_mode(DepthTestMode depth) {
     _depth_test_mode = depth;
 }
 
-void Material::set_double_sided(bool doubleSided)
-{
-    _doubleSided = doubleSided;
+void Material::set_double_sided(bool double_sided) {
+    _double_sided = double_sided;
 }
 
 void Material::set_texture(u32 slot, std::shared_ptr<Texture> tex) {
