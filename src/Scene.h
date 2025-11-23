@@ -29,6 +29,8 @@ class Scene : NonMovable {
         const Camera& camera() const;
 
         void set_envmap(std::shared_ptr<Texture> env);
+        void set_ibl_intensity(float intensity);
+
         void set_sun(float altitude, float azimuth, glm::vec3 color = glm::vec3(1.0f));
 
     private:
@@ -39,6 +41,7 @@ class Scene : NonMovable {
         glm::vec3 _sun_color = glm::vec3(1.0f);
 
         std::shared_ptr<Texture> _envmap;
+        float _ibl_intensity = 1.0f;
         Material _sky_material;
 
         Camera _camera;

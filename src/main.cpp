@@ -24,6 +24,7 @@ static float delta_time = 0.0f;
 static float sun_altitude = 45.0f;
 static float sun_azimuth = 45.0f;
 static float sun_intensity = 7.0f;
+static float ibl_intensity = 1.0f;
 static float exposure = 0.33f;
 
 static std::unique_ptr<Scene> scene;
@@ -131,6 +132,7 @@ void load_scene(const std::string& filename) {
     if(auto res = Scene::from_gltf(filename); res.is_ok) {
         scene = std::move(res.value);
         scene->set_envmap(envmap);
+        scene->set_ibl_intensity(ibl_intensity);
         scene->set_sun(sun_altitude, sun_azimuth, glm::vec3(sun_intensity));
     } else {
         std::cerr << "Unable to load scene (" << filename << ")" << std::endl;
@@ -208,6 +210,11 @@ void gui(ImGuiRenderer& imgui) {
 
         if(ImGui::BeginMenu("Lighting")) {
             ImGui::DragFloat("Exposure", &exposure, 0.01f, 0.01f, 10.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+
+            ImGui::Separator();
+
+            ImGui::DragFloat("IBL intensity", &ibl_intensity, 0.01f, 0.0f, 1.0f);
+            scene->set_ibl_intensity(ibl_intensity);
 
             ImGui::Separator();
 

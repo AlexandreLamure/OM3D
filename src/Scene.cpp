@@ -41,10 +41,14 @@ void Scene::set_envmap(std::shared_ptr<Texture> env) {
     _envmap = std::move(env);
 }
 
+void Scene::set_ibl_intensity(float intensity) {
+    _ibl_intensity = intensity;
+}
+
 void Scene::set_sun(float altitude, float azimuth, glm::vec3 color) {
     // Convert from degrees to radians
-    const float alt = glm::radians(altitude); 
-    const float azi = glm::radians(azimuth); 
+    const float alt = glm::radians(altitude);
+    const float azi = glm::radians(azimuth);
     // Convert from polar to cartesian
     _sun_direction = glm::vec3(sin(azi) * cos(alt), sin(alt), cos(azi) * cos(alt));
     _sun_color = color;
@@ -61,6 +65,7 @@ void Scene::render() const {
         mapping[0].point_light_count = u32(_point_lights.size());
         mapping[0].sun_color = _sun_color;
         mapping[0].sun_dir = glm::normalize(_sun_direction);
+        mapping[0].ibl_intensity = _ibl_intensity;
     }
     buffer.bind(BufferUsage::Uniform, 0);
 
@@ -89,6 +94,7 @@ void Scene::render() const {
 
     // Render the sky
     _sky_material.bind();
+    _sky_material.set_uniform(HASH("intensity"), _ibl_intensity);
     draw_full_screen_triangle();
 
     // Render every object

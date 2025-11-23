@@ -39,7 +39,7 @@ class Material {
 
         // Uniform is set immediately and might get overriden by 'set_uniform' called on OTHER materials
         template<typename... Args>
-        void set_uniform(Args&&... args) {
+        void set_uniform(Args&&... args) const {
             _program->set_uniform(FWD(args)...);
         }
 
