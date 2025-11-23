@@ -99,25 +99,6 @@ void Framebuffer::bind(bool clear_depth, bool clear_color) const {
     }
 }
 
-void Framebuffer::blit(bool depth) const {
-    const WriteMask mask = WriteMask::get();
-    DEFER(WriteMask::set(mask));
-    WriteMask::set_all();
-
-    i32 binding = 0;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &binding);
-    ALWAYS_ASSERT(u32(binding) != _handle.get(), "Framebuffer is bound");
-
-    int viewport[4] = {};
-    glGetIntegerv(GL_VIEWPORT, viewport);
-
-    glBlitNamedFramebuffer(
-        _handle.get(), binding,
-        0, 0, _size.x, _size.y,
-        0, 0, viewport[2], viewport[3],
-        GL_COLOR_BUFFER_BIT | (depth ? GL_DEPTH_BUFFER_BIT : 0), GL_NEAREST);
-}
-
 const glm::uvec2& Framebuffer::size() const {
     return _size;
 }

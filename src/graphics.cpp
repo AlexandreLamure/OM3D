@@ -189,6 +189,19 @@ void draw_full_screen_triangle() {
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void blit_to_screen(const Texture& tex) {
+    const std::shared_ptr<Program> blit_program = Program::from_files("passthrough.frag", "screen.vert");
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    int viewport[4] = {};
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    blit_program->bind();
+    tex.bind(0);
+    draw_full_screen_triangle();
+}
+
 std::shared_ptr<Texture> default_black_texture() {
     return default_textures.black;
 }
