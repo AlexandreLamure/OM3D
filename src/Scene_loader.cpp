@@ -366,6 +366,8 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
         }
     }
 
+    const std::string emissive_strength_ext_name = "KHR_materials_emissive_strength";
+
     for(auto [node_index, node_transform] : node_transforms) {
         const tinygltf::Node& node = gltf.nodes[node_index];
 
@@ -436,6 +438,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                     auto metal_rough = load_texture(metal_rough_info, false);
                     auto emissive = load_texture(emissive_info, false);
 
+
                     mat = std::make_shared<Material>(Material::textured_pbr_material(alpha_test));
 
                     if(!opaque && !mask) {
@@ -459,6 +462,7 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                         mat->set_texture(3u, emissive);
                     }
 
+
                     if(alpha_test) {
                         mat->set_stored_uniform(HASH("alpha_cutoff"), float(gltf_mat.alphaCutoff));
                     }
@@ -476,11 +480,18 @@ Result<std::unique_ptr<Scene>> Scene::from_gltf(const std::string& file_name) {
                         gltf_mat.pbrMetallicRoughness.roughnessFactor
                     ));
 
+
+
+                    float emissive_factor = 1.0f;
+                    if(const auto it = gltf_mat.extensions.find(emissive_strength_ext_name); it != gltf_mat.extensions.end()) {
+                        emissive_factor = float(it->second.Get("emissiveStrength").GetNumberAsDouble());
+                    }
+
                     mat->set_stored_uniform(HASH("emissive_factor"), glm::vec3(
                         gltf_mat.emissiveFactor[0],
                         gltf_mat.emissiveFactor[1],
                         gltf_mat.emissiveFactor[2]
-                    ));
+                    ) * emissive_factor);
                 }
 
                 material = mat;
