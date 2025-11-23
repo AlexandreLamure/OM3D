@@ -26,7 +26,7 @@ void Material::set_double_sided(bool double_sided) {
 }
 
 void Material::set_texture(u32 slot, std::shared_ptr<Texture> tex) {
-    if(const auto it = std::find_if(_textures.begin(), _textures.end(), [&](const auto& t) { return t.second == tex; }); it != _textures.end()) {
+    if(const auto it = std::find_if(_textures.begin(), _textures.end(), [&](const auto& t) { return t.first == slot; }); it != _textures.end()) {
         it->second = std::move(tex);
     } else {
         _textures.emplace_back(slot, std::move(tex));
@@ -106,7 +106,7 @@ Material Material::textured_pbr_material(bool alpha_test) {
     material.set_texture(0u, default_white_texture());
     material.set_texture(1u, default_normal_texture());
     material.set_texture(2u, default_metal_rough_texture());
-    material.set_texture(3u, default_black_texture());
+    material.set_texture(3u, default_white_texture());
 
     return material;
 }
