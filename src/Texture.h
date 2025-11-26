@@ -55,6 +55,7 @@ namespace OM3D
         glm::uvec2 size() const;
 
         static u32 mip_levels(glm::uvec2 size);
+        void activate_compare_mode() const;
 
     private:
         friend class Framebuffer;

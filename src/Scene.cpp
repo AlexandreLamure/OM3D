@@ -104,24 +104,35 @@ namespace OM3D
                 -5 * real_scene_radius, 5 * real_scene_radius,
                 real_scene_radius * -10.0f, real_scene_radius * 10.0f));
 
-            std::cout << "Camera position: " << _camera.position()[0] << ", "
-                      << _camera.position()[1] << ", " << _camera.position()[2]
-                      << "\n";
-            std::cout << "light position: " << light_position[0] << ", "
-                      << light_position[1] << ", " << light_position[2] << "\n";
-            std::cout << "Scene center: " << average_position[0] << ", "
-                      << average_position[1] << ", " << average_position[2]
-                      << "\n";
+            // std::cout << "Camera position: " << _camera.position()[0] << ", "
+            //           << _camera.position()[1] << ", " <<
+            //           _camera.position()[2]
+            //           << "\n";
+            // std::cout << "light position: " << light_position[0] << ", "
+            //           << light_position[1] << ", " << light_position[2] <<
+            //           "\n";
+            // std::cout << "Scene center: " << average_position[0] << ", "
+            //           << average_position[1] << ", " << average_position[2]
+            //           << "\n";
         }
 
         // Fill and bind frame data buffer
         TypedBuffer<shader::FrameData> buffer(nullptr, 1);
         {
             auto mapping = buffer.map(AccessType::WriteOnly);
+
             mapping[0].camera.view_proj = _camera.view_proj_matrix();
             mapping[0].camera.inv_view_proj =
                 glm::inverse(_camera.view_proj_matrix());
             mapping[0].camera.position = _camera.position();
+
+            // Shadow mapping camera
+            mapping[0].shadow_camera.view_proj =
+                _shadow_camera.view_proj_matrix();
+            mapping[0].shadow_camera.inv_view_proj =
+                glm::inverse(_shadow_camera.view_proj_matrix());
+            mapping[0].shadow_camera.position = _shadow_camera.position();
+
             mapping[0].point_light_count = u32(_point_lights.size());
             mapping[0].sun_color = _sun_color;
             mapping[0].sun_dir = glm::normalize(_sun_direction);
@@ -182,16 +193,12 @@ namespace OM3D
                                _backface_culling);
                 }
             }
-
-            for (const SceneObject &obj : _objects)
-            {
-                obj.render(camera(), frustum, after_z_prepass,
-                           _backface_culling);
-            }
         }
         if (pass_type == PassType::SHADOW
             || pass_type == PassType::SHADOW_NO_DEPTH)
         {
+            _shadow_camera = _camera;
+
             // restore camera view and matrix
             _camera.set_view(view_matrix);
             _camera.set_proj(projection_matrix);

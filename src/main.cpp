@@ -484,6 +484,7 @@ struct RendererState
             state.shadow_depth_texture =
                 Texture(glm::uvec2(2048, 2048), ImageFormat::Depth32_FLOAT,
                         WrapMode::Clamp);
+            state.shadow_depth_texture.activate_compare_mode();
             state.depth_framebuffer = Framebuffer(&state.depth_texture);
             state.shadow_depth_framebuffer =
                 Framebuffer(&state.shadow_depth_texture);
@@ -581,6 +582,8 @@ int main(int argc, char **argv)
                     PROFILE_GPU("Shadow Pass");
                     renderer.shadow_depth_framebuffer.bind(true, false);
                     scene->render(PassType::SHADOW);
+
+                    renderer.shadow_depth_texture.bind(6);
                 }
                 {
                     PROFILE_GPU("Main Pass");

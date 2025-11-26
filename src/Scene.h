@@ -59,6 +59,7 @@ namespace OM3D
         Material _sky_material;
 
         Camera _camera;
+        Camera _shadow_camera;
     };
 
 } // namespace OM3D

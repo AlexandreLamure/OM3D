@@ -186,4 +186,10 @@ namespace OM3D
         return 1 + u32(std::floor(std::log2(side)));
     }
 
+    void Texture::activate_compare_mode() const
+    {
+        glTextureParameteri(_handle.get(),GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+        glTextureParameteri(_handle.get(),GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    }
+
 } // namespace OM3D
