@@ -70,6 +70,9 @@ void main() {
     {
         acc += frame.sun_color * eval_brdf(normal, view_dir, frame.sun_dir, base_color, metallic, roughness);
 
+        float shadow_coeff = get_shadow_coefficient(in_position, in_shadow, frame.shadow_camera.view_proj);
+        acc *= shadow_coeff;
+
         for(uint i = 0; i != frame.point_light_count; ++i) {
             PointLight light = point_lights[i];
             const vec3 to_light = (light.position - in_position);
@@ -84,8 +87,7 @@ void main() {
             acc += eval_brdf(normal, view_dir, light_vec, base_color, metallic, roughness) * att * light.color;
         }
     }
-    float shadow_coeff = get_shadow_coefficient(in_position, gl_FragDepth, in_shadow, frame.shadow_camera.view_proj);
-    out_color = vec4(acc * shadow_coeff, alpha);
+    out_color = vec4(acc, alpha);
 
 
 #ifdef DEBUG_NORMAL
