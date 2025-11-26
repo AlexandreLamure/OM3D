@@ -84,29 +84,31 @@ namespace OM3D
         if (pass_type == PassType::SHADOW
             || pass_type == PassType::SHADOW_NO_DEPTH)
         {
-            const auto [average_position, scene_radius] =
-                get_scene_center_and_radius();
-            (void)average_position;
-            (void)scene_radius;
+            // const auto [average_position, scene_radius] =
+            //     get_scene_center_and_radius();
+            glm::vec3 average_position = glm::vec3(0, 0, 0);
+
             float real_scene_radius = 10.f;
-            glm::vec3 light_position =
-                average_position - _sun_direction * scene_radius;
             glm::vec3 light_dir = _sun_direction;
-            (void)light_position;
-            (void)light_dir;
-            _camera.set_view(glm::lookAt(light_position, average_position,
-                                         glm::vec3(0.0, 1.0, 0.0)));
+            glm::vec3 light_position = average_position - light_dir;
+
+            glm::vec3 global_up = glm::vec3(0.0, 1.0, 0.0);
+            glm::vec3 up_camera =
+                glm::cross(glm::cross(glm::normalize(light_dir), global_up),
+                           glm::normalize(light_dir));
+
+            _camera.set_view(glm::lookAt(
+                light_position, light_position - light_dir, up_camera));
             _camera.set_proj(Camera::orthographic(
-                -2 * real_scene_radius, 2 * real_scene_radius,
-                -2 * real_scene_radius, 2 * real_scene_radius,
+                -5 * real_scene_radius, 5 * real_scene_radius,
+                -5 * real_scene_radius, 5 * real_scene_radius,
                 real_scene_radius * -10.0f, real_scene_radius * 10.0f));
 
             std::cout << "Camera position: " << _camera.position()[0] << ", "
                       << _camera.position()[1] << ", " << _camera.position()[2]
                       << "\n";
             std::cout << "light position: " << light_position[0] << ", "
-                      << light_position[1] << ", " << light_position[2]
-                      << "\n";
+                      << light_position[1] << ", " << light_position[2] << "\n";
             std::cout << "Scene center: " << average_position[0] << ", "
                       << average_position[1] << ", " << average_position[2]
                       << "\n";
