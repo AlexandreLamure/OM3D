@@ -88,14 +88,15 @@ namespace OM3D
                 get_scene_center_and_radius();
             (void)average_position;
             (void)scene_radius;
-            glm::vec3 light_position = _sun_direction * 10.f;
-            glm::vec3 light_dir = _sun_direction;
-            _camera.set_view(
-                glm::lookAt(light_position, light_dir,
-                            glm::cross(light_dir, glm::vec3(0.0, 1.0, 0.0))));
+            float real_scene_radius = 10.f;
+            glm::vec3 light_position = -_sun_direction * real_scene_radius;
+            glm::vec3 light_dir = -_sun_direction;
+            _camera.set_view(glm::lookAt(light_position, light_dir,
+                                         glm::vec3(0.0, 1.0, 0.0)));
             _camera.set_proj(Camera::orthographic(
-                -scene_radius, scene_radius, -scene_radius, scene_radius,
-                scene_radius * 0.01f, scene_radius * 3.0f));
+                -real_scene_radius, real_scene_radius, -real_scene_radius,
+                real_scene_radius, real_scene_radius * 0.01f,
+                real_scene_radius * 3.0f));
 
             std::cout << "Camera position: " << _camera.position()[0] << ", "
                       << _camera.position()[1] << ", " << _camera.position()[2]
