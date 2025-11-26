@@ -122,5 +122,22 @@ float get_shadow_coefficient(vec3 position, sampler2DShadow shadow_sampler, mat4
     vec4 clip_space_vec4 = shadow_camera_view_proj * vec4(position, 1.0);
     vec3 clip_space = vec3(clip_space_vec4) / clip_space_vec4.w;
     clip_space.xy = clip_space.xy * 0.5 + 0.5;
-    return texture(shadow_sampler, clip_space);
+    clip_space.z = clip_space.z + 0.0002; // bias
+    
+    if(clip_space.x < 0.0 || clip_space.x > 1.0) return 1.0;
+    if(clip_space.y < 0.0 || clip_space.y > 1.0) return 1.0;
+    if(clip_space.z < 0.0) return 1.0;
+    if(clip_space.z > 1.0) return 1.0;
+
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadow_sampler, 0).xy;
+    
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            vec2 uv_offset = clip_space.xy + vec2(i, j) * texelSize;
+            shadow += texture(shadow_sampler, vec3(uv_offset, clip_space.z));
+        }
+    }
+    
+    return shadow / 9.0;
 }
