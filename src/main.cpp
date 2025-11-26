@@ -19,11 +19,14 @@ static float delta_time = 0.0f;
 static float sun_altitude = 45.0;
 static float sun_azimuth = 45.0;
 static float sun_intensity = 7.0;
+static float sun_bias = 0.20f;
 static float exposure = 1.0;
+
 static bool backface_culling = true;
 static bool frustum_culling = true;
 static float frustum_bounding_sphere_radius_coeff = 1.0;
 static bool z_prepass = true;
+static bool shadow_pass = true;
 
 static std::unique_ptr<Scene> scene;
 static std::shared_ptr<Texture> envmap;
@@ -75,7 +78,6 @@ void process_inputs(GLFWwindow *window, Camera &camera)
 
     glm::dvec2 new_mouse_pos;
     glfwGetCursorPos(window, &new_mouse_pos.x, &new_mouse_pos.y);
-
     {
         glm::vec3 movement = {};
         if (glfwGetKey(window, 'W') == GLFW_PRESS)
@@ -132,7 +134,6 @@ void process_inputs(GLFWwindow *window, Camera &camera)
                 (glm::mat3(rot) * camera.up())));
         }
     }
-
     {
         int width = 0;
         int height = 0;
@@ -272,6 +273,9 @@ void gui(ImGuiRenderer &imgui)
                 scene->set_sun(sun_altitude, sun_azimuth,
                                glm::vec3(sun_intensity));
             }
+
+            ImGui::DragFloat("Sun Bias", &sun_bias, 0.05f, 0.0f, 1.0f, "%.1f");
+
             ImGui::DragFloat("Exposure", &exposure, 0.1f, 0.01f, 100.0f, "%.1f",
                              ImGuiSliderFlags_Logarithmic);
             ImGui::EndMenu();
@@ -294,6 +298,8 @@ void gui(ImGuiRenderer &imgui)
                                        frustum_bounding_sphere_radius_coeff);
 
             ImGui::Checkbox("Z-prepass", &z_prepass);
+
+            ImGui::Checkbox("Shadow Pass", &shadow_pass);
 
             ImGui::EndMenu();
         }
@@ -542,7 +548,6 @@ int main(int argc, char **argv)
         }
 
         process_profile_markers();
-
         {
             int width = 0;
             int height = 0;
@@ -584,6 +589,7 @@ int main(int argc, char **argv)
                 }
             }
             else
+            // Render the scene
             {
                 {
                     PROFILE_GPU("Shadow Pass");

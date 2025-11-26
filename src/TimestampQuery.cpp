@@ -38,6 +38,8 @@ namespace OM3D
             // this assert
             ALWAYS_ASSERT(index < 65536, "Too many profile markers");
 
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, name);
+
             Marker &marker = current_frame.emplace_back();
             marker.name = name;
             marker.cpu_time = program_time();
@@ -48,6 +50,8 @@ namespace OM3D
 
         void end_profile_zone(u32 zone_id)
         {
+            glPopDebugGroup();
+
             Marker &marker = current_frame[zone_id];
             marker.cpu_time = program_time() - marker.cpu_time;
             marker.contained_zones = u32(current_frame.size()) - zone_id - 1;
