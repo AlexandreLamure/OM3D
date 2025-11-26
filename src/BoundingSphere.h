@@ -16,4 +16,7 @@ public:
 
     bool collideFrustum(OM3D::Camera, OM3D::Frustum, const glm::vec3 &scale,
                         const glm::vec3 &translation) const;
+
+    const glm::vec3 &get_center() const;
+    float get_radius() const;
 };

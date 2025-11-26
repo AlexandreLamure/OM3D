@@ -1,10 +1,9 @@
-#include "StaticMesh.h"
-
 #include <glad/gl.h>
 #include <glm/geometric.hpp>
 #include <iostream>
 
 #include "BoundingSphere.h"
+#include "StaticMesh.h"
 
 namespace OM3D
 {
@@ -46,7 +45,6 @@ namespace OM3D
             && !_bounding_sphere.collideFrustum(camera, frustum, scale,
                                                 translation))
         {
-            return;
         }
 
         _vertex_buffer.bind(BufferUsage::Attribute);
@@ -80,6 +78,11 @@ namespace OM3D
 
         glDrawElements(GL_TRIANGLES, int(_index_buffer.element_count()),
                        GL_UNSIGNED_INT, nullptr);
+    }
+
+    const BoundingSphere &StaticMesh::get_bounding_sphere() const
+    {
+        return _bounding_sphere;
     }
 
 } // namespace OM3D

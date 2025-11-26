@@ -77,9 +77,34 @@ namespace OM3D
             frustum_bounding_sphere_radius_coeff;
     }
 
-    void Scene::render(const enum PassType pass_type) const
+    void Scene::render(const enum PassType pass_type)
     {
-        std::cout << "Rendering scene with pass type: " << pass_type << '\n';
+        const glm::mat4 view_matrix = _camera.view_matrix();
+        const glm::mat4 projection_matrix = _camera.projection_matrix();
+        if (pass_type == PassType::SHADOW
+            || pass_type == PassType::SHADOW_NO_DEPTH)
+        {
+            const auto [average_position, scene_radius] =
+                get_scene_center_and_radius();
+            (void)average_position;
+            (void)scene_radius;
+            glm::vec3 light_position = _sun_direction * 10.f;
+            glm::vec3 light_dir = _sun_direction;
+            _camera.set_view(
+                glm::lookAt(light_position, light_dir,
+                            glm::cross(light_dir, glm::vec3(0.0, 1.0, 0.0))));
+            _camera.set_proj(Camera::orthographic(
+                -scene_radius, scene_radius, -scene_radius, scene_radius,
+                scene_radius * 0.01f, scene_radius * 3.0f));
+
+            std::cout << "Camera position: " << _camera.position()[0] << ", "
+                      << _camera.position()[1] << ", " << _camera.position()[2]
+                      << "\n";
+            std::cout << "Scene center: " << average_position[0] << ", "
+                      << average_position[1] << ", " << average_position[2]
+                      << "\n";
+        }
+
         // Fill and bind frame data buffer
         TypedBuffer<shader::FrameData> buffer(nullptr, 1);
         {
@@ -124,8 +149,8 @@ namespace OM3D
         frustum._culling_bounding_sphere_coeff =
             _frustum_bounding_sphere_radius_coeff;
 
-        bool after_z_prepass = pass_type == PassType::MAIN;
-        std::cout << "after z prepass: " << after_z_prepass << '\n';
+        bool after_z_prepass =
+            pass_type == PassType::SHADOW || pass_type == PassType::MAIN;
 
         // Render every object
 
@@ -156,6 +181,39 @@ namespace OM3D
                            _backface_culling);
             }
         }
+        if (pass_type == PassType::SHADOW
+            || pass_type == PassType::SHADOW_NO_DEPTH)
+        {
+            // restore camera view and matrix
+            _camera.set_view(view_matrix);
+            _camera.set_proj(projection_matrix);
+        }
+    }
+
+    std::pair<glm::vec3, float> Scene::get_scene_center_and_radius()
+    {
+        glm::vec3 sum_of_positions = { 0.0, 0.0, 0.0 };
+        for (const SceneObject &object : _objects)
+        {
+            // get the translation part of the transform of an object
+            sum_of_positions +=
+                object.get_static_mesh().get_bounding_sphere().get_center();
+        }
+        const float div = 1.0f / _objects.size();
+        glm::vec3 average_position =
+            glm::vec3(sum_of_positions[0] * div, sum_of_positions[1] * div,
+                      sum_of_positions[2] * div);
+        float squared_scene_radius = 0;
+        for (const SceneObject &object : _objects)
+        {
+            const glm::vec3 to_center = average_position - object.translation();
+            const float squared_object_size =
+                glm::dot(object.scale(), object.scale());
+            squared_scene_radius =
+                std::max(squared_scene_radius,
+                         glm::dot(to_center, to_center) + squared_object_size);
+        }
+        return { average_position, std::sqrt(squared_scene_radius) };
     }
 
 } // namespace OM3D

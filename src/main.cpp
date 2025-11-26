@@ -475,8 +475,12 @@ struct RendererState
                 Texture(size, ImageFormat::Depth32_FLOAT, WrapMode::Clamp);
             state.lit_hdr_texture =
                 Texture(size, ImageFormat::RGBA16_FLOAT, WrapMode::Clamp);
-            state.depth_framebuffer =
-                Framebuffer(&state.depth_texture, std::array<Texture *, 0>{});
+            state.shadow_depth_texture =
+                Texture(glm::uvec2(2048, 2048), ImageFormat::Depth32_FLOAT,
+                        WrapMode::Clamp);
+            state.depth_framebuffer = Framebuffer(&state.depth_texture);
+            state.shadow_depth_framebuffer =
+                Framebuffer(&state.shadow_depth_texture);
             state.main_framebuffer = Framebuffer(
                 &state.depth_texture, std::array{ &state.lit_hdr_texture });
         }
@@ -487,9 +491,11 @@ struct RendererState
     glm::uvec2 size = {};
 
     Texture depth_texture;
+    Texture shadow_depth_texture;
     Texture lit_hdr_texture;
 
     Framebuffer depth_framebuffer;
+    Framebuffer shadow_depth_framebuffer;
     Framebuffer main_framebuffer;
     Framebuffer tone_map_framebuffer;
 };
@@ -567,6 +573,11 @@ int main(int argc, char **argv)
                     scene->render(PassType::DEPTH);
                 }
                 {
+                    PROFILE_GPU("Shadow Pass");
+                    renderer.shadow_depth_framebuffer.bind(true, false);
+                    scene->render(PassType::SHADOW);
+                }
+                {
                     PROFILE_GPU("Main Pass");
                     renderer.main_framebuffer.bind(false, false);
                     scene->render(PassType::MAIN);
@@ -574,6 +585,11 @@ int main(int argc, char **argv)
             }
             else
             {
+                {
+                    PROFILE_GPU("Shadow Pass");
+                    renderer.shadow_depth_framebuffer.bind(true, false);
+                    scene->render(PassType::SHADOW_NO_DEPTH);
+                }
                 {
                     PROFILE_GPU("Main Pass (No Depth Prepass)");
                     renderer.main_framebuffer.bind(true, false);

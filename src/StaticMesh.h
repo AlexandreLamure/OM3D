@@ -28,6 +28,8 @@ namespace OM3D
 
         StaticMesh(const MeshData &data);
 
+        const BoundingSphere &get_bounding_sphere() const;
+
     private:
         TypedBuffer<Vertex> _vertex_buffer;
         TypedBuffer<u32> _index_buffer;

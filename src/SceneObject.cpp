@@ -77,4 +77,9 @@ namespace OM3D
         return _rotation;
     }
 
+    const StaticMesh &SceneObject::get_static_mesh() const
+    {
+        return *_mesh;
+    }
+
 } // namespace OM3D
