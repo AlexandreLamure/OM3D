@@ -193,6 +193,7 @@ void blit_to_screen(const Texture& tex) {
     const std::shared_ptr<Program> blit_program = Program::from_files("passthrough.frag", "screen.vert");
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST); // In case glfw gives us a depth buffer
 
     int viewport[4] = {};
     glGetIntegerv(GL_VIEWPORT, viewport);
