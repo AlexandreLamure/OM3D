@@ -7,6 +7,7 @@ struct CameraData {
 
 struct FrameData {
     CameraData camera;
+    CameraData shadow_camera;
 
     vec3 sun_dir;
     uint point_light_count;

@@ -31,6 +31,7 @@ uniform float alpha_cutoff;
 
 layout(binding = 4) uniform samplerCube in_envmap;
 layout(binding = 5) uniform sampler2D brdf_lut;
+layout(binding = 6) uniform sampler2DShadow in_shadow;
 
 layout(binding = 0) uniform Data {
     FrameData frame;
@@ -83,9 +84,8 @@ void main() {
             acc += eval_brdf(normal, view_dir, light_vec, base_color, metallic, roughness) * att * light.color;
         }
     }
-
-
-    out_color = vec4(acc, alpha);
+    float shadow_coeff = get_shadow_coefficient(in_position, in_shadow, frame.shadow_camera.view_proj);
+    out_color = vec4(acc * shadow_coeff, alpha);
 
 
 #ifdef DEBUG_NORMAL
