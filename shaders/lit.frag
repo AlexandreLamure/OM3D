@@ -84,7 +84,7 @@ void main() {
             acc += eval_brdf(normal, view_dir, light_vec, base_color, metallic, roughness) * att * light.color;
         }
     }
-    float shadow_coeff = get_shadow_coefficient(in_position, in_shadow, frame.shadow_camera.view_proj);
+    float shadow_coeff = get_shadow_coefficient(in_position, gl_FragDepth, in_shadow, frame.shadow_camera.view_proj);
     out_color = vec4(acc * shadow_coeff, alpha);
 
 

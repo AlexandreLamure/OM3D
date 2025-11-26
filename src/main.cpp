@@ -484,7 +484,7 @@ struct RendererState
             state.shadow_depth_texture =
                 Texture(glm::uvec2(2048, 2048), ImageFormat::Depth32_FLOAT,
                         WrapMode::Clamp);
-            state.shadow_depth_texture.activate_compare_mode();
+            state.shadow_depth_texture.activate_compare_mode(GL_GEQUAL);
             state.depth_framebuffer = Framebuffer(&state.depth_texture);
             state.shadow_depth_framebuffer =
                 Framebuffer(&state.shadow_depth_texture);

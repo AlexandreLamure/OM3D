@@ -117,10 +117,10 @@ float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
     return ggx1 * ggx2;
 }
 
-float get_shadow_coefficient(vec3 position, sampler2DShadow shadow_sampler, mat4 view_proj)
+float get_shadow_coefficient(vec3 position, float depth, sampler2DShadow shadow_sampler, mat4 shadow_camera_view_proj)
 {
-    vec4 clip_space_vec4 = view_proj * vec4(position, 1.0);
+    vec4 clip_space_vec4 = shadow_camera_view_proj * vec4(position, 1.0);
     vec3 clip_space = vec3(clip_space_vec4) / clip_space_vec4.w;
     clip_space.xy = clip_space.xy * 0.5 + 0.5;
-    return texture(shadow_sampler, clip_space);
+    return texture(shadow_sampler, vec3(clip_space.xy, depth));
 }

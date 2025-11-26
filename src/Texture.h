@@ -7,6 +7,8 @@
 #include <memory>
 #include <vector>
 
+#include "glad/gl.h"
+
 namespace OM3D
 {
 
@@ -55,7 +57,7 @@ namespace OM3D
         glm::uvec2 size() const;
 
         static u32 mip_levels(glm::uvec2 size);
-        void activate_compare_mode() const;
+        void activate_compare_mode(GLint compare_function) const;
 
     private:
         friend class Framebuffer;
